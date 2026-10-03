@@ -126,6 +126,33 @@ export interface RuntimeStatus {
   message: string | null;
 }
 
+export interface InstallerInfo {
+  version: string;
+  file: string;
+  url: string;
+  sha256: string;
+  sizeMb: number;
+  kind: "exe" | "dmg" | "sh";
+}
+
+export interface InstallPlan {
+  version: string;
+  installer: InstallerInfo | null;
+  defaultDir: string | null;
+  needsAdmin: boolean;
+}
+
+export type InstallProgress =
+  | { phase: "downloading"; received: number; total: number | null }
+  | { phase: "verifying" }
+  | { phase: "installing" }
+  | { phase: "checking" };
+
+export type InstallEvent =
+  | { phase: "progress"; progress: InstallProgress }
+  | { phase: "done"; executable: string }
+  | { phase: "failed"; message: string };
+
 export interface DirEntry {
   name: string;
   path: string;

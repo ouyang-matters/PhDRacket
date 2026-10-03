@@ -25,6 +25,7 @@ Complete:
 - Profile and mode selection in the status bar
 - Folder explorer
 - Choose Language for existing files
+- First-run Setup that installs the official Racket when it is missing
 - Signed in-app updates and release builds for Windows and macOS
 
 Remaining:

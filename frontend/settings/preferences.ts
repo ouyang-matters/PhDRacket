@@ -21,6 +21,8 @@ export interface Preferences {
   panelHeight: number;
   explorerVisible: boolean;
   explorerWidth: number;
+  /** The first-run Setup dialog has been completed. */
+  setupDone: boolean;
   /** Ask GitHub for a newer release at startup (nothing is sent but the request). */
   checkForUpdates: boolean;
 }
@@ -42,6 +44,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   explorerVisible: true,
   explorerWidth: 240,
   checkForUpdates: true,
+  setupDone: false,
 };
 
 export function mergePreferences(stored: unknown): Preferences {

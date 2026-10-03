@@ -99,6 +99,16 @@ try {
   await waitFor(`${S}.getState().runtime.state === "ready"`, "Racket to be ready", 120000);
   const rt = await state("runtime.runtime");
   check(rt.version.length > 0, `runtime detected: Racket ${rt.version} at ${rt.executable}`);
+
+  // First launch (fresh settings): Setup opens with clean defaults.
+  await waitFor(`${S}.getState().dialog === "setup"`, "the Setup dialog");
+  await sleep(500);
+  await screenshot("00-setup");
+  const setupButton = await evaluate(`document.querySelector(".setup .primary")?.textContent`);
+  check(setupButton === "Finish", `Setup offers "${setupButton}" when Racket ${rt.version} is installed`);
+  await evaluate(`document.querySelector(".setup .primary").click()`);
+  await waitFor(`${S}.getState().dialog === null && ${S}.getState().prefs.setupDone`, "Setup to finish");
+  check(true, "Setup finishes and is remembered");
   await screenshot("01-start");
 
   // Work on a copy of a corpus file.

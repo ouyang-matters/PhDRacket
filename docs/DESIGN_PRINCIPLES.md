@@ -76,5 +76,16 @@ constraints.
 ## Local and private
 
 PhDRacket requires no account, uploads nothing and collects no telemetry.
-Student code stays on the student's computer. The only network request is the
-optional update check, which asks GitHub whether a newer release exists.
+Student code stays on the student's computer. The only network requests are
+the optional update check, which asks GitHub whether a newer release exists,
+and downloading the official Racket installer when the user asks PhDRacket to
+install Racket.
+
+## Simple setup
+
+A student should be able to install PhDRacket and start working without
+configuring anything. The first launch shows one Setup dialog in which every
+choice already has a sensible default: the course profile, the Racket
+installation and the theme. When Racket is missing, PhDRacket installs the
+official distribution itself instead of sending the student to another
+website.

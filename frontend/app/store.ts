@@ -68,7 +68,7 @@ export interface AppState {
   recentFiles: string[];
   /** Folder shown in the Explorer. */
   folder: string | null;
-  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update";
+  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup";
   /** Bumped when model content changes, so dirty markers re-render. */
   revision: number;
 }
@@ -520,10 +520,13 @@ export async function initialize() {
   await backend.onRuntimeStatus((runtime) => set({ runtime }));
   set({ runtime: await backend.runtimeStatus() });
   const settings = await backend.settings();
+  const prefs = mergePreferences(settings.ui);
   set({
-    prefs: mergePreferences(settings.ui),
+    prefs,
     recentFiles: settings.recentFiles,
     folder: settings.workspaceFolder,
+    // First launch: one Setup dialog with clean defaults.
+    dialog: prefs.setupDone ? null : "setup",
   });
 }
 

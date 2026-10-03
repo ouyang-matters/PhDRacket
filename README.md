@@ -18,9 +18,7 @@ endorsed by the University of Waterloo or the Racket project.
 Download the latest test release from the
 **[Releases page](https://github.com/ouyang-matters/PhDRacket/releases)**.
 
-1. Install [Racket](https://download.racket-lang.org/) first. Use the standard
-   distribution, which includes the teaching languages. CS145 uses Racket 9.3.
-2. Install PhDRacket:
+1. Install PhDRacket:
    - **Windows:** run `PhDRacket_<version>_x64-setup.exe`. Administrator
      rights are not required. If Windows SmartScreen shows a warning, choose
      *More info*, then *Run anyway*. The installer is not code-signed yet.
@@ -29,9 +27,15 @@ Download the latest test release from the
      The app is not notarized yet. The first time you open it, macOS blocks
      it; open *System Settings*, go to *Privacy & Security* and click
      *Open Anyway*.
-3. Start PhDRacket. It finds your Racket installation automatically. If it
-   cannot, click the Racket version in the status bar and choose the `racket`
-   executable.
+2. Start PhDRacket. The Setup dialog asks for your course and theme, with
+   defaults already selected.
+   - If Racket is already installed, PhDRacket finds it, and you click
+     *Finish*.
+   - If not, click *Install Racket 9.3*. PhDRacket downloads the official
+     Racket installer from racket-lang.org, checks it against the published
+     checksum and installs it. On Windows, the official installer asks for
+     administrator permission once. On macOS and Linux it installs into your
+     user folder without administrator rights.
 
 Installed copies check for new versions at startup and install them with one
 click. The check can be turned off in Settings.
@@ -70,8 +74,9 @@ and it does not connect to Marmoset or any other grading system. It cannot
 know private grading tests and never claims that a file will pass them.
 
 Your code stays on your computer. PhDRacket needs no account and collects no
-telemetry. Its only network request is the optional update check, which asks
-GitHub whether a newer release exists.
+telemetry. It only connects to the network to check for PhDRacket updates
+(optional) and, when you ask it to, to download the official Racket
+installer.
 
 ## Status
 

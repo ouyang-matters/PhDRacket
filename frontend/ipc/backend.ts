@@ -6,6 +6,8 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
   AppInfo,
   DirEntry,
+  InstallEvent,
+  InstallPlan,
   EngineEvent,
   OpenedSource,
   RunHandle,
@@ -19,6 +21,10 @@ export const backend = {
   runtimeStatus: () => invoke<RuntimeStatus>("runtime_status"),
   runtimeDiscover: () => invoke<RuntimeInfo[]>("runtime_discover"),
   runtimeSelect: (executable: string | null) => invoke<void>("runtime_select", { executable }),
+  installPlan: (version: string | null) => invoke<InstallPlan>("runtime_install_plan", { version }),
+  installRacket: (version: string, dest: string) => invoke<void>("runtime_install", { version, dest }),
+  onInstallEvent: (f: (e: InstallEvent) => void): Promise<UnlistenFn> =>
+    listen<InstallEvent>("runtime-install", (e) => f(e.payload)),
 
   openSource: (path: string) => invoke<OpenedSource>("source_open", { path }),
   saveSource: (path: string, text: string) => invoke<SaveOutcome>("source_save", { path, text }),

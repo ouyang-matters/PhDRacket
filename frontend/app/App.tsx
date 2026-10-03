@@ -213,6 +213,16 @@ export function App() {
     return () => void unlisten.then((f) => f());
   }, []);
 
+  // Without a usable Racket, open Setup (once per launch).
+  const runtimeState = useApp((s) => s.runtime.state);
+  const setupPrompted = useRef(false);
+  useEffect(() => {
+    if ((runtimeState === "missing" || runtimeState === "error") && !setupPrompted.current) {
+      setupPrompted.current = true;
+      if (getState().dialog === null) setDialog("setup");
+    }
+  }, [runtimeState]);
+
   useEffect(() => {
     const apply = () => {
       document.documentElement.dataset.theme = resolveTheme(prefs.theme);

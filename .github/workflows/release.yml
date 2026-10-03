@@ -54,11 +54,11 @@ jobs:
           releaseBody: |
             Test release of PhDRacket, a modern editor for Racket and the HtDP teaching languages.
 
-            **Before installing:** install [Racket](https://download.racket-lang.org/), standard distribution. CS145 uses Racket 9.3.
-
             **Windows:** download `PhDRacket_<version>_x64-setup.exe` and run it. Administrator rights are not required. If Windows SmartScreen shows a warning, choose *More info*, then *Run anyway*. The installer is not code-signed yet.
 
             **macOS (Apple Silicon and Intel):** download `PhDRacket_<version>_universal.dmg`, open it and drag PhDRacket into Applications. The app is not notarized yet. The first time you open it, macOS blocks it; open *System Settings*, go to *Privacy & Security* and click *Open Anyway*.
+
+            On first launch, PhDRacket finds your Racket installation. If Racket is not installed, click *Install Racket 9.3* in the Setup dialog: PhDRacket downloads the official installer from racket-lang.org, verifies its checksum and installs it. On Windows, the official Racket installer asks for administrator permission once.
 
             Installed copies check for new versions at startup and install them with one click.
 

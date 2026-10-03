@@ -26,6 +26,7 @@ user's computer.
 | Library | License |
 |---|---|
 | Tauri and its plugins (dialog, updater, process) | Apache-2.0 or MIT |
+| ureq | Apache-2.0 or MIT |
 | React, React DOM | MIT |
 | Monaco Editor | MIT |
 | serde, serde_json | Apache-2.0 or MIT |

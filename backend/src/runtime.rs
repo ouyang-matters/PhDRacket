@@ -142,6 +142,14 @@ fn standard_locations() -> Vec<PathBuf> {
         PathBuf::from("/snap/bin/racket"),
         home().join("racket").join("bin").join("racket"),
     ];
+    // Where PhDRacket installs Racket on Linux.
+    if let Ok(entries) = std::fs::read_dir(home().join(".local").join("opt")) {
+        for e in entries.flatten() {
+            if e.file_name().to_string_lossy().starts_with("racket") {
+                out.push(e.path().join("bin").join("racket"));
+            }
+        }
+    }
     for root in [PathBuf::from("/opt"), PathBuf::from("/usr/local")] {
         if let Ok(entries) = std::fs::read_dir(&root) {
             for e in entries.flatten() {

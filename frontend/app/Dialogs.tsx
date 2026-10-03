@@ -1,5 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { checkForUpdates, installUpdate, useUpdate } from "./updates";
+import { SetupDialog } from "./Setup";
+import { Modal } from "./Modal";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import type { RuntimeInfo } from "@shared/protocol";
 import { backend } from "@frontend/ipc/backend";
@@ -7,27 +9,6 @@ import { NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { versionMismatch } from "@shared/models/profiles";
 import { activeProfile, newFile, selectRuntime, setDialog, setPrefs, useApp } from "./store";
 import type { ThemeChoice } from "@frontend/settings/preferences";
-
-function Modal({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  return (
-    <div className="modal-backdrop" onMouseDown={onClose}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(e) => e.stopPropagation()}>
-        <header>
-          <h2>{title}</h2>
-          <button className="icon" aria-label="Close" onClick={onClose}>
-            ×
-          </button>
-        </header>
-        <div className="modal-body">{children}</div>
-      </div>
-    </div>
-  );
-}
 
 function NewFileDialog() {
   const preferred = useApp((s) => activeProfile(s).defaultLanguage);
@@ -252,6 +233,8 @@ export function Dialogs() {
       return <SettingsDialog />;
     case "update":
       return <UpdateDialog />;
+    case "setup":
+      return <SetupDialog />;
     default:
       return null;
   }

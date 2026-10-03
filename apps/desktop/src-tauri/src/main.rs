@@ -17,6 +17,8 @@ fn main() {
             commands::runtime_status,
             commands::runtime_discover,
             commands::runtime_select,
+            commands::runtime_install_plan,
+            commands::runtime_install,
             commands::source_open,
             commands::source_save,
             commands::source_save_as,

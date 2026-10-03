@@ -11,6 +11,7 @@ use phdracket_core::settings::Settings;
 use phdracket_core::source::{self, OpenedSource, SaveOutcome, SourceSnapshot};
 use phdracket_core::bridge;
 use phdracket_core::workspace::{self, DirEntry};
+use phdracket_core::install::{self, InstallProgress, InstallerInfo};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -249,6 +250,65 @@ pub fn eval_interaction(state: State<AppState>, text: String) -> Result<RunHandl
 #[tauri::command]
 pub fn stop_program(state: State<AppState>) -> bool {
     engine(&state).map(|e| e.stop()).unwrap_or(false)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstallPlan {
+    version: String,
+    /// The official installer for this computer, if one is known.
+    installer: Option<InstallerInfo>,
+    default_dir: Option<PathBuf>,
+    /// Windows asks for administrator permission once.
+    needs_admin: bool,
+}
+
+/// What "Install Racket" would do on this computer.
+#[tauri::command]
+pub fn runtime_install_plan(version: Option<String>) -> InstallPlan {
+    let version = version.unwrap_or_else(|| install::DEFAULT_VERSION.to_owned());
+    InstallPlan {
+        installer: install::installer_for(&version),
+        default_dir: install::default_install_dir(&version),
+        needs_admin: cfg!(windows),
+        version,
+    }
+}
+
+#[derive(Clone, Serialize)]
+#[serde(tag = "phase", rename_all = "kebab-case", rename_all_fields = "camelCase")]
+enum InstallEvent {
+    Progress { progress: InstallProgress },
+    Done { executable: PathBuf },
+    Failed { message: String },
+}
+
+/// Downloads, verifies and installs the official Racket, then uses it.
+/// Progress is reported through `runtime-install` events.
+#[tauri::command]
+pub fn runtime_install(app: AppHandle, version: String, dest: String) {
+    std::thread::spawn(move || {
+        let emit = |e: InstallEvent| {
+            let _ = app.emit("runtime-install", e);
+        };
+        let downloads = match app.path().app_cache_dir() {
+            Ok(d) => d.join("downloads"),
+            Err(e) => return emit(InstallEvent::Failed { message: e.to_string() }),
+        };
+        let dest = PathBuf::from(dest);
+        let progress = |p: InstallProgress| {
+            let _ = app.emit("runtime-install", InstallEvent::Progress { progress: p });
+        };
+        match install::install(&version, &dest, &downloads, &progress) {
+            Ok(rt) => {
+                with_settings(&app, |s| s.racket_executable = Some(rt.executable.clone()));
+                persist_settings(&app);
+                emit(InstallEvent::Done { executable: rt.executable.clone() });
+                start_runtime(app.clone(), Some(rt.executable));
+            }
+            Err(e) => emit(InstallEvent::Failed { message: e.to_string() }),
+        }
+    });
 }
 
 /// Lists one folder for the Explorer (read-only).

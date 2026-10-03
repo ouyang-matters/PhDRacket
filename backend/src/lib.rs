@@ -6,6 +6,7 @@
 
 pub mod bridge;
 pub mod engine;
+pub mod install;
 pub mod language;
 pub mod protocol;
 pub mod runtime;
