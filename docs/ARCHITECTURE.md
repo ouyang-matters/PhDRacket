@@ -133,7 +133,8 @@ The Rust crate in `backend/src/`:
 | `runtime.rs` | Discovery and probing of Racket installations. |
 | `bridge.rs` | Installing and compiling the bridge. |
 | `engine.rs` | The Run, Interactions and Stepper processes. |
-| `workspace.rs` | Read-only folder listing for the Explorer. |
+| `workspace.rs` | Read-only folder listing for the Explorer, recursive listing for Go to File, and Find in Files. |
+| `remote.rs` | Running a program on an SSH host for remote compute, through the system `ssh` client in batch mode. |
 | `protocol.rs` | Typed messages. |
 | `settings.rs` | Application settings in the per-user configuration directory. |
 
@@ -151,7 +152,12 @@ signature and installs it only after the user confirms.
 
 | Module | Responsibility |
 |---|---|
-| `app/` | Application state and actions (`store.ts`), layout, dialogs, update checks |
+| `app/` | Application state and actions (`store.ts`), the workbench composition (`App.tsx`), dialogs, update checks, external links (`links.ts`) |
+| `commands/` | The command registry, keybindings and menu model. See [Workbench](WORKBENCH.md) |
+| `workbench/` | Menu bar, activity bar and sidebar, editor group layout, bottom panel framework, quick input, context menus, icons, built-in commands |
+| `theme/` | Themes as data, the theme engine and design tokens |
+| `search/` | Find in Files |
+| `compute/` | Remote compute targets and tasks |
 | `ipc/` | The only module that calls the backend |
 | `editor/` | Monaco setup (bundled locally, without Monaco's language services), Racket tokenizer, conversion of Racket source locations to editor ranges |
 | `explorer/` | Folder tree |
@@ -159,7 +165,7 @@ signature and installs it only after the user confirms.
 | `run/` | Pure reducer from bridge events to Run and Interactions state |
 | `stepper/` | Stepper state and panel |
 | `tests/`, `problems/` | Test results, diagnostics and program output |
-| `status-bar/` | Profile selector, language, runtime and cursor position |
+| `status-bar/` | Profile, language, runtime, compute target and cursor position |
 | `settings/` | Preferences |
 | `workspace/` | New-file templates, language detection for display, and the Choose Language edit |
 

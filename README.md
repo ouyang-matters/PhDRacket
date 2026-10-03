@@ -82,8 +82,18 @@ click. The check can be turned off in Settings.
   editor.
 - **Diagnostics.** Racket's own error messages with their source location. The
   original message is always available.
-- **Editor.** Tabs, a folder explorer, find and replace, multiple cursors,
-  bracket matching, light, dark and high-contrast themes, configurable fonts.
+- **Workbench.** Menus, a command palette (Ctrl+Shift+P), Go to File
+  (Ctrl+P), configurable keyboard shortcuts, and editor groups that split
+  right and down, with the same file shown in several groups as one buffer.
+  See [Workbench](docs/WORKBENCH.md).
+- **Editor.** Tabs, a folder explorer, Find in Files, find and replace,
+  multiple cursors, structural selection of S-expressions, Go to Symbol and
+  Go to Definition within a file, bracket matching, configurable fonts.
+- **Themes.** PhDRacket Light and Dark, Midnight, Paper, two high-contrast
+  themes and two unofficial Waterloo-inspired themes, all checked for
+  contrast, with live preview.
+- **Remote compute.** Optionally run long programs on your own SSH hosts
+  with Run Remotely, while you keep editing. Run always stays local.
 - **Choose Language.** Click the language in the status bar to switch between
   the teaching languages and `#lang racket`. Only the language declaration
   changes, in the same format DrRacket writes, and the change can be undone.
@@ -100,7 +110,9 @@ know private grading tests and never claims that a file will pass them.
 Your code stays on your computer. PhDRacket needs no account and collects no
 telemetry. It only connects to the network to check for PhDRacket updates
 and announcements (both can be turned off in Settings) and, when you ask it
-to, to download the official Racket installer.
+to, to download the official Racket installer or, with Run Remotely, to send
+the current file to a remote host you configured, over your own SSH
+connection.
 
 ## Status
 

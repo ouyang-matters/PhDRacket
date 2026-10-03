@@ -29,6 +29,7 @@ user's computer.
 | ureq | Apache-2.0 or MIT |
 | React, React DOM | MIT |
 | Monaco Editor | MIT |
+| Lucide icons (lucide-react) | ISC |
 | serde, serde_json | Apache-2.0 or MIT |
 | sha2 | Apache-2.0 or MIT |
 | thiserror | Apache-2.0 or MIT |
