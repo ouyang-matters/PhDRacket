@@ -141,9 +141,10 @@ it automatically.
 
 ## Identity
 
-- The mark (`frontend/workbench/BrandMark.tsx`): a P built from parentheses
-  (a tall `(` for the stem, a `)` for the bowl) whose λ leg also makes it an
-  R. It appears in the menu bar, start page, About and startup screen.
+- The mark (`frontend/workbench/BrandMark.tsx`): the application icon's
+  mortarboard resting on a pair of parentheses, without the background tile.
+  It appears in the menu bar, start page, About and startup screen. The
+  interface has no decorative background graphics.
 - The application icon: `apps/desktop/icon.svg` is the master. `pnpm icons`
   generates the Windows (`.ico`), macOS (`.icns`) and Linux and Store PNG
   icons in `apps/desktop/src-tauri/icons/`.

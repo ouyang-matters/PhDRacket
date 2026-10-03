@@ -1,14 +1,7 @@
-// The PhDRacket mark: a "P" built from parentheses (a tall "(" for the stem,
-// a ")" for the bowl) with a λ as its leg. The same geometry is used by the
-// application icon (apps/desktop/icon.svg) and the splash screen
-// (apps/desktop/index.html).
-
-export const MARK_PATHS = {
-  stem: "M27 8 C 15 20, 15 44, 27 56",
-  bowl: "M31 9 C 47 13, 47 33, 31 37",
-  lambdaLong: "M36 33 L 50 56",
-  lambdaShort: "M43 44.5 L 35 56",
-};
+// The PhDRacket mark: a mortarboard resting on a pair of parentheses, the
+// same drawing as the application icon (apps/desktop/icon.svg) without its
+// background tile. The board and parentheses take the text color; the
+// tassel takes the theme's accent.
 
 export function BrandMark({ size = 24, className, title }: { size?: number; className?: string; title?: string }) {
   return (
@@ -16,7 +9,7 @@ export function BrandMark({ size = 24, className, title }: { size?: number; clas
       className={`brand-mark${className ? ` ${className}` : ""}`}
       width={size}
       height={size}
-      viewBox="0 0 64 64"
+      viewBox="148 150 728 728"
       fill="none"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -24,10 +17,11 @@ export function BrandMark({ size = 24, className, title }: { size?: number; clas
       aria-label={title}
       aria-hidden={title ? undefined : true}
     >
-      <path d={MARK_PATHS.stem} stroke="currentColor" strokeWidth={6} />
-      <path d={MARK_PATHS.bowl} stroke="currentColor" strokeWidth={6} />
-      <path d={MARK_PATHS.lambdaLong} stroke="var(--c-accent-primary, #5b9bf0)" strokeWidth={6} />
-      <path d={MARK_PATHS.lambdaShort} stroke="var(--c-accent-primary, #5b9bf0)" strokeWidth={6} />
+      <path d="M512 196 L864 352 L512 508 L160 352 Z" fill="currentColor" />
+      <path d="M512 352 L760 448 L760 600" stroke="var(--c-accent-primary, #f2b134)" strokeWidth={30} />
+      <circle cx="760" cy="626" r="34" fill="var(--c-accent-primary, #f2b134)" />
+      <path d="M404 470 C 330 560, 330 740, 404 830" stroke="currentColor" strokeWidth={62} />
+      <path d="M620 470 C 694 560, 694 740, 620 830" stroke="currentColor" strokeWidth={62} />
     </svg>
   );
 }

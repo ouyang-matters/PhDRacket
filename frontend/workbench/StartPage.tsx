@@ -26,12 +26,6 @@ export function StartPage() {
   const folder = useApp((s) => s.folder);
   return (
     <div className="start-page">
-      <svg className="start-backdrop" viewBox="0 0 400 400" aria-hidden>
-        <path d="M150 40 C 90 120, 90 280, 150 360" />
-        <path d="M250 40 C 310 120, 310 280, 250 360" />
-        <path d="M120 10 C 30 120, 30 280, 120 390" />
-        <path d="M280 10 C 370 120, 370 280, 280 390" />
-      </svg>
       <div className="start-content">
         <div className="start-title">
           <BrandMark size={44} />

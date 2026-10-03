@@ -530,16 +530,6 @@ kbd {
   background: var(--c-editor-background);
 }
 
-.start-backdrop {
-  position: absolute;
-  width: min(80vh, 70%);
-  opacity: 0.06;
-  fill: none;
-  stroke: var(--c-text-primary);
-  stroke-width: 6;
-  stroke-linecap: round;
-}
-
 .start-content {
   position: relative;
   min-width: 24rem;

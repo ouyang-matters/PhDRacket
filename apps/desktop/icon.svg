@@ -1,19 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <!-- PhDRacket application icon (master). A "P" built from parentheses with
-       a λ as its leg; the same geometry as frontend/workbench/BrandMark.tsx.
-       Platform icons are generated from this file: pnpm icons -->
-  <defs>
-    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1b2232"/>
-      <stop offset="1" stop-color="#121722"/>
-    </linearGradient>
-  </defs>
-  <rect width="1024" height="1024" rx="224" fill="url(#tile)"/>
-  <rect x="6" y="6" width="1012" height="1012" rx="219" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="12"/>
-  <g transform="translate(512 518) scale(13) translate(-32.5 -32)" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6.4">
-    <path d="M27 8 C 15 20, 15 44, 27 56" stroke="#eef2f8"/>
-    <path d="M31 9 C 47 13, 47 33, 31 37" stroke="#eef2f8"/>
-    <path d="M36 33 L 50 56" stroke="#6ea8f7"/>
-    <path d="M43 44.5 L 35 56" stroke="#6ea8f7"/>
-  </g>
+  <!-- PhDRacket mark: a mortarboard resting on a pair of parentheses. -->
+  <rect width="1024" height="1024" rx="210" fill="#14213d"/>
+  <!-- board -->
+  <path d="M512 196 L864 352 L512 508 L160 352 Z" fill="#f1f4f8"/>
+  <!-- tassel -->
+  <path d="M512 352 L760 448 L760 600" fill="none" stroke="#f2b134" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="760" cy="626" r="34" fill="#f2b134"/>
+  <!-- parentheses -->
+  <path d="M404 470 C 330 560, 330 740, 404 830" fill="none" stroke="#f1f4f8" stroke-width="62" stroke-linecap="round"/>
+  <path d="M620 470 C 694 560, 694 740, 620 830" fill="none" stroke="#f1f4f8" stroke-width="62" stroke-linecap="round"/>
 </svg>
