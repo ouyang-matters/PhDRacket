@@ -98,6 +98,23 @@ panel framework provides switching, closing (Ctrl+J), maximizing and
 resizing; a panel can keep its state while hidden (Interactions does) and
 can be offered conditionally (Tasks appears once a remote host exists).
 
+## Settings and dialogs
+
+Settings (File > Preferences > Settings, Ctrl+,) has pages: General (course
+profile, update checks, startup animation, remote hosts), Appearance (theme
+cards with previews, layout, motion), Editor (font, automatic closing of
+brackets and quotes, word completion, display), Files (auto save: off, after a
+delay, when the editor loses focus, or when the window loses focus) and
+Keyboard Shortcuts. Auto save never saves a file whose DrRacket language
+lines were edited, and never an untitled file.
+
+Closing a file or quitting with unsaved changes opens an in-app dialog with
+Save (Save All when quitting with several files), Don't Save and Cancel.
+
+When the startup update check finds a new version, the update dialog opens
+by itself once no other dialog is showing. Until the Beta Terms of Use are
+accepted, the menus and every keyboard shortcut are locked; only Setup works.
+
 ## Pickers
 
 The quick input (`frontend/workbench/QuickInput.tsx`) backs the command

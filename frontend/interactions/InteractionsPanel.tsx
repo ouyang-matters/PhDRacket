@@ -180,6 +180,7 @@ export function InteractionsPanel() {
       fontSize: prefs.fontSize,
       lineHeight: Math.round(prefs.fontSize * prefs.lineHeight),
       autoClosingBrackets: prefs.autoClosingBrackets ? "languageDefined" : "never",
+      autoClosingQuotes: prefs.autoClosingQuotes ? "languageDefined" : "never",
       bracketPairColorization: { enabled: prefs.rainbowBrackets },
     });
   }, [prefs]);

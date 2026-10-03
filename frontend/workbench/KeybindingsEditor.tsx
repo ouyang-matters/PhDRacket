@@ -1,14 +1,13 @@
-// Keyboard Shortcuts: every command and its key. Click a key to record a new
-// one; changes are stored as overrides in the preferences.
+// Keyboard Shortcuts (a page of Settings): every command and its key. Click a
+// key to record a new one; changes are stored as overrides in the preferences.
 
 import { useMemo, useState } from "react";
-import { Modal } from "@frontend/app/Modal";
-import { setDialog, setPrefs, useApp } from "@frontend/app/store";
+import { setPrefs, useApp } from "@frontend/app/store";
 import { allCommands, commandLabel, isVisible, useCommandsVersion } from "@frontend/commands/registry";
 import { conflicts, defaultKeybinding, eventKey, formatKey, keybindingFor, normalizeKey } from "@frontend/commands/keybindings";
 import { filterItems } from "./QuickInput";
 
-export function KeybindingsDialog() {
+export function KeybindingsEditor() {
   useCommandsVersion();
   const overrides = useApp((s) => s.prefs.keybindings);
   const [query, setQuery] = useState("");
@@ -28,7 +27,7 @@ export function KeybindingsDialog() {
   };
 
   return (
-    <Modal title="Keyboard Shortcuts" onClose={() => (recording ? setRecording(null) : setDialog(null))}>
+    <div className="keybindings-editor">
       <input className="keybinding-search" autoFocus placeholder="Search commands" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search commands" />
       <table className="keybindings">
         <thead>
@@ -89,6 +88,6 @@ export function KeybindingsDialog() {
           })}
         </tbody>
       </table>
-    </Modal>
+    </div>
   );
 }

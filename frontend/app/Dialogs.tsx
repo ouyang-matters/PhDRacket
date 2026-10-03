@@ -9,12 +9,12 @@ import type { RuntimeInfo } from "@shared/protocol";
 import { backend } from "@frontend/ipc/backend";
 import { NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { versionMismatch } from "@shared/models/profiles";
-import { activeProfile, dismissAnnouncement, newFile, selectRuntime, setDialog, setPrefs, useApp } from "./store";
+import { activeProfile, answerUnsaved, dismissAnnouncement, newFile, selectRuntime, setDialog, useApp } from "./store";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import type { StartupAnimation } from "@frontend/settings/preferences";
-import { THEMES } from "@frontend/theme/themes";
 import { BrandMark } from "@frontend/workbench/BrandMark";
-import { KeybindingsDialog } from "@frontend/workbench/KeybindingsDialog";
+import { Icon } from "@frontend/workbench/icons";
+import { SettingsDialog } from "@frontend/settings/SettingsDialog";
+import { RELEASE_CHANNEL } from "./release";
 import { ComputeHostsDialog } from "@frontend/compute/ComputeHostsDialog";
 
 function NewFileDialog() {
@@ -183,7 +183,7 @@ function AboutDialog() {
       <div className="about-head">
         <BrandMark size={56} />
         <p>
-          <strong>PhDRacket</strong> {version}
+          <strong>PhDRacket</strong> {version} {RELEASE_CHANNEL}
           <br />
           Same Racket. Better IDE.
         </p>
@@ -202,97 +202,51 @@ function AboutDialog() {
   );
 }
 
-function SettingsDialog() {
-  const prefs = useApp((s) => s.prefs);
+/** Closing or quitting with unsaved files: Save, Don't Save or Cancel. */
+function UnsavedDialog() {
+  const prompt = useApp((s) => s.unsaved);
+  if (!prompt) return null;
+  const one = prompt.names.length === 1;
+  const title = one ? `Save changes to ${prompt.names[0]}?` : `Save changes to ${prompt.names.length} files?`;
   return (
-    <Modal title="Settings" onClose={() => setDialog(null)}>
-      <div className="form">
-        <label>
-          Theme
-          <select value={prefs.theme} onChange={(e) => setPrefs({ theme: e.target.value })}>
-            <option value="system">Follow system</option>
-            {THEMES.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-                {t.unofficial ? " (unofficial)" : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Startup animation
-          <select value={prefs.startupAnimation} onChange={(e) => setPrefs({ startupAnimation: e.target.value as StartupAnimation })}>
-            <option value="full">Full</option>
-            <option value="reduced">Reduced</option>
-            <option value="off">Off</option>
-          </select>
-        </label>
-        <label>
-          Editor font
-          <input value={prefs.fontFamily} onChange={(e) => setPrefs({ fontFamily: e.target.value })} />
-        </label>
-        <label>
-          Font size
-          <input type="number" min={8} max={40} value={prefs.fontSize} onChange={(e) => setPrefs({ fontSize: Number(e.target.value) || 14 })} />
-        </label>
-        <label>
-          Line height
-          <input type="number" min={1} max={3} step={0.1} value={prefs.lineHeight} onChange={(e) => setPrefs({ lineHeight: Number(e.target.value) || 1.5 })} />
-        </label>
-        <label>
-          Interface scale
-          <input type="number" min={0.75} max={2} step={0.05} value={prefs.uiScale} onChange={(e) => setPrefs({ uiScale: Number(e.target.value) || 1 })} />
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.autoClosingBrackets} onChange={(e) => setPrefs({ autoClosingBrackets: e.target.checked })} />
-          Insert closing delimiters automatically
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.rainbowBrackets} onChange={(e) => setPrefs({ rainbowBrackets: e.target.checked })} />
-          Rainbow parentheses
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.explorerVisible} onChange={(e) => setPrefs({ explorerVisible: e.target.checked })} />
-          Show sidebar
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.panelVisible} onChange={(e) => setPrefs({ panelVisible: e.target.checked })} />
-          Show bottom panel
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.statusBarVisible} onChange={(e) => setPrefs({ statusBarVisible: e.target.checked })} />
-          Show status bar
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.menuBarVisible} onChange={(e) => setPrefs({ menuBarVisible: e.target.checked })} />
-          Show menu bar
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.minimap} onChange={(e) => setPrefs({ minimap: e.target.checked })} />
-          Show minimap
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.autosave} onChange={(e) => setPrefs({ autosave: e.target.checked })} />
-          Autosave
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.checkForUpdates} onChange={(e) => setPrefs({ checkForUpdates: e.target.checked })} />
-          Check for updates on startup
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.showAnnouncements} onChange={(e) => setPrefs({ showAnnouncements: e.target.checked })} />
-          Show announcements
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={prefs.reducedMotion} onChange={(e) => setPrefs({ reducedMotion: e.target.checked })} />
-          Reduce motion
-        </label>
+    <Modal title={title} className="unsaved-modal" onClose={() => answerUnsaved("cancel")}>
+      <div className="unsaved">
+        <span className="unsaved-icon" aria-hidden>
+          <Icon name="save" size={22} />
+        </span>
+        <div>
+          <p>
+            {one ? "This file has changes that are not saved." : "These files have changes that are not saved:"}
+          </p>
+          {!one && (
+            <ul className="unsaved-files">
+              {prompt.names.map((n, i) => (
+                <li key={`${n}-${i}`}>{n}</li>
+              ))}
+            </ul>
+          )}
+          <p className="muted small">If you don't save, your changes will be lost.</p>
+        </div>
+      </div>
+      <div className="row end unsaved-actions">
+        <button onClick={() => answerUnsaved("discard")}>{prompt.kind === "quit" ? "Quit Without Saving" : "Don't Save"}</button>
+        <span className="toolbar-spacer" />
+        <button onClick={() => answerUnsaved("cancel")}>Cancel</button>
+        <button className="primary" autoFocus onClick={() => answerUnsaved("save")}>
+          {one ? "Save" : "Save All"}
+        </button>
       </div>
     </Modal>
   );
 }
 
 export function Dialogs() {
+  const unsaved = useApp((s) => s.unsaved !== null);
+  if (unsaved) return <UnsavedDialog />;
+  return <DialogSwitch />;
+}
+
+function DialogSwitch() {
   const dialog = useApp((s) => s.dialog);
   switch (dialog) {
     case "new-file":
@@ -311,8 +265,6 @@ export function Dialogs() {
       return <AnnouncementDialog />;
     case "terms":
       return <TermsDialog />;
-    case "keybindings":
-      return <KeybindingsDialog />;
     case "compute-hosts":
       return <ComputeHostsDialog />;
     default:

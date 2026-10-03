@@ -36,6 +36,7 @@ import {
   togglePanelMaximized,
   toggleZen,
   confirmQuit,
+  openSettings,
 } from "@frontend/app/store";
 import { backend } from "@frontend/ipc/backend";
 import { LINKS } from "@frontend/app/links";
@@ -48,7 +49,6 @@ import { topLevelDefinitions } from "@frontend/editor/symbols";
 import { groupOrder } from "./layout";
 import { registerCommands, type Command } from "@frontend/commands/registry";
 import { registerMenuItems, registerMenuProvider, type MenuItem } from "@frontend/commands/menus";
-import { contextMenuArgs } from "./ContextMenu";
 import { runEditorAction, targetEditor } from "./editors";
 import { showCommandPalette, showLanguagePicker, showProfilePicker, showQuickOpen, showThemePicker } from "./pickers";
 import { toggleSidebarView } from "./sidebar";
@@ -63,9 +63,10 @@ function editorAction(id: string, title: string, action: string, category: strin
   return { id, title, category, keybinding, nativeKey: !!keybinding, enabled: hasEditor, run: () => runEditorAction(action), ...extra };
 }
 
-/** The tab a tab-context command applies to: the clicked one, else the active one. */
+/** The tab a tab command applies to: the one its context menu was opened on,
+ * else the active one. */
 function tabArgs(args: unknown): { groupId: string; docId: string } | null {
-  const a = (args ?? contextMenuArgs()) as { groupId?: string; docId?: string } | undefined;
+  const a = args as { groupId?: string; docId?: string } | undefined;
   if (a?.groupId && a.docId) return { groupId: a.groupId, docId: a.docId };
   const s = getState();
   const g = s.layout.groups[s.layout.activeGroup];
@@ -151,8 +152,8 @@ export const BUILTIN_COMMANDS: Command[] = [
       if (await confirmQuit()) await exit(0);
     },
   },
-  { id: "preferences.settings", title: "Settings", category: "Preferences", icon: "settings", keybinding: "Mod+,", run: () => setDialog("settings") },
-  { id: "preferences.keyboardShortcuts", title: "Keyboard Shortcuts", category: "Preferences", icon: "keyboard", run: () => setDialog("keybindings") },
+  { id: "preferences.settings", title: "Settings", category: "Preferences", icon: "settings", keybinding: "Mod+,", run: () => openSettings() },
+  { id: "preferences.keyboardShortcuts", title: "Keyboard Shortcuts", category: "Preferences", icon: "keyboard", run: () => openSettings("keyboard") },
   { id: "preferences.colorTheme", title: "Color Theme", category: "Preferences", icon: "themes", run: showThemePicker },
 
   // Edit

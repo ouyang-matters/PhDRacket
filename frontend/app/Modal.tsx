@@ -6,12 +6,15 @@ export function Modal({
   children,
   onClose,
   dismissable = true,
+  className,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
   /** False while the user must make a choice (no close button, Escape or outside click). */
   dismissable?: boolean;
+  /** Extra class for the dialog, e.g. for a wider layout. */
+  className?: string;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => dismissable && e.key === "Escape" && onClose();
@@ -20,7 +23,7 @@ export function Modal({
   }, [onClose, dismissable]);
   return (
     <div className="modal-backdrop" onMouseDown={() => dismissable && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(e) => e.stopPropagation()}>
+      <div className={`modal${className ? ` ${className}` : ""}`} role="dialog" aria-modal="true" aria-label={title} onMouseDown={(e) => e.stopPropagation()}>
         <header>
           <h2>{title}</h2>
           {dismissable && (

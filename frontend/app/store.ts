@@ -60,6 +60,14 @@ export interface Notice {
   text: string;
 }
 
+/** The unsaved-changes prompt: which files, and whether closing or quitting. */
+export interface UnsavedPrompt {
+  kind: "close" | "quit";
+  names: string[];
+}
+
+export type UnsavedChoice = "save" | "discard" | "cancel";
+
 export interface AppState {
   docs: Doc[];
   /** The document in the active editor group; kept in step with `layout`. */
@@ -70,6 +78,10 @@ export interface AppState {
   panelMaximized: boolean;
   /** Zen mode: only the editor is shown. */
   zen: boolean;
+  /** Shown while closing or quitting with unsaved files. */
+  unsaved: UnsavedPrompt | null;
+  /** The page shown when Settings opens. */
+  settingsPage: string;
   runtime: RuntimeStatus;
   prefs: Preferences;
   run: RunState;
@@ -79,7 +91,7 @@ export interface AppState {
   recentFiles: string[];
   /** Folder shown in the Explorer. */
   folder: string | null;
-  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup" | "announcement" | "terms" | "keybindings" | "compute-hosts";
+  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup" | "announcement" | "terms" | "compute-hosts";
   /** Announcements waiting to be shown. */
   announcements: Announcement[];
   /** Bumped when model content changes, so dirty markers re-render. */
@@ -92,6 +104,8 @@ let state: AppState = {
   layout: L.initialLayout(),
   panelMaximized: false,
   zen: false,
+  unsaved: null,
+  settingsPage: "general",
   runtime: { state: "detecting", runtime: null, message: null },
   prefs: DEFAULT_PREFERENCES,
   run: initialRunState,
@@ -322,15 +336,33 @@ export async function saveDoc(doc: Doc | null = activeDoc(), forceDialog = false
   }
 }
 
+let resolveUnsaved: ((choice: UnsavedChoice) => void) | null = null;
+
+/** Asks what to do with unsaved files (the dialog is in Dialogs.tsx). */
+function askUnsaved(prompt: UnsavedPrompt): Promise<UnsavedChoice> {
+  resolveUnsaved?.("cancel");
+  return new Promise((resolve) => {
+    resolveUnsaved = resolve;
+    set({ unsaved: prompt });
+  });
+}
+
+/** Called by the unsaved-changes dialog. */
+export function answerUnsaved(choice: UnsavedChoice) {
+  const resolve = resolveUnsaved;
+  resolveUnsaved = null;
+  set({ unsaved: null });
+  resolve?.(choice);
+}
+
 export async function closeDoc(doc: Doc): Promise<boolean> {
   if (isDirty(doc)) {
-    const discard = await ask(`${doc.name} has unsaved changes. Close without saving?`, {
-      title: "Unsaved changes",
-      kind: "warning",
-      okLabel: "Close without saving",
-      cancelLabel: "Cancel",
-    });
-    if (!discard) return false;
+    // Show the file being asked about, in a group that already has it.
+    const group = Object.values(state.layout.groups).find((g) => g.tabs.includes(doc.id));
+    setLayout(L.openTab(state.layout, doc.id, group?.id));
+    const choice = await askUnsaved({ kind: "close", names: [doc.name] });
+    if (choice === "cancel") return false;
+    if (choice === "save" && !(await saveDoc(doc))) return false;
   }
   if (doc.path) {
     void backend.closeSource(doc.path);
@@ -456,14 +488,32 @@ export function activate(id: string) {
 
 const autosaveTimers = new Map<string, number>();
 function scheduleAutosave(doc: Doc) {
-  if (!state.prefs.autosave || !doc.path) return;
+  if (state.prefs.autosave !== "afterDelay" || !doc.path) return;
   window.clearTimeout(autosaveTimers.get(doc.id));
   autosaveTimers.set(
     doc.id,
-    window.setTimeout(() => {
-      if (isDirty(doc) && !headerChanged(doc)) void saveDoc(doc);
-    }, 1500),
+    window.setTimeout(() => autosaveNow(doc), state.prefs.autosaveDelay),
   );
+}
+
+/** Saves a document that has a file, unless its language header was edited
+ * (that save asks for confirmation, so it is never automatic). */
+function autosaveNow(doc: Doc) {
+  if (doc.path && !doc.model.isDisposed() && isDirty(doc) && !headerChanged(doc)) void saveDoc(doc);
+}
+
+/** "When the editor loses focus": called by the editor groups. */
+export function autosaveOnEditorBlur(docId: string) {
+  if (state.prefs.autosave !== "onFocusChange") return;
+  const doc = state.docs.find((d) => d.id === docId);
+  if (doc) autosaveNow(doc);
+}
+
+/** "When the window loses focus". */
+function autosaveOnWindowBlur() {
+  if (state.prefs.autosave === "onWindowChange" || state.prefs.autosave === "onFocusChange") {
+    for (const d of state.docs) autosaveNow(d);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -622,6 +672,16 @@ export function closeFolder() {
   setFolder(null);
 }
 
+/** Opens Settings at a page ("general", "appearance", "editor", "files", "keyboard"). */
+export function openSettings(page = state.settingsPage) {
+  set({ settingsPage: page });
+  setDialog("settings");
+}
+
+export function setSettingsPage(page: string) {
+  set({ settingsPage: page });
+}
+
 export function setDialog(dialog: AppState["dialog"]) {
   // Nothing else opens until the current Beta Terms are accepted.
   if (state.dialog === "setup" && state.prefs.termsAccepted !== TERMS_VERSION && dialog !== "setup") return;
@@ -648,6 +708,7 @@ export async function initialize() {
   if (initialized) return;
   initialized = true;
   await backend.onEngineEvent(handleEngineEvent);
+  window.addEventListener("blur", autosaveOnWindowBlur);
   await backend.onRuntimeStatus((runtime) => set({ runtime }));
   set({ runtime: await backend.runtimeStatus() });
   const settings = await backend.settings();
@@ -695,10 +756,10 @@ export function dismissAnnouncement() {
 export async function confirmQuit(): Promise<boolean> {
   const dirty = state.docs.filter(isDirty);
   if (dirty.length === 0) return true;
-  return ask(`${dirty.length} file(s) have unsaved changes. Quit without saving?`, {
-    title: "Unsaved changes",
-    kind: "warning",
-    okLabel: "Quit without saving",
-    cancelLabel: "Cancel",
-  });
+  const choice = await askUnsaved({ kind: "quit", names: dirty.map((d) => d.name) });
+  if (choice === "cancel") return false;
+  if (choice === "save") {
+    for (const d of dirty) if (!(await saveDoc(d))) return false;
+  }
+  return true;
 }

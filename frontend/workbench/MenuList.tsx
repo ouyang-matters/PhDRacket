@@ -19,7 +19,8 @@ function itemChecked(item: MenuItem): boolean | null {
   return c?.checked ? c.checked() : null;
 }
 
-export function MenuList({ menu, onDone, label, autoFocus = true }: { menu: MenuId; onDone: () => void; label: string; autoFocus?: boolean }) {
+/** `args`: passed to commands whose item has none (e.g. the tab a context menu is for). */
+export function MenuList({ menu, onDone, label, autoFocus = true, args }: { menu: MenuId; onDone: () => void; label: string; autoFocus?: boolean; args?: unknown }) {
   useCommandsVersion();
   useMenusVersion();
   const groups = resolveMenu(menu);
@@ -53,7 +54,7 @@ export function MenuList({ menu, onDone, label, autoFocus = true }: { menu: Menu
     if (!item.command) return;
     onDone();
     // Let the menu close (and focus return) before the command runs.
-    requestAnimationFrame(() => executeCommand(item.command!, item.args));
+    requestAnimationFrame(() => executeCommand(item.command!, item.args ?? args));
   };
 
   return (
@@ -86,7 +87,7 @@ export function MenuList({ menu, onDone, label, autoFocus = true }: { menu: Menu
                 </button>
                 {submenu === index && (
                   <div className="submenu" onKeyDown={(e) => e.key === "ArrowLeft" && (e.stopPropagation(), setSubmenu(null))}>
-                    <MenuList menu={item.submenu} onDone={onDone} label={menuTitle(item)} autoFocus={false} />
+                    <MenuList menu={item.submenu} onDone={onDone} label={menuTitle(item)} autoFocus={false} args={args} />
                   </div>
                 )}
               </li>

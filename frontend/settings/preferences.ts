@@ -7,6 +7,9 @@ export type ThemeChoice = string;
 
 export type StartupAnimation = "full" | "reduced" | "off";
 
+/** When documents with a file are saved automatically. */
+export type AutosaveMode = "off" | "afterDelay" | "onFocusChange" | "onWindowChange";
+
 export interface ComputeHost {
   id: string;
   /** Display name, e.g. "DGX". */
@@ -27,8 +30,13 @@ export interface Preferences {
   uiScale: number;
   rainbowBrackets: boolean;
   autoClosingBrackets: boolean;
+  autoClosingQuotes: boolean;
+  /** Suggest words from the current file while typing (lexical only). */
+  wordCompletion: boolean;
   minimap: boolean;
-  autosave: boolean;
+  autosave: AutosaveMode;
+  /** Milliseconds of inactivity before "afterDelay" saves. */
+  autosaveDelay: number;
   /** Off by default and only meaningful once a formatter exists. */
   formatOnSave: boolean;
   reducedMotion: boolean;
@@ -69,8 +77,11 @@ export const DEFAULT_PREFERENCES: Preferences = {
   uiScale: 1,
   rainbowBrackets: false,
   autoClosingBrackets: true,
+  autoClosingQuotes: true,
+  wordCompletion: false,
   minimap: false,
-  autosave: false,
+  autosave: "off",
+  autosaveDelay: 1500,
   formatOnSave: false,
   reducedMotion: false,
   panelHeight: 260,
@@ -100,6 +111,10 @@ export function mergePreferences(stored: unknown): Preferences {
       (out as unknown as Record<string, unknown>)[key] = s[key];
     }
   }
+  // Autosave was on/off before it had modes.
+  if (s.autosave === true) out.autosave = "afterDelay";
+  if (!["off", "afterDelay", "onFocusChange", "onWindowChange"].includes(out.autosave)) out.autosave = "off";
+  out.autosaveDelay = Math.min(Math.max(Math.round(out.autosaveDelay), 200), 60_000);
   // Theme ids before the theme engine.
   const legacyThemes: Record<string, string> = { light: "phd-light", dark: "phd-dark", "high-contrast": "hc-dark" };
   out.theme = legacyThemes[out.theme] ?? out.theme;

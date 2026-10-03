@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type DragEvent } from "react";
 import { monaco, setRainbowBrackets } from "./monaco";
 import {
   activateTab,
+  autosaveOnEditorBlur,
   closeTab,
   focusGroup,
   getState,
@@ -230,7 +231,12 @@ function EditorGroupView({ groupId }: { groupId: string }) {
     stepDecorations.current = editor.createDecorationsCollection();
     const offRegister = registerGroupEditor(groupId, editor);
     const offFocus = editor.onDidFocusEditorText(() => focusGroup(groupId));
+    const offBlur = editor.onDidBlurEditorText(() => {
+      const d = getState().docs.find((x) => x.model === editor.getModel());
+      if (d) autosaveOnEditorBlur(d.id);
+    });
     return () => {
+      offBlur.dispose();
       const model = editor.getModel();
       const d = getState().docs.find((x) => x.model === model);
       if (d) viewStates.set(`${groupId}:${d.id}`, editor.saveViewState());
@@ -283,7 +289,10 @@ function EditorGroupView({ groupId }: { groupId: string }) {
       minimap: { enabled: prefs.minimap },
       bracketPairColorization: { enabled: prefs.rainbowBrackets },
       autoClosingBrackets: prefs.autoClosingBrackets ? "languageDefined" : "never",
-      autoClosingQuotes: prefs.autoClosingBrackets ? "languageDefined" : "never",
+      autoClosingQuotes: prefs.autoClosingQuotes ? "languageDefined" : "never",
+      // Word completion is lexical: words already in the file, nothing more.
+      quickSuggestions: prefs.wordCompletion ? { other: true, comments: false, strings: false } : false,
+      wordBasedSuggestions: prefs.wordCompletion ? "currentDocument" : "off",
       cursorBlinking: prefs.reducedMotion ? "solid" : "blink",
       smoothScrolling: !prefs.reducedMotion,
     });
