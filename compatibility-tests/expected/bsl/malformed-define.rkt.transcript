@@ -1,0 +1,4 @@
+language: teaching Beginning Student
+tests: 0 total, 0 failed, failures at ()
+error[syntax]: define: expected at least one variable after the function name, but found none @5:8
+done: failed

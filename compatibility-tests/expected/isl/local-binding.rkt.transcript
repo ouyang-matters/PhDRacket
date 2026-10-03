@@ -1,0 +1,8 @@
+language: teaching Intermediate Student
+value: 14
+value: function:sum-squares
+tests: 1 total, 0 failed, failures at ()
+done: ok
+> (sum-squares (list 2))
+value: 4
+done: ok

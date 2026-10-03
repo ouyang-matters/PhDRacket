@@ -1,0 +1,6 @@
+language: teaching Intermediate Student with lambda
+value: (list 2 3 4)
+value: (list "b")
+value: (lambda (a1) ...)
+tests: 1 total, 0 failed, failures at ()
+done: ok

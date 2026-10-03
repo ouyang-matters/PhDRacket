@@ -1,0 +1,159 @@
+--- step 0 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(len (cons 7 (cons 8 ⟦empty⟧)))
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(len (cons 7 (cons 8 ⟦'()⟧)))
+--- step 1 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+⟦(len (cons 7 (cons 8 '())))⟧
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+⟦(cond
+ ((empty? (cons 7 (cons 8 '()))) 0)
+ (else (+ 1 (len (rest (cons 7 (cons 8 '())))))))⟧
+--- step 2 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(cond
+ (⟦(empty? (cons 7 (cons 8 '())))⟧ 0)
+ (else (+ 1 (len (rest (cons 7 (cons 8 '())))))))
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(cond
+ (⟦#false⟧ 0)
+ (else (+ 1 (len (rest (cons 7 (cons 8 '())))))))
+--- step 3 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+⟦(cond
+ (#false 0)
+ (else (+ 1 (len (rest (cons 7 (cons 8 '())))))))⟧
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+⟦(cond (else (+ 1 (len (rest (cons 7 (cons 8 '())))))))⟧
+--- step 4 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+⟦(cond (else (+ 1 (len (rest (cons 7 (cons 8 '())))))))⟧
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+⟦(+ 1 (len (rest (cons 7 (cons 8 '())))))⟧
+--- step 5 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 (len ⟦(rest (cons 7 (cons 8 '())))⟧))
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 (len ⟦(cons 8 '())⟧))
+--- step 6 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 ⟦(len (cons 8 '()))⟧)
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+
+ 1
+ ⟦(cond
+  ((empty? (cons 8 '())) 0)
+  (else (+ 1 (len (rest (cons 8 '()))))))⟧)
+--- step 7 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+
+ 1
+ (cond
+  (⟦(empty? (cons 8 '()))⟧ 0)
+  (else (+ 1 (len (rest (cons 8 '())))))))
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+
+ 1
+ (cond (⟦#false⟧ 0) (else (+ 1 (len (rest (cons 8 '())))))))
+--- step 8 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+
+ 1
+ ⟦(cond (#false 0) (else (+ 1 (len (rest (cons 8 '()))))))⟧)
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 ⟦(cond (else (+ 1 (len (rest (cons 8 '()))))))⟧)
+--- step 9 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 ⟦(cond (else (+ 1 (len (rest (cons 8 '()))))))⟧)
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 ⟦(+ 1 (len (rest (cons 8 '()))))⟧)
+--- step 10 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 (+ 1 (len ⟦(rest (cons 8 '()))⟧)))
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 (+ 1 (len ⟦'()⟧)))
+--- step 11 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 (+ 1 ⟦(len '())⟧))
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+
+ 1
+ (+
+  1
+  ⟦(cond ((empty? '()) 0) (else (+ 1 (len (rest '())))))⟧))
+--- step 12 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+
+ 1
+ (+
+  1
+  (cond (⟦(empty? '())⟧ 0) (else (+ 1 (len (rest '())))))))
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 (+ 1 (cond (⟦#true⟧ 0) (else (+ 1 (len (rest '())))))))
+--- step 13 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 (+ 1 ⟦(cond (#true 0) (else (+ 1 (len (rest '())))))⟧))
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 (+ 1 ⟦0⟧))
+--- step 14 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 ⟦(+ 1 0)⟧)
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+(+ 1 ⟦1⟧)
+--- step 15 (before-after)
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+⟦(+ 1 1)⟧
+  ==>
+(define (len l)
+  (cond ((empty? l) 0) (else (+ 1 (len (rest l))))))
+⟦2⟧
+tests: 0 total, 0 failed, failures at ()
+stepper-finished: #hasheq((count . 16) (ev . "stepper-finished") (id . 1) (outcome . "finished"))
+done: ok

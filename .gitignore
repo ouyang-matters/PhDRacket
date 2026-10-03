@@ -1,0 +1,26 @@
+# Rust
+/target/
+
+# Node / Vite
+node_modules/
+/apps/desktop/dist/
+*.tsbuildinfo
+
+# Racket compiled output (created by raco make / raco test)
+compiled/
+
+# Tauri generated schemas
+/apps/desktop/src-tauri/gen/
+
+# Local PhDRacket workspace state (never part of a project)
+.phdracket/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# End-to-end test screenshots
+/apps/desktop/e2e/out/

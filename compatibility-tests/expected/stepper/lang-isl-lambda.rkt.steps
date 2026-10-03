@@ -1,0 +1,11 @@
+--- step 0 (before-after)
+⟦((lambda (x) (* x x)) 4)⟧
+  ==>
+⟦(* 4 4)⟧
+--- step 1 (before-after)
+⟦(* 4 4)⟧
+  ==>
+⟦16⟧
+tests: 0 total, 0 failed, failures at ()
+stepper-finished: #hasheq((count . 2) (ev . "stepper-finished") (id . 1) (outcome . "finished"))
+done: ok

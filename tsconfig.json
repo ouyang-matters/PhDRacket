@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable", "WebWorker.ImportScripts"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": false,
+    "types": ["vite/client", "node"],
+    "paths": {
+      "@frontend/*": ["./frontend/*"],
+      "@shared/*": ["./shared/*"]
+    }
+  },
+  "include": ["frontend", "shared", "apps/desktop/src", "vite.config.ts", "vitest.config.ts"]
+}

@@ -1,0 +1,27 @@
+--- step 0 (before-after)
+(define (f x) (* x 2))
+(+ 1 (f ⟦(+ 2 3)⟧))
+  ==>
+(define (f x) (* x 2))
+(+ 1 (f ⟦5⟧))
+--- step 1 (before-after)
+(define (f x) (* x 2))
+(+ 1 ⟦(f 5)⟧)
+  ==>
+(define (f x) (* x 2))
+(+ 1 ⟦(* 5 2)⟧)
+--- step 2 (before-after)
+(define (f x) (* x 2))
+(+ 1 ⟦(* 5 2)⟧)
+  ==>
+(define (f x) (* x 2))
+(+ 1 ⟦10⟧)
+--- step 3 (before-after)
+(define (f x) (* x 2))
+⟦(+ 1 10)⟧
+  ==>
+(define (f x) (* x 2))
+⟦11⟧
+tests: 0 total, 0 failed, failures at ()
+stepper-finished: #hasheq((count . 4) (ev . "stepper-finished") (id . 1) (outcome . "finished"))
+done: ok

@@ -1,0 +1,37 @@
+--- step 0 (before-after)
+(define (double n) (* 2 n))
+(+ 1 ⟦(double 3)⟧)
+  ==>
+(define (double n) (* 2 n))
+(+ 1 ⟦(* 2 3)⟧)
+--- step 1 (before-after)
+(define (double n) (* 2 n))
+(+ 1 ⟦(* 2 3)⟧)
+  ==>
+(define (double n) (* 2 n))
+(+ 1 ⟦6⟧)
+--- step 2 (before-after)
+(define (double n) (* 2 n))
+⟦(+ 1 6)⟧
+  ==>
+(define (double n) (* 2 n))
+⟦7⟧
+--- step 3 (before-after)
+(define (double n) (* 2 n))
+7
+(check-expect ⟦(double 2)⟧ 4)
+  ==>
+(define (double n) (* 2 n))
+7
+(check-expect ⟦(* 2 2)⟧ 4)
+--- step 4 (before-after)
+(define (double n) (* 2 n))
+7
+(check-expect ⟦(* 2 2)⟧ 4)
+  ==>
+(define (double n) (* 2 n))
+7
+(check-expect ⟦4⟧ 4)
+tests: 1 total, 0 failed, failures at ()
+stepper-finished: #hasheq((count . 5) (ev . "stepper-finished") (id . 1) (outcome . "finished"))
+done: ok

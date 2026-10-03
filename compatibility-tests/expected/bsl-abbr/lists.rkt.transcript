@@ -1,0 +1,8 @@
+language: teaching Beginning Student with List Abbreviations
+value: (list 1 2 3)
+value: (list 'a 'b 'c)
+value: (list 0 1 2 3)
+value: 2
+value: true
+tests: 1 total, 0 failed, failures at ()
+done: ok

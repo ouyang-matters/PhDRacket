@@ -1,0 +1,16 @@
+--- step 0 (before-after)
+(define-struct p (a b))
+(and ⟦(> 2 1)⟧ (p-a (make-p 3 4)))
+  ==>
+(define-struct p (a b))
+(and ⟦#true⟧ (p-a (make-p 3 4)))
+--- step 1 (before-after)
+(define-struct p (a b))
+(and #true ⟦(p-a (make-p 3 4))⟧)
+  ==>
+(define-struct p (a b))
+(and #true ⟦3⟧)
+--- step 2 (error)
+error: and: question result is not true or false: 3
+stepper-finished: #hasheq((count . 3) (ev . "stepper-finished") (id . 1) (outcome . "error"))
+done: ok

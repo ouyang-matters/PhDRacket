@@ -1,0 +1,40 @@
+--- step 0 (before-after)
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+⟦(g 3)⟧
+  ==>
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+⟦(local ((define m (* 3 3))) (+ m 1))⟧
+--- step 1 (before-after)
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+⟦(local ((define m (* 3 3))) (+ m 1))⟧
+  ==>
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+⟦(define m_0 (* 3 3))⟧
+⟦(+ m_0 1)⟧
+--- step 2 (before-after)
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+(define m_0 ⟦(* 3 3)⟧)
+(+ m_0 1)
+  ==>
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+(define m_0 ⟦9⟧)
+(+ m_0 1)
+--- step 3 (before-after)
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+(define m_0 9)
+(+ ⟦m_0⟧ 1)
+  ==>
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+(define m_0 9)
+(+ ⟦9⟧ 1)
+--- step 4 (before-after)
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+(define m_0 9)
+⟦(+ 9 1)⟧
+  ==>
+(define (g n) (local ((define m (* n n))) (+ m 1)))
+(define m_0 9)
+⟦10⟧
+tests: 0 total, 0 failed, failures at ()
+stepper-finished: #hasheq((count . 5) (ev . "stepper-finished") (id . 1) (outcome . "finished"))
+done: ok

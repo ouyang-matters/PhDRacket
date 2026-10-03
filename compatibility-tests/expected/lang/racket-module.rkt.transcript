@@ -1,0 +1,9 @@
+language: module racket
+stdout: "Hello, world!\n"
+stderr: "to stderr\n"
+value: "Hello, value!"
+stdout: "test submodule ran\nmain submodule ran\n"
+done: ok
+> (greet "repl")
+value: "Hello, repl!"
+done: ok

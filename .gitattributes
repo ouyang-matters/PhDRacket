@@ -1,0 +1,13 @@
+# Text files are normalized to LF in the repository.
+# (Later lines take precedence over earlier ones.)
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary
+
+# Test programs and their expected output must keep their exact bytes
+# (line endings, encoding): never convert them.
+compatibility-tests/corpus/** -text
+compatibility-tests/stepper-corpus/** -text
+compatibility-tests/expected/** -text
+compatibility-tests/fixtures/** -text

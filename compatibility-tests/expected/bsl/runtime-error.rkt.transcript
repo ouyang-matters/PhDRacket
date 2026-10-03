@@ -1,0 +1,10 @@
+language: teaching Beginning Student
+value: 10
+error[runtime]: /: division by zero
+done: failed
+> x
+value: 10
+done: ok
+> y
+error[runtime]: y is used here before its definition
+done: failed

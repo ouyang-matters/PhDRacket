@@ -1,0 +1,6 @@
+language: teaching Advanced Student
+value: 1
+value: 2
+value: (make-box2 5)
+tests: 1 total, 0 failed, failures at ()
+done: ok

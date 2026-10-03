@@ -1,0 +1,90 @@
+name: Release
+
+# Push a tag like v0.1.0-beta.2 to build Windows and macOS installers and
+# publish them as a GitHub release. The update manifest (latest.json) is then
+# copied to the `updater` branch, which installed apps check for updates.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: --bundles nsis
+          - platform: macos-latest
+            args: --target universal-apple-darwin --bundles app,dmg
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@v2
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tauriScript: pnpm tauri
+          tagName: ${{ github.ref_name }}
+          releaseName: PhDRacket ${{ github.ref_name }}
+          releaseBody: |
+            Test release of PhDRacket, a modern editor for Racket and the HtDP teaching languages.
+
+            **Before installing:** install [Racket](https://download.racket-lang.org/) (the standard distribution; CS145 uses 9.3).
+
+            **Windows:** download `PhDRacket_*_x64-setup.exe` and run it. No administrator rights are needed. If Windows SmartScreen appears, click *More info* → *Run anyway* (the installer is not code-signed yet).
+
+            **macOS (Apple Silicon and Intel):** download `PhDRacket_*_universal.dmg`, open it and drag PhDRacket to Applications. The app is not notarized yet: the first time, open it, then go to *System Settings → Privacy & Security* and click *Open Anyway*. Alternatively run `xattr -dr com.apple.quarantine /Applications/PhDRacket.app` in Terminal.
+
+            Installed copies check for updates automatically (Settings → *Check for updates on startup*).
+
+            PhDRacket is an independent open-source project, not affiliated with the University of Waterloo or the Racket project.
+          releaseDraft: false
+          prerelease: true
+          includeUpdaterJson: true
+          args: ${{ matrix.args }}
+
+  publish-update-manifest:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copy latest.json to the updater branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          mkdir manifest && cd manifest
+          gh release download "$TAG" -R "$REPO" -p latest.json
+          git init -q -b updater
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          printf '# Update channel\n\nUsed by PhDRacket'"'"'s update check. Download PhDRacket from the Releases page.\n' > README.md
+          git add latest.json README.md
+          git commit -q -m "Update manifest for $TAG"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" updater

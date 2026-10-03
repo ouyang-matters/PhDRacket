@@ -1,0 +1,5 @@
+language: teaching Beginning Student
+tests: 0 total, 0 failed, failures at ()
+error[read]: read-syntax: expected a `)` to close `(`
+  possible cause: indentation suggests a missing `)` before line 7 @5:0
+done: failed

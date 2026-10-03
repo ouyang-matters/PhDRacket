@@ -1,0 +1,4 @@
+language: teaching Beginning Student
+tests: 0 total, 0 failed, failures at ()
+error[syntax]: tripple: this function is not defined @6:9
+done: failed

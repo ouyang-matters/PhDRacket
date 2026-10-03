@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: Bogdanp/setup-racket@v1.11
+        with:
+          version: "9.3"
+          distribution: full
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Frontend
+        run: |
+          pnpm typecheck
+          pnpm test
+
+      - name: Racket bridge compatibility tests
+        run: |
+          raco make backend/racket/phdracket-bridge.rkt
+          raco test compatibility-tests/bridge-tests.rkt
+
+      - name: Backend core
+        env:
+          PHDRACKET_REQUIRE_RACKET: "1"
+        run: cargo test -p phdracket-core

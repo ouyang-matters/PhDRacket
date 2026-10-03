@@ -1,0 +1,12 @@
+--- step 0 (before-after)
+(define x 10)
+(/ ⟦x⟧ 0)
+  ==>
+(define x 10)
+(/ ⟦10⟧ 0)
+--- step 1 (before-error)
+(define x 10)
+⟦(/ 10 0)⟧
+  error: /: division by zero
+stepper-finished: #hasheq((count . 2) (ev . "stepper-finished") (id . 1) (outcome . "error"))
+done: ok

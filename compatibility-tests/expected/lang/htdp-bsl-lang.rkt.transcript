@@ -1,0 +1,7 @@
+language: module htdp/bsl
+value: 42
+tests: 2 total, 1 failed, failures at (6:0)
+done: ok
+> (f 5)
+value: 10
+done: ok

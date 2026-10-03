@@ -1,0 +1,7 @@
+language: teaching Beginning Student
+tests: 0 total, 0 failed, failures at ()
+error[syntax]: lambda: found a lambda that is not a function definition @7:6
+done: failed
+> (+ 1 2)
+value: 3
+done: ok
