@@ -15,6 +15,26 @@ endorsed by the University of Waterloo or the Racket project.
 
 ## Download
 
+### Quick install
+
+**macOS** (Apple Silicon and Intel): open Terminal and run
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/install/install-macos.sh | bash
+```
+
+**Windows**: open PowerShell and run
+
+```powershell
+irm https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/install/install-windows.ps1 | iex
+```
+
+The command downloads the latest release, checks it against the checksum
+published by GitHub and installs it. On macOS this avoids the *Open Anyway*
+step described below. The scripts are in [`install/`](install/).
+
+### Manual install
+
 Download the latest test release from the
 **[Releases page](https://github.com/ouyang-matters/PhDRacket/releases)**.
 

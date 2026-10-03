@@ -97,6 +97,10 @@ pushed.
    image, publishes them as a GitHub pre-release, and copies the update
    manifest (`latest.json`) to the `updater` branch. Installed copies read
    that branch to find new versions.
+4. The *Install scripts* workflow then attaches `install/install-windows.ps1`
+   and `install/install-macos.sh` to the release and adds the one-line
+   install commands (`.github/quick-install.md`) to its notes. It also runs
+   whenever the scripts change on `main`.
 
 Update files are signed. The workflow reads the private signing key from the
 repository secret `TAURI_SIGNING_PRIVATE_KEY`. The matching public key is in

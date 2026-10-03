@@ -1,0 +1,39 @@
+name: Install scripts
+
+# Attaches the quick-install scripts to the newest release and makes sure its
+# notes show the one-line install commands. Runs when the scripts change, and
+# after each release build.
+
+on:
+  push:
+    branches: [main]
+    paths: ["install/**", ".github/quick-install.md"]
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  attach:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Attach scripts and update release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          tag=$(gh release list -R "$REPO" --limit 1 --json tagName --jq '.[0].tagName')
+          if [ -z "$tag" ]; then echo "No release yet."; exit 0; fi
+          gh release upload "$tag" install/install-windows.ps1 install/install-macos.sh --clobber -R "$REPO"
+          body=$(gh release view "$tag" -R "$REPO" --json body --jq .body)
+          if ! printf '%s' "$body" | grep -q "## Quick install"; then
+            { cat .github/quick-install.md; echo; printf '%s\n' "$body"; } > notes.md
+            gh release edit "$tag" -R "$REPO" --notes-file notes.md
+          fi
