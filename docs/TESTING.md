@@ -12,6 +12,7 @@ involved, they run against the installed official Racket.
 | `pnpm test` | Frontend units: Run and Stepper state, source location conversion, the lexical scanner, new-file metadata, profiles |
 | `pnpm typecheck` | TypeScript types |
 | `node apps/desktop/e2e/smoke.mjs` | The desktop application end to end (Windows) |
+| `node apps/desktop/e2e/screenshots.mjs` | Retakes the screenshots of [Introducing PhDRacket](introducing-phdracket.md) from the real app (Windows) |
 | `node apps/desktop/e2e/workbench.mjs` | The workbench end to end with trusted input: menus, palette, Go to File, splits sharing one model, layouts, tab context menu, panel, every theme, Keyboard Shortcuts (Windows) |
 
 Rust tests that need Racket are skipped, with a message, when no Racket with

@@ -19,7 +19,7 @@ Stepper adapter (backend/racket/private/stepper-adapter.rkt)
 
 ## Using the Stepper
 
-Press **Step** in the toolbar or Ctrl+Shift+Enter. PhDRacket collects every
+Press **Step** above the editor, choose Run > Stepper, or press Ctrl+Shift+Enter. PhDRacket collects every
 step of the program and opens the Stepper panel. Navigate with the buttons or
 the keyboard:
 

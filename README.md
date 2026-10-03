@@ -116,8 +116,11 @@ connection.
 
 ## Status
 
-PhDRacket is in early development. The current focus is the student workflow
-(Phase 2 of the [roadmap](docs/ROADMAP.md)). See
+The current version is **0.1.1 Beta**; see the
+[release notes](docs/RELEASE_NOTES.md). PhDRacket is in early development and
+in beta: using it requires accepting the [Beta Terms of Use](docs/TERMS.md).
+The current focus is the student workflow (Phase 2 of the
+[roadmap](docs/ROADMAP.md)). See
 [Compatibility](docs/COMPATIBILITY.md) for exactly what is and is not
 guaranteed, and for known differences from DrRacket.
 
