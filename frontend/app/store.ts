@@ -29,6 +29,8 @@ import {
 } from "@frontend/stepper/stepper-state";
 import { profileById, type CourseProfile } from "@shared/models/profiles";
 import { modnameFor, newFileText, renameGeneratedHeader, NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
+import { detectLanguage } from "@frontend/workspace/language";
+import { languageChangeEdit } from "@frontend/workspace/change-language";
 
 export interface Doc {
   id: string;
@@ -166,7 +168,12 @@ function createDoc(init: Omit<Doc, "id" | "model" | "savedVersion"> & { text: st
     generated: init.generated,
   };
   model.onDidChangeContent(() => {
-    set((s) => ({ revision: s.revision + 1 }));
+    // Keep the displayed language in step with the declaration being edited.
+    const language = detectLanguage(model.getValue());
+    const changed =
+      language.kind !== doc.language.kind || language.id !== doc.language.id || language.langLine !== doc.language.langLine;
+    if (changed) doc.language = language;
+    set((s) => ({ revision: s.revision + 1, docs: changed ? [...s.docs] : s.docs }));
     scheduleAutosave(doc);
   });
   return doc;
@@ -310,6 +317,28 @@ export async function closeDoc(doc: Doc): Promise<boolean> {
     return { docs, activeId };
   });
   return true;
+}
+
+/** Choose Language: rewrite only the language declaration of the active
+ * document (DrRacket's metadata lines or the `#lang` line). The edit is
+ * undoable and reaches the file only when the user saves. */
+export function changeLanguage(languageId: string) {
+  const doc = activeDoc();
+  if (!doc) return;
+  const edit = languageChangeEdit(doc.model.getValue(), languageId, modnameFor(doc.name));
+  if (!edit) return;
+  const range =
+    edit.endLine === 0
+      ? new monaco.Range(edit.startLine, 1, edit.startLine, 1)
+      : new monaco.Range(edit.startLine, 1, edit.endLine, doc.model.getLineMaxColumn(edit.endLine));
+  doc.model.pushStackElement();
+  doc.model.pushEditOperations([], [{ range, text: edit.text }], () => null);
+  doc.model.pushStackElement();
+  doc.language = detectLanguage(doc.model.getValue());
+  // An explicit language change does not need the "metadata edited" confirmation.
+  doc.originalHeader = headerOf(doc.model, doc.language.metadataLines);
+  doc.generated = undefined;
+  set((s) => ({ docs: [...s.docs], revision: s.revision + 1 }));
 }
 
 export function activate(id: string) {

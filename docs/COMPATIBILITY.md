@@ -14,7 +14,10 @@ Each guarantee is covered by automated tests. See [Testing](TESTING.md).
 2. **The language comes from the file.** A file with DrRacket metadata runs in
    the teaching language that the metadata names. A file with a `#lang` line
    runs as a module. A file never runs in a more permissive language than it
-   declares, and a file with unrecognized metadata does not run.
+   declares, and a file with unrecognized metadata does not run. The language
+   changes only when the user chooses one with Choose Language, which
+   rewrites only the declaration, in DrRacket's exact format, as an undoable
+   edit that reaches the file when the user saves.
 3. **Saving an unedited file writes the same bytes.** The SHA-256 hash of
    every corpus file is identical before and after opening and saving.
 4. **DrRacket metadata lines are preserved byte for byte** when the rest of

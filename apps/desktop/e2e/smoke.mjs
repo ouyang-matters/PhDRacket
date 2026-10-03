@@ -176,9 +176,21 @@ try {
   check(sha(file) === before && (await evaluate(`${S}.getState().docs[0].model.getValue()`)) === text,
     "switching CS145 / HtDP / Racket modes leaves the file and editor text unchanged");
 
+  // Choose Language: an explicit, undoable edit of the declaration only.
+  await evaluate(`${S}.changeLanguage("intermediate")`);
+  check((await state("docs[0].language.name")) === "Intermediate Student", "Choose Language switches the editor to Intermediate Student");
+  await evaluate(`${S}.runActive()`);
+  await waitFor(`${S}.getState().run.status === "ready"`, "Run after changing language");
+  check((await state("run.language.name")) === "Intermediate Student", "Racket runs the program in the chosen language");
+  await screenshot("06-language");
+  await evaluate(`${S}.getState().docs[0].model.undo()`);
+  await sleep(200);
+  check((await state("docs[0].language.name")) === "Beginning Student", "undo restores the original language");
+  check(sha(file) === before, "changing the language does not touch the file until it is saved");
+
   await evaluate(`${S}.setPrefs({ theme: "dark" })`);
   await sleep(300);
-  await screenshot("06-dark");
+  await screenshot("07-dark");
   await evaluate(`${S}.setPrefs({ theme: "system" })`);
 } catch (e) {
   failures++;

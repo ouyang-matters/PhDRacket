@@ -56,6 +56,9 @@ click. The check can be turned off in Settings.
   original message is always available.
 - **Editor.** Tabs, a folder explorer, find and replace, multiple cursors,
   bracket matching, light, dark and high-contrast themes, configurable fonts.
+- **Choose Language.** Click the language in the status bar to switch between
+  the teaching languages and `#lang racket`. Only the language declaration
+  changes, in the same format DrRacket writes, and the change can be undone.
 - **Profiles.** Waterloo CS145, Waterloo CS135, Generic HtDP and Racket. A
   profile sets defaults such as the expected Racket version. It never changes
   what a program means.

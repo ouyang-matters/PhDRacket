@@ -161,7 +161,7 @@ signature and installs it only after the user confirms.
 | `tests/`, `problems/` | Test results, diagnostics and program output |
 | `status-bar/` | Profile selector, language, runtime and cursor position |
 | `settings/` | Preferences |
-| `workspace/` | New-file templates |
+| `workspace/` | New-file templates, language detection for display, and the Choose Language edit |
 
 The editor never runs code automatically and never changes a file when it is
 opened. Autosave and format on save are off by default.

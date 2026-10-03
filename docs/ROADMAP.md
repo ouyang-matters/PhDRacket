@@ -24,6 +24,7 @@ Complete:
   message
 - Profile and mode selection in the status bar
 - Folder explorer
+- Choose Language for existing files
 - Signed in-app updates and release builds for Windows and macOS
 
 Remaining:
