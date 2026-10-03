@@ -112,3 +112,15 @@ describe("menus", () => {
     expect(resolveMenu("menubar.file")).toEqual([]);
   });
 });
+
+describe("alternate keys", () => {
+  it("bind further keys until the user rebinds the command", async () => {
+    const { registerCommand } = await import("./registry");
+    registerCommand({ id: "run.run", title: "Run", keybinding: "Mod+Enter", alternateKeybindings: ["F5", "Mod+R"], run: () => {} });
+    expect(commandsForKey("F5", false).map((c) => c.id)).toEqual(["run.run"]);
+    expect(commandsForKey("Ctrl+R", false).map((c) => c.id)).toEqual(["run.run"]);
+    setKeybindingOverrides({ "run.run": "Mod+Shift+R" });
+    expect(commandsForKey("F5", false)).toEqual([]);
+    expect(commandsForKey("Ctrl+Shift+R", false).map((c) => c.id)).toEqual(["run.run"]);
+  });
+});

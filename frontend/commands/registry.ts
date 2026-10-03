@@ -30,6 +30,8 @@ export interface Command {
   keybinding?: string;
   /** Default key on macOS, when it differs. */
   macKeybinding?: string;
+  /** Further keys for the same command (dropped when the user rebinds it). */
+  alternateKeybindings?: string[];
   /** Whether the keybinding applies in this focus context (default: always). */
   when?(ctx: KeyContext): boolean;
   /** The key is handled natively (by the editor or the operating system);

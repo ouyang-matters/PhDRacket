@@ -9,8 +9,6 @@ import { allCommands, executeCommand, getCommand, isEnabled, isVisible, type Com
 
 export const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform ?? "");
 
-const MODS = ["Mod", "Ctrl", "Alt", "Shift", "Meta"] as const;
-
 /** Canonical form: modifiers in a fixed order, key capitalized. On macOS
  * Mod means Meta; elsewhere Ctrl. */
 export function normalizeKey(key: string, mac = IS_MAC): string {
@@ -92,10 +90,18 @@ export function keybindingFor(id: string, mac = IS_MAC): string | null {
   return c ? defaultKeybinding(c, mac) : null;
 }
 
+/** Every key bound to a command: its keybinding and any alternates. */
+export function allKeybindingsFor(id: string, mac = IS_MAC): string[] {
+  const primary = keybindingFor(id, mac);
+  const c = getCommand(id);
+  const alternates = id in overrides || !c ? [] : (c.alternateKeybindings ?? []).map((k) => normalizeKey(k, mac));
+  return [...(primary ? [primary] : []), ...alternates];
+}
+
 /** Commands bound to `key`, in registration order. */
 export function commandsForKey(key: string, mac = IS_MAC): Command[] {
   const k = normalizeKey(key, mac);
-  return allCommands().filter((c) => keybindingFor(c.id, mac) === k);
+  return allCommands().filter((c) => allKeybindingsFor(c.id, mac).includes(k));
 }
 
 /** Pairs of commands bound to the same key. */
