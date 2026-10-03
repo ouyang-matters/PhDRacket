@@ -19,11 +19,15 @@ export const MENUBAR: { id: string; title: string }[] = [
   { id: "menubar.help", title: "Help" },
 ];
 
-export function MenuBar({ children }: { children?: React.ReactNode }) {
+/** `locked`: only the mark is shown (before the Beta Terms are accepted). */
+export function MenuBar({ children, locked = false }: { children?: React.ReactNode; locked?: boolean }) {
   useMenusVersion();
   const [open, setOpen] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
-  const menus = MENUBAR.filter((m) => resolveMenu(m.id).length > 0);
+  const menus = locked ? [] : MENUBAR.filter((m) => resolveMenu(m.id).length > 0);
+  // Read by the Alt handler, which is installed once.
+  const hasMenus = useRef(false);
+  hasMenus.current = menus.length > 0;
 
   useEffect(() => {
     if (open === null) return;
@@ -39,7 +43,7 @@ export function MenuBar({ children }: { children?: React.ReactNode }) {
     const up = (e: KeyboardEvent) => {
       if (e.key === "Alt" && alone) {
         e.preventDefault();
-        setOpen((o) => (o === null ? 0 : null));
+        if (hasMenus.current) setOpen((o) => (o === null ? 0 : null));
       }
       alone = false;
     };
@@ -94,7 +98,7 @@ export function MenuBar({ children }: { children?: React.ReactNode }) {
         ))}
       </nav>
       <div className="menubar-spacer" data-tauri-drag-region />
-      {children}
+      {!locked && children}
     </header>
   );
 }

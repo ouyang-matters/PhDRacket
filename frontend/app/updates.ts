@@ -26,6 +26,10 @@ function set(patch: Partial<UpdateState>) {
   for (const l of listeners) l();
 }
 
+export function updateState(): UpdateState {
+  return state;
+}
+
 export function useUpdate(): UpdateState {
   return useSyncExternalStore(
     (l) => {

@@ -15,8 +15,8 @@ import { installBuiltinCommands } from "@frontend/workbench/builtin-commands";
 import { installBuiltinViews } from "@frontend/workbench/builtin-views";
 import { Icon } from "@frontend/workbench/icons";
 import { Dialogs } from "./Dialogs";
-import { checkForUpdates } from "./updates";
-import { confirmQuit, dismissNotice, getState, initialize, loadAnnouncements, setDialog, subscribe, useApp } from "./store";
+import { checkForUpdates, updateState, useUpdate } from "./updates";
+import { confirmQuit, dismissNotice, getState, initialize, loadAnnouncements, setDialog, subscribe, termsAccepted, useApp } from "./store";
 
 installBuiltinCommands();
 installBuiltinViews();
@@ -65,6 +65,8 @@ function useKeybindings() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.isComposing) return;
+      // Nothing but the Setup dialog works until the Beta Terms are accepted.
+      if (!termsAccepted(getState())) return;
       if (dispatchKey(e, keyContextOf(document.activeElement))) {
         e.preventDefault();
         e.stopPropagation();
@@ -106,8 +108,21 @@ export function App() {
   const prefs = useApp((s) => s.prefs);
   const zen = useApp((s) => s.zen);
   const maximized = useApp((s) => s.panelMaximized);
+  const accepted = useApp((s) => termsAccepted(s));
   useKeybindings();
   useAppearance();
+
+  // An update found by the startup check opens the update dialog once, as
+  // soon as no other dialog (Setup, Terms, announcements) is showing.
+  const startupUpdate = useRef(false);
+  const update = useUpdate();
+  const openDialog = useApp((s) => s.dialog);
+  useEffect(() => {
+    if (startupUpdate.current && update.status === "available" && openDialog === null && accepted) {
+      startupUpdate.current = false;
+      setDialog("update");
+    }
+  }, [update.status, openDialog, accepted]);
 
   useEffect(() => {
     void initialize().then(() => {
@@ -115,7 +130,12 @@ export function App() {
       window.dispatchEvent(new Event("phdracket-ready"));
       // Quiet check shortly after startup, in release builds only.
       if (!import.meta.env.DEV && getState().prefs.checkForUpdates) {
-        setTimeout(() => void checkForUpdates(true), 4000);
+        setTimeout(() => {
+          startupUpdate.current = true;
+          void checkForUpdates(true).then(() => {
+            if (updateState().status !== "available") startupUpdate.current = false;
+          });
+        }, 4000);
       }
       void loadAnnouncements();
     });
@@ -150,7 +170,7 @@ export function App() {
   return (
     <div className="workbench">
       {showMenu && (
-        <MenuBar>
+        <MenuBar locked={!accepted}>
           <CommandCenter />
           <div className="menubar-spacer" data-tauri-drag-region />
         </MenuBar>
