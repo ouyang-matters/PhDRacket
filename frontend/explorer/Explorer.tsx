@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { DirEntry } from "@shared/protocol";
 import { backend } from "@frontend/ipc/backend";
 import { activeDoc, openFolderWithDialog, openPath, setFolder, useApp } from "@frontend/app/store";
+import { Icon } from "@frontend/workbench/icons";
 
 const SOURCE = /\.(rkt|rktl|scm|ss)$/i;
 
@@ -71,22 +72,21 @@ function FolderContents({ path, depth, version }: { path: string; depth: number;
 
 export function Explorer() {
   const folder = useApp((s) => s.folder);
-  const width = useApp((s) => s.prefs.explorerWidth);
   const [version, setVersion] = useState(0);
 
   return (
-    <aside className="explorer" style={{ width }} aria-label="Explorer">
+    <div className="explorer">
       <div className="explorer-head">
         <span className="explorer-title" title={folder ?? undefined}>
           {folder ? baseName(folder) : "Explorer"}
         </span>
         {folder && (
           <>
-            <button className="small-btn" title="Refresh" onClick={() => setVersion((v) => v + 1)}>
-              Refresh
+            <button className="icon-button" title="Refresh" aria-label="Refresh" onClick={() => setVersion((v) => v + 1)}>
+              <Icon name="restart" size={14} />
             </button>
-            <button className="small-btn" title="Close folder" onClick={() => setFolder(null)}>
-              Close
+            <button className="icon-button" title="Close Folder" aria-label="Close Folder" onClick={() => setFolder(null)}>
+              <Icon name="close" size={14} />
             </button>
           </>
         )}
@@ -101,6 +101,6 @@ export function Explorer() {
           </div>
         )}
       </div>
-    </aside>
+    </div>
   );
 }

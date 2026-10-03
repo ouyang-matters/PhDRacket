@@ -1,137 +1,43 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { EditorArea } from "@frontend/editor/EditorArea";
-import { InteractionsPanel } from "@frontend/interactions/InteractionsPanel";
-import { OutputPanel } from "@frontend/problems/OutputPanel";
-import { ProblemsPanel } from "@frontend/problems/ProblemsPanel";
 import { StatusBar } from "@frontend/status-bar/StatusBar";
-import { TestsPanel } from "@frontend/tests/TestsPanel";
-import { StepperPanel } from "@frontend/stepper/StepperPanel";
-import { Explorer } from "@frontend/explorer/Explorer";
-import { resolveTheme } from "@frontend/settings/preferences";
+import { dispatchKey, keyContextOf, setKeybindingOverrides, formatKey, keybindingFor } from "@frontend/commands/keybindings";
+import { commandsChanged, executeCommand } from "@frontend/commands/registry";
+import { applyTheme } from "@frontend/theme/apply";
+import { resolveThemeChoice } from "@frontend/theme/engine";
+import { MenuBar } from "@frontend/workbench/MenuBar";
+import { ActivityBar, Sidebar } from "@frontend/workbench/sidebar";
+import { BottomPanel } from "@frontend/workbench/panels";
+import { QuickInputHost } from "@frontend/workbench/QuickInput";
+import { ContextMenuHost } from "@frontend/workbench/ContextMenu";
+import { installBuiltinCommands } from "@frontend/workbench/builtin-commands";
+import { installBuiltinViews } from "@frontend/workbench/builtin-views";
+import { Icon } from "@frontend/workbench/icons";
 import { Dialogs } from "./Dialogs";
 import { checkForUpdates } from "./updates";
-import { loadAnnouncements } from "./store";
-import {
-  activeDoc,
-  confirmQuit,
-  dismissNotice,
-  getState,
-  initialize,
-  openFolderWithDialog,
-  openWithDialog,
-  runActive,
-  saveDoc,
-  setDialog,
-  setPanel,
-  setPrefs,
-  stepActive,
-  stopProgram,
-  toggleExplorer,
-  useApp,
-  type PanelTab,
-} from "./store";
+import { confirmQuit, dismissNotice, getState, initialize, loadAnnouncements, setDialog, subscribe, useApp } from "./store";
 
-function Toolbar() {
-  const doc = useApp((s) => activeDoc(s));
-  const status = useApp((s) => s.run.status);
-  const ready = useApp((s) => s.runtime.state === "ready");
-  return (
-    <header className="toolbar">
-      <span className="brand" aria-label="PhDRacket">
-        PhD<span>Racket</span>
-      </span>
-      <nav className="toolbar-group" aria-label="File">
-        <button onClick={() => setDialog("new-file")} title="New file (Ctrl+N)">New</button>
-        <button onClick={() => void openWithDialog()} title="Open file (Ctrl+O)">Open</button>
-        <button onClick={() => void openFolderWithDialog()} title="Open folder (Ctrl+Shift+O)">Open Folder</button>
-        <button onClick={() => void saveDoc()} disabled={!doc} title="Save (Ctrl+S)">Save</button>
-      </nav>
-      <span className="toolbar-spacer" />
-      <div className="toolbar-group">
-        {status === "running" && (
-          <button className="stop" onClick={() => void stopProgram()} title="Stop the running program">
-            Stop
-          </button>
-        )}
-        <button onClick={() => void stepActive()} disabled={!doc || !ready} title="Step (Ctrl+Shift+Enter)">
-          Step
-        </button>
-        <button className="run" onClick={() => void runActive()} disabled={!doc || !ready} title="Run (Ctrl+Enter)">
-          Run
-        </button>
-      </div>
-      <nav className="toolbar-group" aria-label="Application">
-        <button onClick={() => setDialog("settings")} title="Settings">Settings</button>
-        <button onClick={() => setDialog("about")} title="About PhDRacket">About</button>
-      </nav>
-    </header>
-  );
+installBuiltinCommands();
+installBuiltinViews();
+
+// Menus and toolbars show enablement from application state.
+subscribe(commandsChanged);
+
+function prefersDark(): boolean {
+  return typeof window !== "undefined" && !!window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 }
 
-const PANELS: { id: PanelTab; label: string }[] = [
-  { id: "problems", label: "Problems" },
-  { id: "tests", label: "Tests" },
-  { id: "interactions", label: "Interactions" },
-  { id: "stepper", label: "Stepper" },
-  { id: "output", label: "Output" },
-];
-
-function PanelTabs() {
-  const panel = useApp((s) => s.panel);
-  const failed = useApp((s) => s.run.tests?.failed ?? 0);
-  const problems = useApp((s) => s.run.diagnostics.filter((d) => d.category !== "test").length);
+/** Opens Quick Open: the search box in the middle of the menu bar. */
+function CommandCenter() {
+  const folder = useApp((s) => s.folder);
+  const key = keybindingFor("workbench.quickOpen");
+  const name = folder ? folder.replace(/[\\/]+$/, "").split(/[\\/]/).pop() : "PhDRacket";
   return (
-    <div className="panel-tabs" role="tablist" aria-label="Panels">
-      {PANELS.map((p) => (
-        <button key={p.id} role="tab" aria-selected={panel === p.id} className={panel === p.id ? "active" : ""} onClick={() => setPanel(p.id)}>
-          {p.label}
-          {p.id === "tests" && failed > 0 && <span className="badge fail">{failed}</span>}
-          {p.id === "problems" && problems > 0 && <span className="badge">{problems}</span>}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function BottomPanel() {
-  const panel = useApp((s) => s.panel);
-  const height = useApp((s) => s.prefs.panelHeight);
-  const dragging = useRef(false);
-  const views: Record<PanelTab, ReactNode> = {
-    interactions: <InteractionsPanel />,
-    tests: <TestsPanel />,
-    problems: <ProblemsPanel />,
-    stepper: <StepperPanel />,
-    output: <OutputPanel />,
-  };
-  return (
-    <section className="bottom-panel" style={{ height }}>
-      <div
-        className="splitter"
-        role="separator"
-        aria-orientation="horizontal"
-        aria-label="Resize panel"
-        onPointerDown={(e) => {
-          dragging.current = true;
-          (e.target as HTMLElement).setPointerCapture(e.pointerId);
-        }}
-        onPointerMove={(e) => {
-          if (!dragging.current) return;
-          const h = Math.min(Math.max(window.innerHeight - e.clientY - 24, 90), window.innerHeight - 160);
-          setPrefs({ panelHeight: Math.round(h) });
-        }}
-        onPointerUp={() => (dragging.current = false)}
-      />
-      <PanelTabs />
-      <div className="panel-body">
-        {/* Interactions stays mounted so its input editor and history persist. */}
-        <div hidden={panel !== "interactions"} className="panel-view">
-          {views.interactions}
-        </div>
-        {panel !== "interactions" && <div className="panel-view">{views[panel]}</div>}
-      </div>
-    </section>
+    <button className="command-center" onClick={() => executeCommand("workbench.quickOpen")} title={`Go to File${key ? ` (${formatKey(key)})` : ""}`}>
+      <Icon name="search" size={14} />
+      <span>{name}</span>
+    </button>
   );
 }
 
@@ -151,57 +57,62 @@ function Notices() {
   );
 }
 
-function useGlobalShortcuts() {
+/** One dispatcher for workbench keys, before the editors see them. Keys the
+ * editor owns (typing, undo, find, multi-cursor) are left alone. */
+function useKeybindings() {
+  const overrides = useApp((s) => s.prefs.keybindings);
+  useEffect(() => setKeybindingOverrides(overrides), [overrides]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.defaultPrevented) return;
-      const mod = e.ctrlKey || e.metaKey;
-      const key = e.key.toLowerCase();
-      if (mod && e.shiftKey && key === "o") {
+      if (e.defaultPrevented || e.isComposing) return;
+      if (dispatchKey(e, keyContextOf(document.activeElement))) {
         e.preventDefault();
-        void openFolderWithDialog();
-      } else if (mod && key === "o") {
-        e.preventDefault();
-        void openWithDialog();
-      } else if (mod && key === "b") {
-        e.preventDefault();
-        toggleExplorer();
-      } else if (mod && key === "n") {
-        e.preventDefault();
-        setDialog("new-file");
-      } else if (mod && key === "s") {
-        e.preventDefault();
-        void saveDoc(undefined, e.shiftKey);
-      } else if (mod && e.shiftKey && key === "enter") {
-        e.preventDefault();
-        void stepActive();
-      } else if ((mod && (key === "enter" || key === "r")) || e.key === "F5") {
-        e.preventDefault();
-        void runActive();
-      } else if (mod && (key === "=" || key === "+")) {
-        e.preventDefault();
-        setPrefs({ fontSize: Math.min(getState().prefs.fontSize + 1, 40) });
-      } else if (mod && key === "-") {
-        e.preventDefault();
-        setPrefs({ fontSize: Math.max(getState().prefs.fontSize - 1, 8) });
-      } else if (mod && key === "0") {
-        e.preventDefault();
-        setPrefs({ fontSize: 14 });
+        e.stopPropagation();
       }
     };
-    // Bubble phase: keys the editors handle themselves never reach here.
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, []);
+}
+
+/** The theme, interface scale and motion preferences, applied to the whole window. */
+function useAppearance() {
+  const theme = useApp((s) => s.prefs.theme);
+  const uiScale = useApp((s) => s.prefs.uiScale);
+  const reducedMotion = useApp((s) => s.prefs.reducedMotion);
+  useEffect(() => {
+    const apply = () => applyTheme(resolveThemeChoice(theme, prefersDark()));
+    apply();
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [theme]);
+  const startupAnimation = useApp((s) => s.prefs.startupAnimation);
+  useEffect(() => {
+    try {
+      // Read by the startup screen in index.html at the next launch.
+      localStorage.setItem("phdracket.startupAnimation", startupAnimation);
+    } catch {
+      // Storage unavailable: the startup screen uses its default.
+    }
+  }, [startupAnimation]);
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${13 * uiScale}px`;
+    document.documentElement.dataset.reducedMotion = String(reducedMotion);
+  }, [uiScale, reducedMotion]);
 }
 
 export function App() {
   const prefs = useApp((s) => s.prefs);
-  const explorerVisible = prefs.explorerVisible;
-  useGlobalShortcuts();
+  const zen = useApp((s) => s.zen);
+  const maximized = useApp((s) => s.panelMaximized);
+  useKeybindings();
+  useAppearance();
 
   useEffect(() => {
     void initialize().then(() => {
+      // The workbench is ready: end the startup screen (apps/desktop/index.html).
+      window.dispatchEvent(new Event("phdracket-ready"));
       // Quiet check shortly after startup, in release builds only.
       if (!import.meta.env.DEV && getState().prefs.checkForUpdates) {
         setTimeout(() => void checkForUpdates(true), 4000);
@@ -232,31 +143,33 @@ export function App() {
     }
   }, [runtimeState]);
 
-  useEffect(() => {
-    const apply = () => {
-      document.documentElement.dataset.theme = resolveTheme(prefs.theme);
-    };
-    apply();
-    document.documentElement.style.fontSize = `${13 * prefs.uiScale}px`;
-    document.documentElement.dataset.reducedMotion = String(prefs.reducedMotion);
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, [prefs.theme, prefs.uiScale, prefs.reducedMotion]);
+  const showMenu = prefs.menuBarVisible && !zen;
+  const showSidebar = prefs.explorerVisible && !zen;
+  const showPanel = prefs.panelVisible && !zen;
 
   return (
-    <div className="app">
-      <Toolbar />
-      <div className="body">
-        {explorerVisible && <Explorer />}
-        <main className="workspace">
-          <EditorArea />
-          <BottomPanel />
+    <div className="workbench">
+      {showMenu && (
+        <MenuBar>
+          <CommandCenter />
+          <div className="menubar-spacer" data-tauri-drag-region />
+        </MenuBar>
+      )}
+      <div className="workbench-body">
+        {!zen && <ActivityBar />}
+        {showSidebar && <Sidebar />}
+        <main className="workbench-main">
+          <div className="editor-region" hidden={showPanel && maximized}>
+            <EditorArea />
+          </div>
+          {showPanel && <BottomPanel />}
         </main>
       </div>
-      <StatusBar />
+      {prefs.statusBarVisible && !zen && <StatusBar />}
       <Dialogs />
       <Notices />
+      <QuickInputHost />
+      <ContextMenuHost />
     </div>
   );
 }

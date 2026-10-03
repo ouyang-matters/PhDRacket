@@ -11,7 +11,11 @@ import { NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { versionMismatch } from "@shared/models/profiles";
 import { activeProfile, dismissAnnouncement, newFile, selectRuntime, setDialog, setPrefs, useApp } from "./store";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import type { ThemeChoice } from "@frontend/settings/preferences";
+import type { StartupAnimation } from "@frontend/settings/preferences";
+import { THEMES } from "@frontend/theme/themes";
+import { BrandMark } from "@frontend/workbench/BrandMark";
+import { KeybindingsDialog } from "@frontend/workbench/KeybindingsDialog";
+import { ComputeHostsDialog } from "@frontend/compute/ComputeHostsDialog";
 
 function NewFileDialog() {
   const preferred = useApp((s) => activeProfile(s).defaultLanguage);
@@ -176,11 +180,14 @@ function AboutDialog() {
   }, []);
   return (
     <Modal title="About PhDRacket" onClose={() => setDialog(null)}>
-      <p>
-        <strong>PhDRacket</strong> {version}
-        <br />
-        Same Racket. Better IDE.
-      </p>
+      <div className="about-head">
+        <BrandMark size={56} />
+        <p>
+          <strong>PhDRacket</strong> {version}
+          <br />
+          Same Racket. Better IDE.
+        </p>
+      </div>
       <UpdateLine />
       <p className="muted small">
         Independent open-source project. Not affiliated with the University of Waterloo or the Racket project.
@@ -202,11 +209,22 @@ function SettingsDialog() {
       <div className="form">
         <label>
           Theme
-          <select value={prefs.theme} onChange={(e) => setPrefs({ theme: e.target.value as ThemeChoice })}>
+          <select value={prefs.theme} onChange={(e) => setPrefs({ theme: e.target.value })}>
             <option value="system">Follow system</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="high-contrast">High contrast</option>
+            {THEMES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+                {t.unofficial ? " (unofficial)" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Startup animation
+          <select value={prefs.startupAnimation} onChange={(e) => setPrefs({ startupAnimation: e.target.value as StartupAnimation })}>
+            <option value="full">Full</option>
+            <option value="reduced">Reduced</option>
+            <option value="off">Off</option>
           </select>
         </label>
         <label>
@@ -235,7 +253,19 @@ function SettingsDialog() {
         </label>
         <label className="check">
           <input type="checkbox" checked={prefs.explorerVisible} onChange={(e) => setPrefs({ explorerVisible: e.target.checked })} />
-          Show Explorer (Ctrl+B)
+          Show sidebar
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={prefs.panelVisible} onChange={(e) => setPrefs({ panelVisible: e.target.checked })} />
+          Show bottom panel
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={prefs.statusBarVisible} onChange={(e) => setPrefs({ statusBarVisible: e.target.checked })} />
+          Show status bar
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={prefs.menuBarVisible} onChange={(e) => setPrefs({ menuBarVisible: e.target.checked })} />
+          Show menu bar
         </label>
         <label className="check">
           <input type="checkbox" checked={prefs.minimap} onChange={(e) => setPrefs({ minimap: e.target.checked })} />
@@ -281,6 +311,10 @@ export function Dialogs() {
       return <AnnouncementDialog />;
     case "terms":
       return <TermsDialog />;
+    case "keybindings":
+      return <KeybindingsDialog />;
+    case "compute-hosts":
+      return <ComputeHostsDialog />;
     default:
       return null;
   }

@@ -3,7 +3,6 @@ import { monaco } from "@frontend/editor/monaco";
 import { RACKET_LANGUAGE_ID } from "@frontend/editor/racket-language";
 import { isCompleteEntry } from "@frontend/editor/sexp";
 import { clearInteractions, evalInteraction, getState, runActive, useApp } from "@frontend/app/store";
-import { monacoThemeFor, resolveTheme } from "@frontend/settings/preferences";
 import { DiagnosticView } from "@frontend/problems/DiagnosticView";
 import type { Entry } from "@frontend/run/session";
 
@@ -176,7 +175,6 @@ export function InteractionsPanel() {
   }, []);
 
   useEffect(() => {
-    monaco.editor.setTheme(monacoThemeFor(resolveTheme(prefs.theme)));
     editorRef.current?.updateOptions({
       fontFamily: prefs.fontFamily,
       fontSize: prefs.fontSize,
@@ -190,7 +188,7 @@ export function InteractionsPanel() {
   const matches = history.current.filter((h) => h.toLowerCase().includes(filter.toLowerCase())).slice(-50).reverse();
 
   return (
-    <div className="interactions" style={{ fontFamily: prefs.fontFamily, fontSize: prefs.fontSize }}>
+    <div className="interactions" data-key-context="interactions" style={{ fontFamily: prefs.fontFamily, fontSize: prefs.fontSize }}>
       <RunBanner />
       <div className="transcript" ref={scroller} role="log" aria-live="polite" aria-label="Interactions transcript">
         {transcript.map((e) => (

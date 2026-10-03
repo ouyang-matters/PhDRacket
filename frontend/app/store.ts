@@ -33,6 +33,7 @@ import { parseAnnouncements, pendingAnnouncements, todayString, type Announcemen
 import { modnameFor, newFileText, renameGeneratedHeader, NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { detectLanguage } from "@frontend/workspace/language";
 import { languageChangeEdit } from "@frontend/workspace/change-language";
+import * as L from "@frontend/workbench/layout";
 
 export interface Doc {
   id: string;
@@ -50,7 +51,8 @@ export interface Doc {
   generated?: { languageId: string; modname: string };
 }
 
-export type PanelTab = "problems" | "tests" | "interactions" | "stepper" | "output";
+/** A bottom panel id (frontend/workbench/panels.tsx). */
+export type PanelTab = string;
 
 export interface Notice {
   id: number;
@@ -60,7 +62,14 @@ export interface Notice {
 
 export interface AppState {
   docs: Doc[];
+  /** The document in the active editor group; kept in step with `layout`. */
   activeId: string | null;
+  /** Editor groups and their split layout. */
+  layout: L.EditorLayout;
+  /** The bottom panel fills the workbench. */
+  panelMaximized: boolean;
+  /** Zen mode: only the editor is shown. */
+  zen: boolean;
   runtime: RuntimeStatus;
   prefs: Preferences;
   run: RunState;
@@ -70,7 +79,7 @@ export interface AppState {
   recentFiles: string[];
   /** Folder shown in the Explorer. */
   folder: string | null;
-  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup" | "announcement" | "terms";
+  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup" | "announcement" | "terms" | "keybindings" | "compute-hosts";
   /** Announcements waiting to be shown. */
   announcements: Announcement[];
   /** Bumped when model content changes, so dirty markers re-render. */
@@ -80,6 +89,9 @@ export interface AppState {
 let state: AppState = {
   docs: [],
   activeId: null,
+  layout: L.initialLayout(),
+  panelMaximized: false,
+  zen: false,
   runtime: { state: "detecting", runtime: null, message: null },
   prefs: DEFAULT_PREFERENCES,
   run: initialRunState,
@@ -104,14 +116,14 @@ export function getState(): AppState {
   return state;
 }
 
+/** Calls `listener` after every state change. Returns a function that unsubscribes. */
+export function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 export function useApp<T>(select: (s: AppState) => T): T {
-  return useSyncExternalStore(
-    (l) => {
-      listeners.add(l);
-      return () => listeners.delete(l);
-    },
-    () => select(state),
-  );
+  return useSyncExternalStore(subscribe, () => select(state));
 }
 
 // ---------------------------------------------------------------------------
@@ -139,6 +151,14 @@ export function activeDoc(s: AppState = state): Doc | null {
 export function isDirty(d: Doc): boolean {
   return d.model.getAlternativeVersionId() !== d.savedVersion;
 }
+
+/** Sets the editor layout; `activeId` follows its active tab. */
+function setLayout(layout: L.EditorLayout, extra: Partial<AppState> = {}) {
+  set({ ...extra, layout, activeId: L.activeTab(layout) });
+}
+
+/** Paths of recently closed editors, newest last. */
+const closedPaths: string[] = [];
 
 function headerOf(model: monaco.editor.ITextModel, lines: number): string | null {
   if (lines <= 0 || model.getLineCount() < lines) return null;
@@ -187,7 +207,7 @@ function createDoc(init: Omit<Doc, "id" | "model" | "savedVersion"> & { text: st
 export async function openPath(path: string) {
   const existing = state.docs.find((d) => d.path === path);
   if (existing) {
-    set({ activeId: existing.id });
+    setLayout(L.openTab(state.layout, existing.id));
     return;
   }
   try {
@@ -202,11 +222,10 @@ export async function openPath(path: string) {
       originalHeader: null,
     });
     doc.originalHeader = headerOf(doc.model, opened.language.metadataLines);
-    set((s) => ({
-      docs: [...s.docs, doc],
-      activeId: doc.id,
-      recentFiles: [opened.path, ...s.recentFiles.filter((p) => p !== opened.path)].slice(0, 15),
-    }));
+    setLayout(L.openTab(state.layout, doc.id), {
+      docs: [...state.docs, doc],
+      recentFiles: [opened.path, ...state.recentFiles.filter((p) => p !== opened.path)].slice(0, 15),
+    });
   } catch (e) {
     await message(String(e), { title: "Cannot open file", kind: "error" });
   }
@@ -258,7 +277,7 @@ export function newFile(languageId: string) {
   doc.originalHeader = headerOf(doc.model, language.metadataLines);
   // A brand-new file is unsaved: mark it dirty.
   doc.savedVersion = -1;
-  set((s) => ({ docs: [...s.docs, doc], activeId: doc.id, dialog: null }));
+  setLayout(L.openTab(state.layout, doc.id), { docs: [...state.docs, doc], dialog: null });
 }
 
 export async function saveDoc(doc: Doc | null = activeDoc(), forceDialog = false): Promise<boolean> {
@@ -313,15 +332,99 @@ export async function closeDoc(doc: Doc): Promise<boolean> {
     });
     if (!discard) return false;
   }
-  if (doc.path) void backend.closeSource(doc.path);
+  if (doc.path) {
+    void backend.closeSource(doc.path);
+    closedPaths.push(doc.path);
+    if (closedPaths.length > 20) closedPaths.shift();
+  }
+  setLayout(L.removeDoc(state.layout, doc.id), { docs: state.docs.filter((d) => d.id !== doc.id) });
   doc.model.dispose();
-  set((s) => {
-    const idx = s.docs.findIndex((d) => d.id === doc.id);
-    const docs = s.docs.filter((d) => d.id !== doc.id);
-    const activeId = s.activeId === doc.id ? (docs[Math.min(idx, docs.length - 1)]?.id ?? null) : s.activeId;
-    return { docs, activeId };
-  });
   return true;
+}
+
+/** Closes a tab. The document closes only when no other group shows it. */
+export async function closeTab(groupId: string, docId: string): Promise<boolean> {
+  const elsewhere = Object.values(state.layout.groups).some((g) => g.id !== groupId && g.tabs.includes(docId));
+  if (elsewhere) {
+    setLayout(L.closeTab(state.layout, groupId, docId));
+    return true;
+  }
+  const doc = state.docs.find((d) => d.id === docId);
+  return doc ? closeDoc(doc) : true;
+}
+
+/** Closes several tabs of a group, stopping if the user cancels. */
+async function closeTabs(groupId: string, docIds: string[]): Promise<boolean> {
+  for (const id of docIds) if (!(await closeTab(groupId, id))) return false;
+  return true;
+}
+
+export function closeOtherTabs(groupId: string, docId: string) {
+  const g = state.layout.groups[groupId];
+  return g ? closeTabs(groupId, g.tabs.filter((t) => t !== docId)) : Promise.resolve(true);
+}
+
+export function closeTabsToRight(groupId: string, docId: string) {
+  const g = state.layout.groups[groupId];
+  return g ? closeTabs(groupId, g.tabs.slice(g.tabs.indexOf(docId) + 1)) : Promise.resolve(true);
+}
+
+/** Closes every tab of a group, then the group itself. */
+export async function closeGroup(groupId: string = state.layout.activeGroup) {
+  const g = state.layout.groups[groupId];
+  if (!g) return;
+  if (await closeTabs(groupId, [...g.tabs])) setLayout(L.removeGroup(state.layout, groupId));
+}
+
+export async function closeAllEditors() {
+  for (const d of [...state.docs]) if (!(await closeDoc(d))) return;
+}
+
+/** Reopens the most recently closed file. */
+export async function reopenClosedEditor() {
+  const path = closedPaths.pop();
+  if (path) await openPath(path);
+}
+
+export function canReopenClosedEditor(): boolean {
+  return closedPaths.length > 0;
+}
+
+export function splitEditor(direction: L.SplitDirection, groupId: string = state.layout.activeGroup) {
+  const g = state.layout.groups[groupId];
+  if (!g) return;
+  setLayout(L.splitGroup(state.layout, groupId, direction, g.active));
+}
+
+export function moveTab(from: string, to: string, docId: string, index?: number) {
+  setLayout(L.moveTab(state.layout, from, to, docId, index));
+}
+
+export function moveTabToNewGroup(groupId: string, docId: string, direction: L.SplitDirection) {
+  setLayout(L.moveToNewGroup(state.layout, groupId, docId, direction));
+}
+
+export function applyEditorLayout(preset: L.LayoutPreset) {
+  setLayout(L.applyPreset(state.layout, preset));
+}
+
+export function focusGroup(groupId: string) {
+  if (groupId !== state.layout.activeGroup) setLayout(L.focusGroup(state.layout, groupId));
+}
+
+/** Focuses the next (or previous) editor group in reading order. */
+export function focusAdjacentGroup(delta: number) {
+  const order = L.groupOrder(state.layout);
+  const i = order.indexOf(state.layout.activeGroup);
+  focusGroup(order[(i + delta + order.length) % order.length]);
+}
+
+export function activateTab(groupId: string, docId: string) {
+  setLayout(L.openTab(state.layout, docId, groupId));
+}
+
+export function resizeEditorSplit(splitId: string, sizes: number[]) {
+  set({ layout: L.resizeSplit(state.layout, splitId, sizes) });
 }
 
 /** Choose Language: rewrite only the language declaration of the active
@@ -346,8 +449,9 @@ export function changeLanguage(languageId: string) {
   set((s) => ({ docs: [...s.docs], revision: s.revision + 1 }));
 }
 
+/** Shows a document in the active editor group. */
 export function activate(id: string) {
-  set({ activeId: id });
+  setLayout(L.openTab(state.layout, id));
 }
 
 const autosaveTimers = new Map<string, number>();
@@ -498,8 +602,24 @@ export function setPrefs(patch: Partial<Preferences>) {
   void backend.setUiSettings(state.prefs);
 }
 
+/** Shows a bottom panel (opening the panel area if it is hidden). */
 export function setPanel(panel: PanelTab) {
   set({ panel });
+  if (!state.prefs.panelVisible) setPrefs({ panelVisible: true });
+}
+
+export function togglePanelMaximized() {
+  set((s) => ({ panelMaximized: !s.panelMaximized }));
+  if (!state.prefs.panelVisible) setPrefs({ panelVisible: true });
+}
+
+export function toggleZen() {
+  set((s) => ({ zen: !s.zen }));
+}
+
+/** Closes the folder shown in the Explorer. */
+export function closeFolder() {
+  setFolder(null);
 }
 
 export function setDialog(dialog: AppState["dialog"]) {

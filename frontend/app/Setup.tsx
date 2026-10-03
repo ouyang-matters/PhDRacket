@@ -6,7 +6,6 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import type { InstallPlan, InstallProgress } from "@shared/protocol";
 import { PROFILES, profileById } from "@shared/models/profiles";
 import { backend } from "@frontend/ipc/backend";
-import type { ThemeChoice } from "@frontend/settings/preferences";
 import { exit } from "@tauri-apps/plugin-process";
 import { TERMS_VERSION } from "@frontend/legal/terms";
 import { TermsView } from "@frontend/legal/TermsView";
@@ -14,6 +13,15 @@ import { Modal } from "./Modal";
 import { selectRuntime, setDialog, setPrefs, useApp } from "./store";
 
 type RacketChoice = "install" | "existing";
+
+/** The first-run theme choices; every theme is available later in Settings. */
+const SETUP_THEMES: [string, string][] = [
+  ["system", "Follow system"],
+  ["phd-light", "Light"],
+  ["phd-dark", "Dark"],
+  ["waterloo-math-pink", "Waterloo Math Pink (unofficial)"],
+  ["waterloo-black-gold", "Waterloo Black & Gold (unofficial)"],
+];
 
 function progressText(p: InstallProgress | null): string {
   if (!p) return "Starting…";
@@ -198,16 +206,14 @@ export function SetupDialog() {
 
         <section>
           <h3>Theme</h3>
-          <select
-            value={prefs.theme}
-            disabled={installing}
-            onChange={(e) => setPrefs({ theme: e.target.value as ThemeChoice })}
-            aria-label="Theme"
-          >
-            <option value="system">Follow system</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
+          <div className="theme-choices" role="radiogroup" aria-label="Theme">
+            {SETUP_THEMES.map(([id, label]) => (
+              <label key={id} className="radio">
+                <input type="radio" name="theme" checked={prefs.theme === id} disabled={installing} onChange={() => setPrefs({ theme: id })} />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
         </section>
 
         <div className="row end">
