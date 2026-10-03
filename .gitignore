@@ -12,6 +12,10 @@ compiled/
 # Tauri generated schemas
 /apps/desktop/src-tauri/gen/
 
+# Mobile icons that `pnpm icons` also generates (PhDRacket is desktop only)
+/apps/desktop/src-tauri/icons/android/
+/apps/desktop/src-tauri/icons/ios/
+
 # Local PhDRacket workspace state (never part of a project)
 .phdracket/
 

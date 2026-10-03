@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "tauri": "tauri",
-    "terms": "node apps/desktop/scripts/terms-txt.ts"
+    "terms": "node apps/desktop/scripts/terms-txt.ts",
+    "icons": "tauri icon apps/desktop/icon.svg -o apps/desktop/src-tauri/icons"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.1",
