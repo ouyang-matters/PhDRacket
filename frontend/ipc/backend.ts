@@ -44,6 +44,7 @@ export const backend = {
   settings: () => invoke<Settings>("settings_get"),
   setUiSettings: (ui: unknown) => invoke<void>("settings_set_ui", { ui }),
   appInfo: () => invoke<AppInfo>("app_info"),
+  fetchAnnouncements: () => invoke<string>("announcements_fetch"),
 
   onEngineEvent: (f: (e: EngineEvent) => void): Promise<UnlistenFn> =>
     listen<EngineEvent>("engine", (e) => f(e.payload)),

@@ -111,6 +111,17 @@ try {
   check(true, "Setup finishes and is remembered");
   await screenshot("01-start");
 
+  // Announcements: display-only, shown once.
+  await evaluate(`${S}.queueAnnouncements([{ id: "e2e-1", title: "Test announcement", body: "Plain text only.", link: { label: "Releases", url: "https://github.com/ouyang-matters/PhDRacket/releases" } }])`);
+  await waitFor(`${S}.getState().dialog === "announcement"`, "the announcement");
+  check(await evaluate(`document.body.innerText.includes("Plain text only.")`), "an announcement is shown at startup");
+  await screenshot("01b-announcement");
+  await evaluate(`[...document.querySelectorAll(".modal .primary")].find((b) => b.textContent === "OK").click()`);
+  await waitFor(`${S}.getState().dialog === null`, "the announcement to close");
+  await evaluate(`${S}.queueAnnouncements([{ id: "e2e-1", title: "Again", body: "x" }])`);
+  await sleep(300);
+  check((await evaluate(`${S}.getState().dialog`)) === null, "a dismissed announcement is never shown again");
+
   // Work on a copy of a corpus file.
   const work = join(tmpdir(), `phdracket-e2e-${process.pid}`);
   mkdirSync(work, { recursive: true });

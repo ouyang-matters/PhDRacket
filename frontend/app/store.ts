@@ -28,6 +28,7 @@ import {
   type StepperState,
 } from "@frontend/stepper/stepper-state";
 import { profileById, type CourseProfile } from "@shared/models/profiles";
+import { parseAnnouncements, pendingAnnouncements, todayString, type Announcement } from "./announcements";
 import { modnameFor, newFileText, renameGeneratedHeader, NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { detectLanguage } from "@frontend/workspace/language";
 import { languageChangeEdit } from "@frontend/workspace/change-language";
@@ -68,7 +69,9 @@ export interface AppState {
   recentFiles: string[];
   /** Folder shown in the Explorer. */
   folder: string | null;
-  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup";
+  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup" | "announcement";
+  /** Announcements waiting to be shown. */
+  announcements: Announcement[];
   /** Bumped when model content changes, so dirty markers re-render. */
   revision: number;
 }
@@ -85,6 +88,7 @@ let state: AppState = {
   recentFiles: [],
   folder: null,
   dialog: null,
+  announcements: [],
   revision: 0,
 };
 
@@ -528,6 +532,37 @@ export async function initialize() {
     // First launch: one Setup dialog with clean defaults.
     dialog: prefs.setupDone ? null : "setup",
   });
+}
+
+/** Fetches announcements and queues the ones for this user. Quiet on failure. */
+export async function loadAnnouncements() {
+  if (!state.prefs.showAnnouncements) return;
+  try {
+    const [text, info] = await Promise.all([backend.fetchAnnouncements(), backend.appInfo()]);
+    const pending = pendingAnnouncements(parseAnnouncements(text), {
+      version: info.version,
+      profile: state.prefs.profile,
+      today: todayString(),
+      seen: state.prefs.seenAnnouncements,
+    });
+    queueAnnouncements(pending);
+  } catch {
+    // Offline or unreachable: nothing to show.
+  }
+}
+
+/** Queues announcements that have not been shown yet. */
+export function queueAnnouncements(list: Announcement[]) {
+  const fresh = list.filter((a) => !state.prefs.seenAnnouncements.includes(a.id));
+  if (fresh.length > 0) set((s) => ({ announcements: [...s.announcements, ...fresh] }));
+}
+
+/** Marks the current announcement as seen and moves to the next one. */
+export function dismissAnnouncement() {
+  const [current, ...rest] = state.announcements;
+  if (!current) return;
+  setPrefs({ seenAnnouncements: [...state.prefs.seenAnnouncements, current.id].slice(-200) });
+  set({ announcements: rest, dialog: null });
 }
 
 export async function confirmQuit(): Promise<boolean> {

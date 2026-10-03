@@ -7,7 +7,8 @@ import type { RuntimeInfo } from "@shared/protocol";
 import { backend } from "@frontend/ipc/backend";
 import { NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { versionMismatch } from "@shared/models/profiles";
-import { activeProfile, newFile, selectRuntime, setDialog, setPrefs, useApp } from "./store";
+import { activeProfile, dismissAnnouncement, newFile, selectRuntime, setDialog, setPrefs, useApp } from "./store";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import type { ThemeChoice } from "@frontend/settings/preferences";
 
 function NewFileDialog() {
@@ -137,6 +138,26 @@ function UpdateDialog() {
   );
 }
 
+function AnnouncementDialog() {
+  const a = useApp((s) => s.announcements[0]);
+  if (!a) return null;
+  return (
+    <Modal title={a.title} onClose={dismissAnnouncement}>
+      <p className="announcement-body">{a.body}</p>
+      <div className="row end">
+        {a.link && (
+          <button onClick={() => void openUrl(a.link!.url)} title={a.link.url}>
+            {a.link.label}
+          </button>
+        )}
+        <button className="primary" autoFocus onClick={dismissAnnouncement}>
+          OK
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 function AboutDialog() {
   const [version, setVersion] = useState("");
   useEffect(() => {
@@ -212,6 +233,10 @@ function SettingsDialog() {
           Check for updates on startup
         </label>
         <label className="check">
+          <input type="checkbox" checked={prefs.showAnnouncements} onChange={(e) => setPrefs({ showAnnouncements: e.target.checked })} />
+          Show announcements
+        </label>
+        <label className="check">
           <input type="checkbox" checked={prefs.reducedMotion} onChange={(e) => setPrefs({ reducedMotion: e.target.checked })} />
           Reduce motion
         </label>
@@ -235,6 +260,8 @@ export function Dialogs() {
       return <UpdateDialog />;
     case "setup":
       return <SetupDialog />;
+    case "announcement":
+      return <AnnouncementDialog />;
     default:
       return null;
   }

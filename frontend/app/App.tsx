@@ -11,6 +11,7 @@ import { Explorer } from "@frontend/explorer/Explorer";
 import { resolveTheme } from "@frontend/settings/preferences";
 import { Dialogs } from "./Dialogs";
 import { checkForUpdates } from "./updates";
+import { loadAnnouncements } from "./store";
 import {
   activeDoc,
   confirmQuit,
@@ -205,6 +206,7 @@ export function App() {
       if (!import.meta.env.DEV && getState().prefs.checkForUpdates) {
         setTimeout(() => void checkForUpdates(true), 4000);
       }
+      void loadAnnouncements();
     });
     const win = getCurrentWindow();
     const unlisten = win.onCloseRequested(async (event) => {
@@ -212,6 +214,13 @@ export function App() {
     });
     return () => void unlisten.then((f) => f());
   }, []);
+
+  // Show queued announcements when no other dialog is open.
+  const dialog = useApp((s) => s.dialog);
+  const announcementCount = useApp((s) => s.announcements.length);
+  useEffect(() => {
+    if (dialog === null && announcementCount > 0) setDialog("announcement");
+  }, [dialog, announcementCount]);
 
   // Without a usable Racket, open Setup (once per launch).
   const runtimeState = useApp((s) => s.runtime.state);

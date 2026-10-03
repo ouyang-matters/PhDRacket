@@ -21,6 +21,10 @@ export interface Preferences {
   panelHeight: number;
   explorerVisible: boolean;
   explorerWidth: number;
+  /** Show maintainer announcements at startup. */
+  showAnnouncements: boolean;
+  /** Ids of announcements already shown. */
+  seenAnnouncements: string[];
   /** The first-run Setup dialog has been completed. */
   setupDone: boolean;
   /** Ask GitHub for a newer release at startup (nothing is sent but the request). */
@@ -45,6 +49,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   explorerWidth: 240,
   checkForUpdates: true,
   setupDone: false,
+  showAnnouncements: true,
+  seenAnnouncements: [],
 };
 
 export function mergePreferences(stored: unknown): Preferences {

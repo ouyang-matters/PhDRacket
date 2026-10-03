@@ -8,6 +8,7 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(commands::AppState::default())
         .setup(|app| {
             commands::start_runtime(app.handle().clone(), None);
@@ -28,6 +29,7 @@ fn main() {
             commands::stop_program,
             commands::step_program,
             commands::stop_stepper,
+            commands::announcements_fetch,
             commands::workspace_list,
             commands::workspace_set_folder,
             commands::settings_get,

@@ -1194,3 +1194,8 @@ mark.step-after {
 .row.end {
   justify-content: flex-end;
 }
+
+.announcement-body {
+  white-space: pre-wrap;
+  margin: 0 0 1rem;
+}

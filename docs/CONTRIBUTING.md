@@ -107,3 +107,11 @@ The Windows installer and the macOS application are not yet signed with a
 code-signing certificate or notarized, so Windows SmartScreen and macOS
 Gatekeeper show a warning on first launch. The installation steps in the
 README explain how to proceed.
+
+## Announcements
+
+To show a notice to users, add an entry to `announcements/current.json` on
+the `main` branch. Installed copies read the file at startup and show each
+announcement once. `announcements/README.md` describes the fields, including
+version, profile and date filters. Keep announcements short and factual, and
+use them sparingly.

@@ -311,6 +311,35 @@ pub fn runtime_install(app: AppHandle, version: String, dest: String) {
     });
 }
 
+/// Published announcements (display-only), see announcements/README.md.
+const ANNOUNCEMENTS_URL: &str =
+    "https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/announcements/current.json";
+
+/// Downloads the announcements file. Returns its text (at most 64 KB); the
+/// frontend validates it. Failures are reported to the caller, which ignores
+/// them quietly.
+#[tauri::command]
+pub async fn announcements_fetch() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        use std::io::Read;
+        let agent: ureq::Agent = ureq::Agent::config_builder()
+            .timeout_global(Some(std::time::Duration::from_secs(8)))
+            .build()
+            .into();
+        let response = agent.get(ANNOUNCEMENTS_URL).call().map_err(|e| e.to_string())?;
+        let mut text = String::new();
+        response
+            .into_body()
+            .into_reader()
+            .take(64 * 1024)
+            .read_to_string(&mut text)
+            .map_err(|e| e.to_string())?;
+        Ok(text)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Lists one folder for the Explorer (read-only).
 #[tauri::command]
 pub fn workspace_list(path: String) -> Result<Vec<DirEntry>, String> {

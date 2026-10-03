@@ -75,8 +75,8 @@ know private grading tests and never claims that a file will pass them.
 
 Your code stays on your computer. PhDRacket needs no account and collects no
 telemetry. It only connects to the network to check for PhDRacket updates
-(optional) and, when you ask it to, to download the official Racket
-installer.
+and announcements (both can be turned off in Settings) and, when you ask it
+to, to download the official Racket installer.
 
 ## Status
 

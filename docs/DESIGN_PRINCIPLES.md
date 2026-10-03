@@ -77,9 +77,10 @@ constraints.
 
 PhDRacket requires no account, uploads nothing and collects no telemetry.
 Student code stays on the student's computer. The only network requests are
-the optional update check, which asks GitHub whether a newer release exists,
-and downloading the official Racket installer when the user asks PhDRacket to
-install Racket.
+the optional update and announcement checks, which read files from the
+project's GitHub repository, and downloading the official Racket installer
+when the user asks PhDRacket to install Racket. Announcements are
+display-only and can never change the application's behavior.
 
 ## Simple setup
 

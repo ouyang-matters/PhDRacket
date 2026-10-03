@@ -98,11 +98,20 @@ in the Explorer only reads it.
 ## Network access and privacy
 
 PhDRacket does not upload code, does not require an account and collects no
-telemetry. It makes two kinds of network requests. Installing Racket from the
-Setup dialog downloads the official installer from racket-lang.org, only when
-the user asks for it. The other is the update check: at startup it
-downloads a small manifest from the project's GitHub repository to see whether
-a newer release exists. The request contains no information about your files.
-Turn it off in Settings with *Check for updates on startup*; you can still
-check manually from the About dialog. Updates are signed, and an update is
-downloaded and installed only after you confirm it.
+telemetry. It makes only these network requests, and none of them contains
+information about your files:
+
+| Request | When | Turn off |
+|---|---|---|
+| Official Racket installer from racket-lang.org | Only when you click *Install Racket* in Setup | Not needed |
+| Update manifest from the project's GitHub repository | At startup | Settings, *Check for updates on startup* |
+| Announcements file from the project's GitHub repository | At startup | Settings, *Show announcements* |
+
+Updates are signed, and an update is downloaded and installed only after you
+confirm it. You can also check for updates manually from the About dialog.
+
+Announcements are short notices from the maintainers, for example about a new
+version or a known problem. They are display-only: a title, plain text and
+at most one `https` link that opens in your browser. PhDRacket validates the
+file, shows each announcement once, and never runs anything from it. See
+`announcements/README.md` for the format.
