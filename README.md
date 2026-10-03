@@ -10,6 +10,9 @@ them, so you can switch between the two at any time. What PhDRacket changes is
 the editing experience: tabs, a folder explorer, a modern editor, a clear test
 panel and an integrated Stepper.
 
+For an illustrated tour of the main features, see
+[Introducing PhDRacket](docs/introducing-phdracket.md).
+
 PhDRacket is an independent open-source project. It is not affiliated with or
 endorsed by the University of Waterloo or the Racket project.
 
@@ -133,6 +136,7 @@ release process.
 
 | Document | Contents |
 |---|---|
+| [Introducing PhDRacket](docs/introducing-phdracket.md) | An illustrated tour of the main features |
 | [Design principles](docs/DESIGN_PRINCIPLES.md) | The rules every feature follows |
 | [Architecture](docs/ARCHITECTURE.md) | Components, data flow and the bridge protocol |
 | [Racket integration](docs/RACKET_INTEGRATION.md) | Runtime discovery, processes and data locations |
