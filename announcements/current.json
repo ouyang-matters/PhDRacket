@@ -1,3 +1,11 @@
 {
-  "announcements": []
+  "announcements": [
+    {
+      "id": "2026-10-0.1.1-beta",
+      "title": "This version is outdated: PhDRacket 0.1.1 Beta is available",
+      "body": "PhDRacket 0.1.0-beta.1 is outdated. Version 0.1.1 Beta brings menus, a command palette, split editors, Find in Files, themes, multi-page Settings with auto save and keyboard shortcuts, and fixes. To update, click Update 0.1.1 in the status bar, or open About and choose Check for updates.",
+      "link": { "label": "Release notes", "url": "https://github.com/ouyang-matters/PhDRacket/releases/tag/v0.1.1" },
+      "maxVersion": "0.1.0-beta.1"
+    }
+  ]
 }
