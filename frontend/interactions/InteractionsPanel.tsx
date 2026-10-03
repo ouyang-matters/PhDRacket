@@ -227,7 +227,8 @@ export function InteractionsPanel() {
         <span className="prompt" aria-hidden>
           &gt;
         </span>
-        <div className="repl-editor" ref={inputHost} />
+        {/* monaco-component: gives Monaco's context menu its theme colors. */}
+        <div className="repl-editor monaco-component" ref={inputHost} />
         <div className="repl-actions">
           <button title="Search history" onClick={() => setShowHistory((v) => !v)}>
             History

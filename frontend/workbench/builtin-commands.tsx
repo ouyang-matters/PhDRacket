@@ -476,6 +476,13 @@ export const BUILTIN_MENUS: Record<string, MenuItem[]> = {
 
 /** Go to Symbol and Go to Definition within a file, from top-level definitions. */
 function registerLanguageNavigation() {
+  // In PhDRacket Ctrl+Shift+O opens a folder; Go to Symbol is Ctrl+T. Move the
+  // editor's own binding so its context menu shows the key that works.
+  const { KeyMod, KeyCode } = monaco;
+  monaco.editor.addKeybindingRules([
+    { keybinding: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyO, command: "-editor.action.quickOutline" },
+    { keybinding: KeyMod.CtrlCmd | KeyCode.KeyT, command: "editor.action.quickOutline" },
+  ]);
   const symbolKind = { function: monaco.languages.SymbolKind.Function, constant: monaco.languages.SymbolKind.Constant, struct: monaco.languages.SymbolKind.Struct };
   monaco.languages.registerDocumentSymbolProvider(RACKET_LANGUAGE_ID, {
     provideDocumentSymbols: (model) =>

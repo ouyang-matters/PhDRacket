@@ -4,148 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PhDRacket</title>
-    <style>
-      /* Startup screen. Shown only while the workbench loads; it never delays
-       * startup and never loops. Colors come from the last theme used. */
-      html,
-      body {
-        margin: 0;
-        height: 100%;
-        background: var(--splash-bg, #121417);
-      }
-      #splash {
-        position: fixed;
-        inset: 0;
-        z-index: 1000;
-        display: grid;
-        place-items: center;
-        background: var(--splash-bg, #121417);
-        color: var(--splash-fg, #e6edf3);
-        font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif;
-        transition: opacity 180ms ease-out;
-      }
-      #splash.leaving {
-        opacity: 0;
-        pointer-events: none;
-      }
-      #splash .lockup {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-      }
-      #splash svg path {
-        fill: none;
-        stroke-width: 6;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-      #splash .ink {
-        stroke: var(--splash-fg, #e6edf3);
-      }
-      #splash .accent {
-        stroke: var(--splash-accent, #5b9bf0);
-      }
-      #splash .word {
-        font-size: 30px;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-      }
-      #splash .status {
-        position: absolute;
-        bottom: 18%;
-        font-size: 13px;
-        opacity: 0;
-        transition: opacity 300ms;
-      }
-      #splash.slow .status {
-        opacity: 0.6;
-      }
-      /* Full: the parentheses and the λ draw themselves, then the name appears. */
-      #splash.full path {
-        stroke-dasharray: 80;
-        stroke-dashoffset: 80;
-        animation: draw 300ms cubic-bezier(0.2, 0, 0, 1) forwards;
-      }
-      #splash.full .p2 { animation-delay: 110ms; }
-      #splash.full .p3 { animation-delay: 230ms; }
-      #splash.full .p4 { animation-delay: 300ms; }
-      #splash.full .word {
-        opacity: 0;
-        transform: translateX(-6px);
-        animation: rise 260ms ease-out 360ms forwards;
-      }
-      /* Reduced: a simple fade, no movement. */
-      #splash.reduced .lockup {
-        opacity: 0;
-        animation: fade 180ms ease-out forwards;
-      }
-      @keyframes draw { to { stroke-dashoffset: 0; } }
-      @keyframes rise { to { opacity: 1; transform: none; } }
-      @keyframes fade { to { opacity: 1; } }
-    </style>
-    <script>
-      // Runs before the application loads; see frontend/theme/apply.ts and
-      // frontend/app/App.tsx for the values it reads and the "ready" event.
-      (function () {
-        var theme = null, mode = "full";
-        try {
-          theme = JSON.parse(localStorage.getItem("phdracket.splash") || "null");
-          mode = localStorage.getItem("phdracket.startupAnimation") || "full";
-        } catch (e) {}
-        var root = document.documentElement.style;
-        if (theme) {
-          root.setProperty("--splash-bg", theme.bg);
-          root.setProperty("--splash-fg", theme.fg);
-          root.setProperty("--splash-accent", theme.accent);
-        } else if (window.matchMedia && !window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          root.setProperty("--splash-bg", "#f6f6f3");
-          root.setProperty("--splash-fg", "#1f2328");
-          root.setProperty("--splash-accent", "#1f5fae");
-        }
-        if (mode === "full" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) mode = "reduced";
-        window.__phdSplashMode = mode;
-      })();
-    </script>
+    <link rel="stylesheet" href="/splash.css" />
   </head>
   <body>
     <div id="splash" aria-hidden="true">
       <div class="lockup">
-        <svg width="64" height="64" viewBox="0 0 64 64">
-          <path class="ink p1" d="M27 8 C 15 20, 15 44, 27 56" />
-          <path class="ink p2" d="M31 9 C 47 13, 47 33, 31 37" />
-          <path class="accent p3" d="M36 33 L 50 56" />
-          <path class="accent p4" d="M43 44.5 L 35 56" />
+        <svg width="64" height="64" viewBox="148 150 728 728">
+          <path class="board" d="M512 196 L864 352 L512 508 L160 352 Z" />
+          <path class="accent p3" d="M512 352 L760 448 L760 600" />
+          <circle class="tassel" cx="760" cy="626" r="34" />
+          <path class="ink p1" d="M404 470 C 330 560, 330 740, 404 830" />
+          <path class="ink p2" d="M620 470 C 694 560, 694 740, 620 830" />
         </svg>
         <span class="word">PhDRacket</span>
       </div>
       <span class="status">Starting…</span>
     </div>
-    <script>
-      (function () {
-        var splash = document.getElementById("splash");
-        var mode = window.__phdSplashMode;
-        if (mode === "off") {
-          splash.remove();
-          return;
-        }
-        splash.classList.add(mode === "reduced" ? "reduced" : "full");
-        // If loading takes long, say so quietly instead of replaying anything.
-        var slow = setTimeout(function () {
-          splash.classList.add("slow");
-        }, 1500);
-        window.addEventListener(
-          "phdracket-ready",
-          function () {
-            clearTimeout(slow);
-            splash.classList.add("leaving");
-            setTimeout(function () {
-              splash.remove();
-            }, 200);
-          },
-          { once: true },
-        );
-      })();
-    </script>
+    <script src="/splash.js"></script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

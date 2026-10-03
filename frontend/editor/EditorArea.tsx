@@ -317,7 +317,10 @@ function EditorGroupView({ groupId }: { groupId: string }) {
           }
         }}
       >
-        <div className="monaco-host" ref={host} />
+        {/* monaco-component: Monaco defines its theme variables on this class, and
+            attaches menus and other overflow widgets to this container, beside
+            .monaco-editor; without it the editor's context menu has no colors. */}
+        <div className="monaco-host monaco-component" ref={host} />
         {!doc && <div className="group-watermark">{groupWatermark()}</div>}
       </div>
     </section>
