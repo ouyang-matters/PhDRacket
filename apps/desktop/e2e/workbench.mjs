@@ -37,7 +37,7 @@ const work = join(tmpdir(), `phdracket-workbench-e2e-${process.pid}`);
 mkdirSync(work, { recursive: true });
 const terms = /^Last Updated: (.+)$/m.exec(readFileSync(join(repo, "docs/TERMS.md"), "utf8"))[1].trim();
 const settingsFile = join(work, "settings.json");
-writeFileSync(settingsFile, JSON.stringify({ ui: { setupDone: true, termsAccepted: terms, checkForUpdates: false, showAnnouncements: false, theme: "phd-dark" } }));
+writeFileSync(settingsFile, JSON.stringify({ ui: { setupDone: true, termsAccepted: "", checkForUpdates: false, showAnnouncements: false, theme: "phd-dark" } }));
 
 const app = spawn(exe, [], {
   env: {
@@ -128,7 +128,18 @@ const S = "window.__phdracket";
 const state = (path) => evaluate(`JSON.parse(JSON.stringify(${S}.getState().${path}))`);
 
 try {
-  await waitFor(`${S} && ${S}.getState().prefs.setupDone`, "the UI");
+  await waitFor(`${S} && ${S}.getState().dialog === "setup"`, "Setup asking for the Terms");
+  check((await evaluate(`document.title`)) === "PhDRacket Beta", "the window title says Beta");
+  check(!(await evaluate(`!!document.querySelector(".menubar-item")`)), "before the Terms are accepted the menus are locked");
+  await key("Ctrl+Shift+P");
+  await key("Ctrl+P");
+  check(!(await evaluate(`!!document.querySelector(".quick-input")`)), "before the Terms are accepted shortcuts do nothing");
+  await evaluate(`document.querySelector(".terms-check input").click()`);
+  await sleep(200);
+  await waitFor(`${S}.getState().runtime.state !== "detecting"`, "runtime detection", 120000);
+  await evaluate(`document.querySelector(".setup .primary").click()`);
+  await waitFor(`${S}.getState().dialog === null && ${S}.getState().prefs.termsAccepted === ${JSON.stringify(terms)}`, "the Terms to be accepted");
+  check(await evaluate(`!!document.querySelector(".menubar-item")`), "after accepting, the menus appear");
   await waitFor(`!document.getElementById("splash")`, "the startup screen to leave", 15000);
   check(true, "startup screen leaves once the workbench is ready");
   await waitFor(`${S}.getState().runtime.state === "ready"`, "Racket", 120000);
@@ -276,6 +287,47 @@ try {
   await key("Escape");
 
   check(sha(file) === before, "no source file was written by the workbench");
+
+  // Settings: pages.
+  await key("Ctrl+,");
+  await waitFor(`document.querySelector(".settings-nav")`, "Settings");
+  const pages = await evaluate(`[...document.querySelectorAll(".settings-nav button")].map((b) => b.textContent)`);
+  check(JSON.stringify(pages) === JSON.stringify(["General", "Appearance", "Editor", "Files", "Keyboard Shortcuts"]), `Settings pages: ${pages.join(", ")}`);
+  await click(".settings-nav button", "Appearance");
+  await click(".theme-card .theme-name", "Paper");
+  check((await state("prefs.theme")) === "paper", "a theme card applies the theme");
+  await screenshot("wb-10-settings-appearance");
+  await click(".settings-nav button", "Files");
+  await evaluate(`(() => { const sel = document.querySelector(".settings-page select"); sel.value = "onFocusChange"; sel.dispatchEvent(new Event("change", { bubbles: true })); })()`);
+  check((await state("prefs.autosave")) === "onFocusChange", "auto save mode can be chosen");
+  await click(".settings-nav button", "Editor");
+  await screenshot("wb-11-settings-editor");
+  await click(".settings-nav button", "Keyboard Shortcuts");
+  check(await evaluate(`!!document.querySelector(".settings-page table.keybindings")`), "Keyboard Shortcuts is a Settings page");
+  await evaluate(`${S}.setPrefs({ theme: "phd-dark", autosave: "off" })`);
+  await key("Escape");
+
+  // Unsaved changes: in-app dialog with Save, Don't Save and Cancel.
+  // One group, so closing the tab closes the file (a file shown in another
+  // group closes without asking).
+  await evaluate(`${S}.applyEditorLayout("single")`);
+  await evaluate(`${S}.openPath(${JSON.stringify(file)})`);
+  await waitFor(`${S}.activeDoc()?.path === ${JSON.stringify(file)}`, "a.rkt active");
+  await evaluate(`(() => { const m = ${S}.activeDoc().model; m.pushEditOperations([], [{ range: m.getFullModelRange().collapseToEnd(), text: "\\n(define saved-by-dialog 1)\\n" }], () => null); })()`);
+  // Let the editor take focus before the key.
+  await sleep(400);
+  await key("Ctrl+W");
+  await waitFor(`document.querySelector(".unsaved-modal")`, "the unsaved-changes dialog");
+  const buttons = await evaluate(`[...document.querySelectorAll(".unsaved-actions button")].map((b) => b.textContent)`);
+  check(JSON.stringify(buttons) === JSON.stringify(["Don't Save", "Cancel", "Save"]), `unsaved dialog offers: ${buttons.join(", ")}`);
+  await screenshot("wb-12-unsaved");
+  await click(".unsaved-actions button", "Cancel");
+  check(await evaluate(`${S}.getState().docs.some((d) => d.path === ${JSON.stringify(file)})`), "Cancel keeps the file open");
+  await key("Ctrl+W");
+  await waitFor(`document.querySelector(".unsaved-modal")`, "the dialog again");
+  await click(".unsaved-actions button", "Save");
+  await waitFor(`!${S}.getState().docs.some((d) => d.path === ${JSON.stringify(file)})`, "the file to close");
+  check(readFileSync(file, "utf8").includes("saved-by-dialog"), "Save writes the file, then closes it");
 } catch (e) {
   failures++;
   console.error(e);
