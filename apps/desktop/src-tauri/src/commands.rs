@@ -12,6 +12,7 @@ use phdracket_core::source::{self, OpenedSource, SaveOutcome, SourceSnapshot};
 use phdracket_core::bridge;
 use phdracket_core::workspace::{self, DirEntry};
 use phdracket_core::install::{self, InstallProgress, InstallerInfo};
+use phdracket_core::remote;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -39,6 +40,8 @@ pub struct AppState {
     status: Mutex<RuntimeStatus>,
     snapshots: Mutex<HashMap<PathBuf, SourceSnapshot>>,
     settings: Mutex<Option<Settings>>,
+    remote_tasks: Mutex<HashMap<u64, remote::Task>>,
+    next_task: Mutex<u64>,
 }
 
 /// The settings file. PHDRACKET_SETTINGS_FILE overrides it (used by the
@@ -346,6 +349,24 @@ pub fn workspace_list(path: String) -> Result<Vec<DirEntry>, String> {
     workspace::list_dir(Path::new(&path)).map_err(|e| e.to_string())
 }
 
+/// Files under a folder, recursively (read-only), for Quick Open.
+#[tauri::command]
+pub async fn workspace_files(path: String) -> Result<Vec<PathBuf>, String> {
+    tauri::async_runtime::spawn_blocking(move || workspace::list_files(Path::new(&path), 10_000).map_err(|e| e.to_string()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Find in Files (read-only).
+#[tauri::command]
+pub async fn workspace_search(path: String, query: String, case_sensitive: bool) -> Result<Vec<workspace::SearchMatch>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        workspace::search(Path::new(&path), &query, case_sensitive, 2_000).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Remembers the folder open in the Explorer (`None` closes it).
 #[tauri::command]
 pub fn workspace_set_folder(app: AppHandle, path: Option<String>) {
@@ -362,6 +383,46 @@ pub fn settings_get(app: AppHandle) -> Settings {
 pub fn settings_set_ui(app: AppHandle, ui: serde_json::Value) {
     with_settings(&app, |s| s.ui = ui);
     persist_settings(&app);
+}
+
+/// Checks an SSH compute host and returns its Racket version.
+#[tauri::command]
+pub async fn remote_probe(host: String, racket: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || remote::probe(&host, &racket).map_err(|e| e.to_string()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Runs a program on an SSH compute host as a task. Output and the exit
+/// arrive as `compute-task` events.
+#[tauri::command]
+pub fn remote_run(app: AppHandle, state: State<AppState>, host: String, racket: String, file_name: String, text: String) -> Result<u64, String> {
+    let id = {
+        let mut n = state.next_task.lock().unwrap();
+        *n += 1;
+        *n
+    };
+    let emitter = app.clone();
+    let sink: remote::TaskSink = Arc::new(move |e| {
+        if let remote::TaskEvent::Exit { task, .. } = &e {
+            emitter.state::<AppState>().remote_tasks.lock().unwrap().remove(task);
+        }
+        let _ = emitter.emit("compute-task", e);
+    });
+    let task = remote::run(id, &host, &racket, &file_name, &text, sink).map_err(|e| e.to_string())?;
+    state.remote_tasks.lock().unwrap().insert(id, task);
+    Ok(id)
+}
+
+#[tauri::command]
+pub fn remote_cancel(state: State<AppState>, task: u64) -> bool {
+    match state.remote_tasks.lock().unwrap().get(&task) {
+        Some(t) => {
+            t.cancel();
+            true
+        }
+        None => false,
+    }
 }
 
 #[derive(Serialize)]

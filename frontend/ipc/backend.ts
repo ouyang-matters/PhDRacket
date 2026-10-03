@@ -14,6 +14,7 @@ import type {
   RuntimeInfo,
   RuntimeStatus,
   SaveOutcome,
+  SearchMatch,
   Settings,
 } from "@shared/protocol";
 
@@ -40,6 +41,11 @@ export const backend = {
 
   listFolder: (path: string) => invoke<DirEntry[]>("workspace_list", { path }),
   setWorkspaceFolder: (path: string | null) => invoke<void>("workspace_set_folder", { path }),
+  /** Files under a folder, recursively (read-only). */
+  workspaceFiles: (path: string) => invoke<string[]>("workspace_files", { path }),
+  /** Find in Files (read-only). */
+  workspaceSearch: (path: string, query: string, caseSensitive: boolean) =>
+    invoke<SearchMatch[]>("workspace_search", { path, query, caseSensitive }),
 
   settings: () => invoke<Settings>("settings_get"),
   setUiSettings: (ui: unknown) => invoke<void>("settings_set_ui", { ui }),

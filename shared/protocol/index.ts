@@ -153,6 +153,14 @@ export type InstallEvent =
   | { phase: "done"; executable: string }
   | { phase: "failed"; message: string };
 
+/** One Find in Files result: 1-based line and column (in characters). */
+export interface SearchMatch {
+  path: string;
+  line: number;
+  column: number;
+  text: string;
+}
+
 export interface DirEntry {
   name: string;
   path: string;

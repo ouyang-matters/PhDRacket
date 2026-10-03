@@ -31,10 +31,15 @@ fn main() {
             commands::stop_stepper,
             commands::announcements_fetch,
             commands::workspace_list,
+            commands::workspace_files,
+            commands::workspace_search,
             commands::workspace_set_folder,
             commands::settings_get,
             commands::settings_set_ui,
             commands::app_info,
+            commands::remote_probe,
+            commands::remote_run,
+            commands::remote_cancel,
         ])
         .build(tauri::generate_context!())
         .expect("error while building PhDRacket")
