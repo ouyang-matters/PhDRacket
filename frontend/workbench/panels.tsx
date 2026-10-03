@@ -33,10 +33,6 @@ export function registerPanelView(view: PanelView): () => void {
   };
 }
 
-export function panelViews(): PanelView[] {
-  return views;
-}
-
 export function usePanelViews(): PanelView[] {
   return useSyncExternalStore(
     (l) => {

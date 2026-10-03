@@ -30,10 +30,6 @@ export function registerSidebarView(view: SidebarView): () => void {
   };
 }
 
-export function sidebarViews(): SidebarView[] {
-  return views;
-}
-
 function useSidebarViews(): SidebarView[] {
   return useSyncExternalStore(
     (l) => {

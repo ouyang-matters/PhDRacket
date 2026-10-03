@@ -3,7 +3,7 @@
 // example, which tab was right-clicked).
 
 import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from "react";
-import { registerMenuProvider, type MenuId, type MenuItem } from "@frontend/commands/menus";
+import type { MenuId } from "@frontend/commands/menus";
 import { MenuList } from "./MenuList";
 
 interface Open {
@@ -36,11 +36,6 @@ export function openContextMenu(e: { clientX: number; clientY: number; preventDe
 
 export function closeContextMenu() {
   set(null);
-}
-
-/** Items whose command args are computed from the context menu's args. */
-export function contextItems(menu: MenuId, make: (args: unknown) => MenuItem[]): () => void {
-  return registerMenuProvider(menu, () => (current?.menu === menu ? make(contextArgs) : []));
 }
 
 export function ContextMenuHost() {

@@ -26,18 +26,9 @@ export function setActiveGroupId(id: string) {
   activeGroupId = id;
 }
 
-export function groupEditor(groupId: string): monaco.editor.IStandaloneCodeEditor | null {
-  return byGroup.get(groupId) ?? null;
-}
-
 /** The editor of the active group. */
 export function activeGroupEditor(): monaco.editor.IStandaloneCodeEditor | null {
   return activeGroupId ? (byGroup.get(activeGroupId) ?? null) : null;
-}
-
-/** All group editors showing a model. */
-export function editorsForModel(model: monaco.editor.ITextModel): monaco.editor.IStandaloneCodeEditor[] {
-  return [...byGroup.values()].filter((e) => e.getModel() === model);
 }
 
 /** The editor with keyboard focus, else the last focused, else the active group's. */
@@ -62,8 +53,3 @@ export function runEditorAction(actionId: string): boolean {
   return true;
 }
 
-/** Whether the target editor offers an action. */
-export function hasEditorAction(actionId: string): boolean {
-  const editor = targetEditor();
-  return !!editor?.getModel() && (!!editor.getAction(actionId) || ["undo", "redo"].includes(actionId));
-}
