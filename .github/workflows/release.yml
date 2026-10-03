@@ -50,7 +50,7 @@ jobs:
         with:
           tauriScript: pnpm tauri
           tagName: ${{ github.ref_name }}
-          releaseName: PhDRacket ${{ github.ref_name }}
+          releaseName: PhDRacket ${{ github.ref_name }} Beta
           releaseBody: |
             Test release of PhDRacket, a modern editor for Racket and the HtDP teaching languages.
 
