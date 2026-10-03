@@ -5,6 +5,7 @@ import {
   closeDoc,
   getState,
   isDirty,
+  openFolderWithDialog,
   openPath,
   openWithDialog,
   runActive,
@@ -205,6 +206,7 @@ function EmptyState() {
         <button className="primary" onClick={() => void openWithDialog()}>
           Open file…
         </button>
+        <button onClick={() => void openFolderWithDialog()}>Open folder…</button>
         <button onClick={() => setDialog("new-file")}>
           New file…
         </button>

@@ -14,6 +14,8 @@ pub struct Settings {
     /// The Racket executable the user chose; `None` means auto-detect.
     pub racket_executable: Option<PathBuf>,
     pub recent_files: Vec<PathBuf>,
+    /// The folder open in the Explorer, restored at startup.
+    pub workspace_folder: Option<PathBuf>,
     /// Editor and UI preferences, owned by the frontend.
     pub ui: serde_json::Value,
 }

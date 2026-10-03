@@ -64,6 +64,8 @@ export interface AppState {
   panel: PanelTab;
   notices: Notice[];
   recentFiles: string[];
+  /** Folder shown in the Explorer. */
+  folder: string | null;
   dialog: null | "new-file" | "runtime" | "about" | "settings" | "update";
   /** Bumped when model content changes, so dirty markers re-render. */
   revision: number;
@@ -79,6 +81,7 @@ let state: AppState = {
   panel: "interactions",
   notices: [],
   recentFiles: [],
+  folder: null,
   dialog: null,
   revision: 0,
 };
@@ -207,6 +210,20 @@ export async function openWithDialog() {
   });
   const paths = Array.isArray(picked) ? picked : picked ? [picked] : [];
   for (const p of paths) await openPath(p);
+}
+
+export async function openFolderWithDialog() {
+  const picked = await openDialog({ directory: true, multiple: false, title: "Open Folder" });
+  if (typeof picked === "string") setFolder(picked);
+}
+
+export function setFolder(path: string | null) {
+  set((s) => ({ folder: path, prefs: path ? { ...s.prefs, explorerVisible: true } : s.prefs }));
+  void backend.setWorkspaceFolder(path);
+}
+
+export function toggleExplorer() {
+  setPrefs({ explorerVisible: !state.prefs.explorerVisible });
 }
 
 /** Creates an untitled file in a language the user explicitly chose. */
@@ -474,7 +491,11 @@ export async function initialize() {
   await backend.onRuntimeStatus((runtime) => set({ runtime }));
   set({ runtime: await backend.runtimeStatus() });
   const settings = await backend.settings();
-  set({ prefs: mergePreferences(settings.ui), recentFiles: settings.recentFiles });
+  set({
+    prefs: mergePreferences(settings.ui),
+    recentFiles: settings.recentFiles,
+    folder: settings.workspaceFolder,
+  });
 }
 
 export async function confirmQuit(): Promise<boolean> {

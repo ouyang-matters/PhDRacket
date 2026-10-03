@@ -183,6 +183,11 @@ pre {
   height: 100%;
 }
 
+.body {
+  display: flex;
+  min-height: 0;
+}
+
 /* Toolbar */
 .toolbar {
   display: flex;
@@ -232,9 +237,11 @@ button.stop {
 
 /* Workspace */
 .workspace {
+  flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
 }
 
 .editor-area {
@@ -1018,4 +1025,101 @@ mark.step-after {
   padding: 0.5rem 0.75rem;
   max-height: 40vh;
   overflow: auto;
+}
+
+/* Explorer */
+.explorer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.explorer-head {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 0.4rem 0 0.75rem;
+  min-height: 2.1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.explorer-title {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.small-btn {
+  font-size: 0.8rem;
+  padding: 0.05rem 0.45rem;
+}
+
+.explorer-body {
+  flex: 1;
+  overflow: auto;
+  padding: 0.25rem 0;
+}
+
+.tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: none;
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-row:hover {
+  background: var(--bg-sunken);
+}
+
+.tree-row.active {
+  background: var(--bg-sunken);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.tree-row.other {
+  color: var(--muted);
+}
+
+.twisty {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(-45deg);
+  margin: 0 0.15rem;
+}
+
+.twisty.open {
+  transform: rotate(45deg);
+}
+
+.twisty.none {
+  border: none;
+}
+
+.tree-note {
+  padding: 0.5rem 0.75rem;
+  color: var(--muted);
 }

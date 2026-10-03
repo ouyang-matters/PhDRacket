@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
   AppInfo,
+  DirEntry,
   EngineEvent,
   OpenedSource,
   RunHandle,
@@ -30,6 +31,9 @@ export const backend = {
   stop: () => invoke<boolean>("stop_program"),
   step: (path: string | null, text: string) => invoke<RunHandle>("step_program", { path, text }),
   stopStepper: () => invoke<boolean>("stop_stepper"),
+
+  listFolder: (path: string) => invoke<DirEntry[]>("workspace_list", { path }),
+  setWorkspaceFolder: (path: string | null) => invoke<void>("workspace_set_folder", { path }),
 
   settings: () => invoke<Settings>("settings_get"),
   setUiSettings: (ui: unknown) => invoke<void>("settings_set_ui", { ui }),

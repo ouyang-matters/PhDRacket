@@ -1,90 +1,94 @@
 # PhDRacket
 
-A modern, course-conscious Racket IDE.
+A modern Racket IDE for students who write course work in the HtDP teaching
+languages.
 
-PhDRacket keeps Racket and HtDP as the semantic authority while providing a
-modern editing environment for students who need DrRacket-compatible source
-files.
+PhDRacket runs your programs in the official Racket installation on your
+computer, in the language your file declares, through the same HtDP entry
+points DrRacket uses. It keeps your `.rkt` files exactly as DrRacket expects
+them, so you can switch between the two at any time. What PhDRacket changes is
+the editing experience: tabs, a folder explorer, a modern editor, a clear test
+panel and an integrated Stepper.
 
-PhDRacket aims to modernize editing, navigation, diagnostics and workflow
-without bypassing the language restrictions or pedagogical constraints imposed
-by introductory programming courses.
-
-It is an independent open-source project and is not affiliated with the
-University of Waterloo or the Racket project.
-
-**Keep the course semantics. Improve the editor.**
+PhDRacket is an independent open-source project. It is not affiliated with or
+endorsed by the University of Waterloo or the Racket project.
 
 ## Download
 
-Get the latest test release from
-**[Releases](https://github.com/ouyang-matters/PhDRacket/releases)**.
+Download the latest test release from the
+**[Releases page](https://github.com/ouyang-matters/PhDRacket/releases)**.
 
-1. Install [Racket](https://download.racket-lang.org/) first (standard
-   distribution; CS145 uses 9.3).
-2. **Windows:** run `PhDRacket_*_x64-setup.exe`. No administrator rights are
-   needed. If SmartScreen appears, choose *More info* → *Run anyway*.
-3. **macOS (Apple Silicon and Intel):** open `PhDRacket_*_universal.dmg` and
-   drag PhDRacket to Applications. The first time you open it, go to
-   *System Settings → Privacy & Security* and click *Open Anyway* (the app is
-   not notarized yet).
+1. Install [Racket](https://download.racket-lang.org/) first. Use the standard
+   distribution, which includes the teaching languages. CS145 uses Racket 9.3.
+2. Install PhDRacket:
+   - **Windows:** run `PhDRacket_<version>_x64-setup.exe`. Administrator
+     rights are not required. If Windows SmartScreen shows a warning, choose
+     *More info*, then *Run anyway*. The installer is not code-signed yet.
+   - **macOS (Apple Silicon and Intel):** open
+     `PhDRacket_<version>_universal.dmg` and drag PhDRacket into Applications.
+     The app is not notarized yet. The first time you open it, macOS blocks
+     it; open *System Settings*, go to *Privacy & Security* and click
+     *Open Anyway*.
+3. Start PhDRacket. It finds your Racket installation automatically. If it
+   cannot, click the Racket version in the status bar and choose the `racket`
+   executable.
 
-Installed copies check for updates and install them with one click.
+Installed copies check for new versions at startup and install them with one
+click. The check can be turned off in Settings.
 
-## What it is
+## Features
 
-- Your program runs in **your installed, official Racket**, in the language
-  the file declares, through the same HtDP entry points DrRacket uses. There
-  is no reimplementation of Racket in PhDRacket.
-- Files stay **plain-text `.rkt` files**. Opening and saving an unedited file
-  writes back the exact same bytes; DrRacket's language metadata lines are
-  preserved; nothing is ever added to your source.
-- **Run / Interactions** work like DrRacket: Run starts a fresh environment
-  from the Definitions; Interactions evaluate in it; PhDRacket tells you when
-  the Definitions have changed since the last Run.
-- Errors and test results are **Racket's own**, shown with their source
-  location and the original message always available.
+- **Official semantics.** Programs run in your installed Racket. PhDRacket
+  contains no reimplementation of Racket.
+- **Plain source files.** Saving an unedited file writes back exactly the same
+  bytes. DrRacket's language metadata lines are preserved, and nothing is ever
+  added to your source.
+- **Definitions and Interactions.** Run evaluates the Definitions in a fresh
+  environment. Interactions evaluate in that environment, with history and
+  multi-line input. When the Definitions change after a Run, the Interactions
+  panel says so.
+- **Tests.** Results come from the official HtDP test engine. Failures link to
+  the check that failed.
+- **Stepper.** The official HtDP Stepper, with the complete step history,
+  keyboard navigation and highlighting of the current expression in the
+  editor.
+- **Diagnostics.** Racket's own error messages with their source location. The
+  original message is always available.
+- **Editor.** Tabs, a folder explorer, find and replace, multiple cursors,
+  bracket matching, light, dark and high-contrast themes, configurable fonts.
+- **Profiles.** Waterloo CS145, Waterloo CS135, Generic HtDP and Racket. A
+  profile sets defaults such as the expected Racket version. It never changes
+  what a program means.
 
-## What it is not
+## What PhDRacket does not do
 
-PhDRacket contains no code generation, no AI completion, no assignment
-solving, and no connection to Marmoset or any grading system. It cannot know
-private grading tests and never claims a file will pass them. Your code stays
-on your computer: no accounts, no uploads, no telemetry.
+PhDRacket contains no code generation, AI completion or assignment solving,
+and it does not connect to Marmoset or any other grading system. It cannot
+know private grading tests and never claims that a file will pass them.
+
+Your code stays on your computer. PhDRacket needs no account and collects no
+telemetry. Its only network request is the optional update check, which asks
+GitHub whether a newer release exists.
 
 ## Status
 
-Early development (Phase 2 of [the roadmap](docs/ROADMAP.md)). Working today:
+PhDRacket is in early development. The current focus is the student workflow
+(Phase 2 of the [roadmap](docs/ROADMAP.md)). See
+[Compatibility](docs/COMPATIBILITY.md) for exactly what is and is not
+guaranteed, and for known differences from DrRacket.
 
-- desktop app (Tauri) with a Monaco editor, tabs, light/dark/high-contrast themes
-- open / edit / save with byte-exact preservation
-- Racket runtime discovery (Windows, macOS, Linux) and manual selection
-- Run, Stop and Interactions (history, multi-line entries) using the official runtime
-- test results from the official HtDP test engine
-- diagnostics with source locations, highlighted in the editor
-- the official HtDP Stepper with full step history
-- profiles and modes: Waterloo CS145, Waterloo CS135, Generic HtDP, Racket
-- new files with DrRacket's exact teaching-language metadata
+## Building from source
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next and
-[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md) for exactly what is and is not
-guaranteed.
-
-## Requirements
-
-- [Racket](https://racket-lang.org) (the course currently uses 9.3) with the
-  standard distribution's HtDP teaching languages.
-- To build: Rust (stable), Node.js 20+, pnpm, and the
-  [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your OS.
-
-## Building and running
+Requirements: Racket 9.3, Rust (stable), Node.js 20 or later, pnpm, and the
+[Tauri prerequisites](https://tauri.app/start/prerequisites/) for your
+operating system.
 
 ```bash
 pnpm install
 pnpm tauri dev
 ```
 
-Tests:
+Run the test suites:
 
 ```bash
 cargo test -p phdracket-core
@@ -92,21 +96,24 @@ pnpm test
 raco test compatibility-tests/bridge-tests.rkt
 ```
 
-See [docs/TESTING.md](docs/TESTING.md) for the full test suite, including the
-end-to-end test of the desktop app.
+[Testing](docs/TESTING.md) describes all suites, including the end-to-end
+test of the desktop app. [Contributing](docs/CONTRIBUTING.md) describes the
+release process.
 
 ## Documentation
 
-- [Design principles](docs/DESIGN_PRINCIPLES.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Racket integration](docs/RACKET_INTEGRATION.md)
-- [Stepper](docs/STEPPER.md)
-- [Course profiles and modes](docs/COURSE_PROFILES.md)
-- [Assignment overlays](docs/ASSIGNMENT_OVERLAYS.md)
-- [Compatibility](docs/COMPATIBILITY.md)
-- [Testing](docs/TESTING.md)
-- [Contributing](docs/CONTRIBUTING.md)
-- [Roadmap](docs/ROADMAP.md)
+| Document | Contents |
+|---|---|
+| [Design principles](docs/DESIGN_PRINCIPLES.md) | The rules every feature follows |
+| [Architecture](docs/ARCHITECTURE.md) | Components, data flow and the bridge protocol |
+| [Racket integration](docs/RACKET_INTEGRATION.md) | Runtime discovery, processes and data locations |
+| [Stepper](docs/STEPPER.md) | How the official Stepper is integrated |
+| [Course profiles and modes](docs/COURSE_PROFILES.md) | What a profile does and does not affect |
+| [Assignment overlays](docs/ASSIGNMENT_OVERLAYS.md) | Design of the planned assignment workspace |
+| [Compatibility](docs/COMPATIBILITY.md) | Guarantees and known differences from DrRacket |
+| [Testing](docs/TESTING.md) | Test suites and the golden corpus |
+| [Contributing](docs/CONTRIBUTING.md) | Development setup, rules and releases |
+| [Roadmap](docs/ROADMAP.md) | Development phases |
 
 ## License
 

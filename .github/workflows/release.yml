@@ -54,15 +54,15 @@ jobs:
           releaseBody: |
             Test release of PhDRacket, a modern editor for Racket and the HtDP teaching languages.
 
-            **Before installing:** install [Racket](https://download.racket-lang.org/) (the standard distribution; CS145 uses 9.3).
+            **Before installing:** install [Racket](https://download.racket-lang.org/), standard distribution. CS145 uses Racket 9.3.
 
-            **Windows:** download `PhDRacket_*_x64-setup.exe` and run it. No administrator rights are needed. If Windows SmartScreen appears, click *More info* → *Run anyway* (the installer is not code-signed yet).
+            **Windows:** download `PhDRacket_<version>_x64-setup.exe` and run it. Administrator rights are not required. If Windows SmartScreen shows a warning, choose *More info*, then *Run anyway*. The installer is not code-signed yet.
 
-            **macOS (Apple Silicon and Intel):** download `PhDRacket_*_universal.dmg`, open it and drag PhDRacket to Applications. The app is not notarized yet: the first time, open it, then go to *System Settings → Privacy & Security* and click *Open Anyway*. Alternatively run `xattr -dr com.apple.quarantine /Applications/PhDRacket.app` in Terminal.
+            **macOS (Apple Silicon and Intel):** download `PhDRacket_<version>_universal.dmg`, open it and drag PhDRacket into Applications. The app is not notarized yet. The first time you open it, macOS blocks it; open *System Settings*, go to *Privacy & Security* and click *Open Anyway*.
 
-            Installed copies check for updates automatically (Settings → *Check for updates on startup*).
+            Installed copies check for new versions at startup and install them with one click.
 
-            PhDRacket is an independent open-source project, not affiliated with the University of Waterloo or the Racket project.
+            PhDRacket is an independent open-source project. It is not affiliated with or endorsed by the University of Waterloo or the Racket project.
           releaseDraft: false
           prerelease: true
           includeUpdaterJson: true

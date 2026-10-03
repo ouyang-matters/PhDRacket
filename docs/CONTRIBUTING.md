@@ -1,54 +1,109 @@
 # Contributing
 
-## Setup
+## Development setup
 
-- Racket 9.3 (standard distribution, includes htdp-lib)
-- Rust stable, Node.js 20+, pnpm
-- Tauri prerequisites for your OS: <https://tauri.app/start/prerequisites/>
+Install:
+
+- Racket 9.3, standard distribution (includes htdp-lib)
+- Rust, stable toolchain
+- Node.js 20 or later, and pnpm
+- The [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your
+  operating system
+
+Then:
 
 ```bash
 pnpm install
+```
+
+```bash
 raco make backend/racket/phdracket-bridge.rkt
+```
+
+```bash
 pnpm tauri dev
 ```
 
-If the repository lives on a cloud-synced or network drive, keep the Cargo
-build directory elsewhere (`CARGO_TARGET_DIR`). The repository's `.npmrc`
-uses a flat `node_modules` because such drives often do not support symlinks.
+If the repository is on a cloud-synced or network drive, set
+`CARGO_TARGET_DIR` to a local folder so build output is not synchronized. The
+repository's `.npmrc` uses a flat `node_modules` layout because such drives
+often do not support symbolic links.
 
 ## Before submitting a change
 
 ```bash
 raco test compatibility-tests/bridge-tests.rkt
+```
+
+```bash
 cargo test -p phdracket-core
+```
+
+```bash
 pnpm typecheck
+```
+
+```bash
 pnpm test
 ```
 
-UI changes should also pass the end-to-end test (see [TESTING.md](TESTING.md)).
+Changes to the user interface should also pass the end-to-end test described
+in [Testing](TESTING.md).
 
 ## Rules
 
-1. **Check upstream first.** If Racket, DrRacket or htdp-lib already does it,
-   call it. Cite the upstream file you mirror in a comment.
-2. **Racket decides semantics.** No evaluation logic in the frontend or Rust.
-3. **Isolate internal APIs.** Internal htdp-lib/DrRacket interfaces are only
-   used in `backend/racket/`, behind a small adapter, and listed in
-   [COMPATIBILITY.md](COMPATIBILITY.md) or [STEPPER.md](STEPPER.md).
-4. **Never modify source to make a feature easier.** Nothing is ever written
-   into a `.rkt` file except the user's own edits.
-5. **Test before claiming compatibility.** Add corpus programs and golden
-   transcripts; review every transcript change against DrRacket.
-6. **Keep UI text short.** Explanations belong in `docs/`.
-7. **Licensing.** Before adapting code from Racket or any other project,
-   check its license and record provenance in `THIRD_PARTY_NOTICES.md`.
+1. **Check upstream first.** If Racket, DrRacket or htdp-lib already provides
+   a behavior, call it. When code mirrors an upstream file, name that file in
+   a comment.
+2. **Racket decides semantics.** Evaluation logic belongs only in Racket, never
+   in the user interface or the Rust backend.
+3. **Isolate internal interfaces.** Internal htdp-lib and DrRacket interfaces
+   are used only in `backend/racket/`, behind a small adapter, and are listed
+   in [Compatibility](COMPATIBILITY.md) or [Stepper](STEPPER.md).
+4. **Never modify source files for the IDE's convenience.** Only the user's
+   own edits are ever written to a `.rkt` file.
+5. **Test before claiming compatibility.** Add corpus programs and expected
+   transcripts, and review every change to an expected file against DrRacket.
+6. **Keep interface text short.** Explanations belong in `docs/`.
+7. **Respect licenses.** Before adapting code from Racket or any other
+   project, check its license and record the source in
+   `THIRD_PARTY_NOTICES.md`.
 
-## Corpus
+The corpus contains small programs written for testing. Never add course
+assignment solutions to it.
 
-`compatibility-tests/corpus/` and `stepper-corpus/` contain small programs
-written for testing the IDE. Never add course assignment solutions.
-
-## No generative features
-
-Pull requests adding code generation, AI completion, solution suggestions,
+Pull requests that add code generation, AI completion, solution suggestions
 or integration with grading systems will not be accepted.
+
+## Releases
+
+Releases are built by `.github/workflows/release.yml` when a version tag is
+pushed.
+
+1. Set the same version in `Cargo.toml` (`workspace.package.version`),
+   `package.json` and `apps/desktop/src-tauri/tauri.conf.json`. Test releases
+   use versions such as `0.1.0-beta.2`.
+2. Commit, then create and push a tag with the same version:
+
+   ```bash
+   git tag v0.1.0-beta.2
+   ```
+
+   ```bash
+   git push origin main v0.1.0-beta.2
+   ```
+
+3. The workflow builds the Windows installer and the universal macOS disk
+   image, publishes them as a GitHub pre-release, and copies the update
+   manifest (`latest.json`) to the `updater` branch. Installed copies read
+   that branch to find new versions.
+
+Update files are signed. The workflow reads the private signing key from the
+repository secret `TAURI_SIGNING_PRIVATE_KEY`. The matching public key is in
+`tauri.conf.json`. Keep a backup of the private key: without it, installed
+copies cannot verify new updates, and every user would have to reinstall.
+
+The Windows installer and the macOS application are not yet signed with a
+code-signing certificate or notarized, so Windows SmartScreen and macOS
+Gatekeeper show a warning on first launch. The installation steps in the
+README explain how to proceed.

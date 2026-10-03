@@ -1,110 +1,144 @@
 # Stepper
 
-PhDRacket's Stepper is the **official HtDP stepper** from htdp-lib, driven
-without DrRacket's GUI. PhDRacket does not implement any reduction rules.
+PhDRacket's Stepper is the official HtDP Stepper from htdp-lib, driven
+without DrRacket's graphical interface. PhDRacket does not implement any
+reduction rules itself.
 
 ```
-StepperPanel (frontend/stepper/)
-    │  step / stepper-finished events (typed protocol)
+Stepper panel (frontend/stepper/)
+    │  step and stepper-finished events (typed protocol)
     ▼
-Engine::step (backend/src/engine.rs): a dedicated Racket process
+Engine::step (backend/src/engine.rs), in its own Racket process
     │
     ▼
 Stepper adapter (backend/racket/private/stepper-adapter.rkt)
     │
     ▼
-stepper/private/model `go` (htdp-lib, Racket 9.3)
+`go` in stepper/private/model (htdp-lib, Racket 9.3)
 ```
 
-## Backend integration
+## Using the Stepper
 
-`handle-step` in the bridge:
+Press **Step** in the toolbar or Ctrl+Shift+Enter. PhDRacket collects every
+step of the program and opens the Stepper panel. Navigate with the buttons or
+the keyboard:
 
-1. sets up the teaching language exactly as for Run (`setup-teaching!`, which
-   mirrors `htdp-langs.rkt` `on-execute` and `front-end/complete-program`);
-2. calls `go` from `stepper/private/model` with:
-   - a **program expander** equivalent to DrRacket's
-     `drracket/private/eval.rkt` `expand-program`: it calls `init`, sets
+| Key | Action |
+|---|---|
+| Right arrow or Down arrow | Next step |
+| Left arrow or Up arrow | Previous step |
+| Home | First step |
+| End | Last step |
+| Enter | Go to the source of the current step |
+
+The expression being reduced is highlighted in the Before column and in the
+editor. Its result is highlighted in the After column. The Previous, Next and
+Run to End buttons become available once the Stepper has produced steps.
+
+## Integration
+
+### Files with DrRacket metadata
+
+The bridge's `handle-step`:
+
+1. Configures the teaching language exactly as for Run (`setup-teaching!`,
+   which mirrors `on-execute` and `front-end/complete-program` in
+   `htdp-langs.rkt`).
+2. Calls `go` from `stepper/private/model` with:
+   - A program expander equivalent to `expand-program` in
+     `drracket/private/eval.rkt`. It calls the model's initialization, sets
      `error-value->string-handler` and `current-print` as `stepper-tool.rkt`
      does, reads each expression from `expand-teaching-program` and passes
-     `(expand expr)` to the model's `iter`;
-   - a no-op dynamic requirer (htdp languages' `front-end/finished-complete-program`);
-   - **render settings** from `get-render-settings` (`stepper/private/model-settings`)
-     with the language's `render-value` and `stepper:render-to-sexp`
-     (`print-convert` under the htdp print settings), let-lifting, and
-     `show-lambdas-as-lambdas?` per language;
-3. renders every `Before-After-Result`, `Before-Error-Result` and
-   `Error-Result` to text. Rendering mirrors
+     the expanded expression to the model.
+   - An empty dynamic requirer, as for the HtDP languages in DrRacket.
+   - Render settings from `get-render-settings`, using the language's value
+     printer, `print-convert` under the HtDP print settings, let-lifting, and
+     the language's setting for showing `lambda` expressions.
+3. Renders each result to text. Rendering mirrors
    `stepper/private/mred-extensions.rkt`: `strip-to-sexp` with the highlight
-   table, then `pretty-write` with the language's pretty-print hooks;
-   highlighted sub-expressions become `[start, end)` character ranges
-   instead of editor styles.
+   table, then `pretty-write` with the language's pretty-print hooks.
+   Highlighted subexpressions become character ranges instead of editor
+   styles.
+
+### Files with `#lang htdp/...`
+
+`#lang htdp/bsl`, `htdp/bsl+`, `htdp/isl` and `htdp/isl+` files are stepped
+the way DrRacket's module language steps them
+(`lang/private/sl-stepper-button.rkt`):
+
+- Render settings come from the language's own reader options, through
+  `options->sl-runtime-settings`.
+- Let-lifting is off.
+- The module is declared under the file's name, and the steps occur while it
+  is instantiated, including its `test` submodule.
+
+### Results
 
 Each step carries the source position and span of the expression being
-reduced (`Posn-Info`), used to highlight it in the editor.
+reduced, which the editor uses for highlighting. Up to 5000 steps are
+collected, so moving backward and forward is immediate. The Stepper runs in
+its own process and does not affect Interactions.
 
-All steps are collected (up to 5000), so Previous/Next/Run to End are
-instant. The Stepper runs in its own process, separate from Interactions.
+### Interfaces used
 
-### Official interfaces used
-
-| Interface | Stability |
+| Interface | Status |
 |---|---|
-| `stepper/private/model`: `go` | internal to htdp-lib |
-| `stepper/private/model-settings`: `get-render-settings` | internal |
-| `stepper/private/shared-typed`: result structs, `Posn-Info` | internal |
-| `stepper/private/syntax-hider`: `sstx-s` | internal |
-| `stepper/private/syntax-property`: `stepper-syntax-property` | internal |
-| `lang/run-teaching-program`: `expand-teaching-program` | stable |
-| `htdp/bsl/runtime`: `configure/settings` | stable |
+| `stepper/private/model` (`go`) | Internal to htdp-lib |
+| `stepper/private/model-settings` (`get-render-settings`) | Internal |
+| `stepper/private/shared-typed` (result structures, `Posn-Info`) | Internal |
+| `stepper/private/syntax-hider` (`sstx-s`) | Internal |
+| `stepper/private/syntax-property` (`stepper-syntax-property`) | Internal |
+| `lang/run-teaching-program` (`expand-teaching-program`) | Stable |
+| `htdp/bsl/runtime` (`configure/settings`, `options->sl-runtime-settings`) | Stable |
 
-The internal interfaces are confined to `stepper-adapter.rkt` and must be
-re-verified on every Racket upgrade (the Stepper golden tests do this).
+The internal interfaces are used only in `stepper-adapter.rkt` and the bridge.
+They must be verified again after every Racket upgrade; the expected Stepper
+sequences in the test suite do this.
 
 ## Supported languages
 
-From `htdp-langs.rkt` (Racket 9.3): Beginning Student, Beginning Student with
-List Abbreviations, Intermediate Student, and Intermediate Student with lambda.
-**Advanced Student is not supported by DrRacket's stepper**, and PhDRacket
-reports that instead of attempting it.
+| Language | Metadata file | `#lang` file |
+|---|---|---|
+| Beginning Student | Supported | Supported (`htdp/bsl`) |
+| Beginning Student with List Abbreviations | Supported | Supported (`htdp/bsl+`) |
+| Intermediate Student | Supported | Supported (`htdp/isl`) |
+| Intermediate Student with lambda | Supported | Supported (`htdp/isl+`) |
+| Advanced Student | Not supported | Not supported (`htdp/asl`) |
 
-`#lang htdp/bsl`, `htdp/bsl+`, `htdp/isl` and `htdp/isl+` files are stepped
-the way DrRacket's module language does it (`lang/private/sl-stepper-button.rkt`):
-render settings come from the language's own reader `options`
-(`options->sl-runtime-settings`), let-lifting is off, the module is declared
-under the file's name, and steps happen while the dynamic requirer
-instantiates it (and its `test` submodule). `#lang htdp/asl` sets
-`disable-stepper` and is refused.
+DrRacket 9.3 does not support stepping Advanced Student programs, and
+PhDRacket reports this instead of attempting it.
 
 ## Providers
 
 ```
 StepperProvider
-├── HtDPStepper           (official; the only provider)
-└── CourseStepperProvider (none exist)
+├── HtDPStepper            Official; the only provider
+└── CourseStepperProvider  None exist
 ```
 
-A course profile names its provider (`shared/models/profiles.ts`). All
-built-in profiles, including Waterloo CS145 and CS135, use the HtDP stepper,
-and the UI calls it **HtDP Stepper**. Courses may teach written stepping
-conventions that differ from this output. A course provider will be added only
-when its rules are implemented and verified against course material; until
-then no output is presented as a course's stepping format.
+Each course profile names its Stepper provider in
+`shared/models/profiles.ts`. All built-in profiles, including Waterloo CS145
+and CS135, use the HtDP Stepper, and the interface calls it *HtDP Stepper*.
+A course may teach written stepping conventions that differ from this output.
+A course provider will be added only when its rules have been implemented and
+verified against course material. Until then, no output is presented as a
+course's stepping format.
 
 ## Tests
 
-`compatibility-tests/stepper-corpus/` holds small programs;
-`compatibility-tests/expected/stepper/*.steps` records the official step
-sequence for each, with highlights marked as ⟦…⟧. They are regenerated and
-reviewed like the other golden transcripts (see [TESTING.md](TESTING.md)).
+`compatibility-tests/stepper-corpus/` contains small programs, and
+`compatibility-tests/expected/stepper/` records the official step sequence for
+each one, with highlighted expressions marked by ⟦ and ⟧. These files are
+regenerated and reviewed like the other expected transcripts. See
+[Testing](TESTING.md).
 
 ## Known differences from DrRacket's Stepper window
 
-- Expressions are shown as text; DrRacket uses editor snips (images, number
-  snips render textually here, as in Interactions).
-- `cond` clauses print with parentheses because the stepper prints s-expressions
-  (`pretty-write`); this is believed to match DrRacket but is not yet verified
-  side by side.
-- The print width is fixed (60 columns); DrRacket uses the window width.
-- DrRacket can start stepping at the selected expression; PhDRacket starts at
-  the beginning (all steps are available immediately).
+- Expressions are shown as text. DrRacket shows images and some numbers
+  graphically.
+- `cond` clauses are printed with parentheses because the Stepper prints
+  s-expressions with `pretty-write`. This is expected to match DrRacket but
+  has not been verified side by side.
+- The print width is fixed at 60 columns. DrRacket uses the window width.
+- DrRacket can start at a selected expression. PhDRacket always starts at the
+  beginning, and every step is available immediately.

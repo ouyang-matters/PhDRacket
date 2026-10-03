@@ -126,9 +126,16 @@ export interface RuntimeStatus {
   message: string | null;
 }
 
+export interface DirEntry {
+  name: string;
+  path: string;
+  isDir: boolean;
+}
+
 export interface Settings {
   racketExecutable: string | null;
   recentFiles: string[];
+  workspaceFolder: string | null;
   ui: unknown;
 }
 

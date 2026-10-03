@@ -108,8 +108,12 @@ try {
   copyFileSync(join(repo, "compatibility-tests/corpus/bsl/basics.rkt"), file);
   const before = sha(file);
 
-  await evaluate(`${S}.openPath(${JSON.stringify(file)})`);
+  // Open Folder, then open the file from the Explorer.
+  await evaluate(`${S}.setFolder(${JSON.stringify(work)})`);
+  await waitFor(`[...document.querySelectorAll(".tree-row")].some((b) => b.textContent === "basics.rkt")`, "the Explorer listing");
+  await evaluate(`[...document.querySelectorAll(".tree-row")].find((b) => b.textContent === "basics.rkt").click()`);
   await waitFor(`${S}.getState().docs.length === 1`, "the document to open");
+  check(await evaluate(`!!document.querySelector(".tree-row.active")`), "Explorer opens files and marks the active one");
   check((await state("docs[0].language.name")) === "Beginning Student", "language detected as Beginning Student");
 
   await evaluate(`${S}.runActive()`);

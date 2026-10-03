@@ -19,6 +19,8 @@ export interface Preferences {
   formatOnSave: boolean;
   reducedMotion: boolean;
   panelHeight: number;
+  explorerVisible: boolean;
+  explorerWidth: number;
   /** Ask GitHub for a newer release at startup (nothing is sent but the request). */
   checkForUpdates: boolean;
 }
@@ -37,6 +39,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   formatOnSave: false,
   reducedMotion: false,
   panelHeight: 260,
+  explorerVisible: true,
+  explorerWidth: 240,
   checkForUpdates: true,
 };
 

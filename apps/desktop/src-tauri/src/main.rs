@@ -26,6 +26,8 @@ fn main() {
             commands::stop_program,
             commands::step_program,
             commands::stop_stepper,
+            commands::workspace_list,
+            commands::workspace_set_folder,
             commands::settings_get,
             commands::settings_set_ui,
             commands::app_info,

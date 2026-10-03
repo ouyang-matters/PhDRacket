@@ -10,6 +10,7 @@ use phdracket_core::runtime::{self, RuntimeInfo};
 use phdracket_core::settings::Settings;
 use phdracket_core::source::{self, OpenedSource, SaveOutcome, SourceSnapshot};
 use phdracket_core::bridge;
+use phdracket_core::workspace::{self, DirEntry};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 
@@ -248,6 +249,19 @@ pub fn eval_interaction(state: State<AppState>, text: String) -> Result<RunHandl
 #[tauri::command]
 pub fn stop_program(state: State<AppState>) -> bool {
     engine(&state).map(|e| e.stop()).unwrap_or(false)
+}
+
+/// Lists one folder for the Explorer (read-only).
+#[tauri::command]
+pub fn workspace_list(path: String) -> Result<Vec<DirEntry>, String> {
+    workspace::list_dir(Path::new(&path)).map_err(|e| e.to_string())
+}
+
+/// Remembers the folder open in the Explorer (`None` closes it).
+#[tauri::command]
+pub fn workspace_set_folder(app: AppHandle, path: Option<String>) {
+    with_settings(&app, |s| s.workspace_folder = path.map(PathBuf::from));
+    persist_settings(&app);
 }
 
 #[tauri::command]

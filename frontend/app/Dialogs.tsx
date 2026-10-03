@@ -215,6 +215,10 @@ function SettingsDialog() {
           Rainbow parentheses
         </label>
         <label className="check">
+          <input type="checkbox" checked={prefs.explorerVisible} onChange={(e) => setPrefs({ explorerVisible: e.target.checked })} />
+          Show Explorer (Ctrl+B)
+        </label>
+        <label className="check">
           <input type="checkbox" checked={prefs.minimap} onChange={(e) => setPrefs({ minimap: e.target.checked })} />
           Show minimap
         </label>

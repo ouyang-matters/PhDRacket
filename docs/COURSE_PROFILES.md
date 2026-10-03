@@ -1,48 +1,60 @@
 # Course profiles and modes
 
-The status bar's leftmost item (for example **CS145 ▾**) selects the active
-profile. Profiles are defined in `shared/models/profiles.ts`.
+The first item in the status bar, for example **CS145**, shows the active
+profile. Click it to choose another. The profiles are defined in
+`shared/models/profiles.ts`.
 
-| Profile | Mode | Expected Racket | New files | Stepper | Preflight |
-|---|---|---|---|---|---|
-| Waterloo CS145 | Course | 9.3 | Beginning Student | HtDP Stepper | yes |
-| Waterloo CS135 | Course | (not set, unconfirmed) | Beginning Student | HtDP Stepper | yes |
-| Generic HtDP | HtDP | — | Beginning Student | HtDP Stepper | no |
-| Racket | Racket | — | `#lang racket` | HtDP Stepper (teaching files only) | no |
+| Profile | Mode | Expected Racket | Language for new files | Stepper |
+|---|---|---|---|---|
+| Waterloo CS145 | Course | 9.3 | Beginning Student | HtDP Stepper |
+| Waterloo CS135 | Course | Not set | Beginning Student | HtDP Stepper |
+| Generic HtDP | HtDP | Not set | Beginning Student | HtDP Stepper |
+| Racket | Racket | Not set | `#lang racket` | HtDP Stepper, for teaching-language files |
 
-**A profile never changes what a program means.** The language always comes
-from the file. A profile configures the environment only: the expected
-runtime version (mismatches appear as "Expected Racket 9.3" on the status
-bar), the default language for *New file*, which tools are offered, which
-Stepper provider is used, and (later) assignment profiles, course-rule
-warnings and submission checks.
+## What a profile affects
 
-Switching profiles never rewrites the open file; the end-to-end test checks
-this.
+A profile configures the environment. It never changes what a program means:
+the language always comes from the file, and switching profiles never changes
+the open file.
 
-Values are only included when known. CS135's Racket version has not been
-confirmed, so the CS135 profile does not set one rather than guessing.
+At present a profile affects:
+
+- **The language preselected in the New File dialog.**
+- **The Racket version check.** When the profile expects a version and a
+  different one is running, the status bar shows the Racket version in the
+  warning color with the tooltip "Expected Racket 9.3".
+
+Profiles will also select assignment profiles, course rule warnings and
+Submission Preflight once those features exist.
+
+Values are set only when they are known. The Racket version used by CS135 has
+not been confirmed, so the CS135 profile does not set one.
 
 ## Modes
 
-- **Course**: a specific course profile (CS145, CS135). Course tools such as
-  Submission Preflight and, later, assignment profiles.
-- **HtDP**: the HtDP teaching languages, tests, Stepper and Interactions with
-  no course-specific behavior.
-- **Racket**: general Racket programming with `#lang racket` and ordinary
-  modules; course-specific behavior is off.
+| Mode | Purpose |
+|---|---|
+| Course | A specific course, such as CS145 or CS135. Course tools such as assignment profiles and Submission Preflight will appear only in this mode. |
+| HtDP | The HtDP teaching languages, tests, Stepper and Interactions, without course-specific behavior. |
+| Racket | General Racket programming with `#lang racket` and ordinary modules. |
 
-## Two layers of restriction
+## Two kinds of restriction
 
-**Layer A, the language** (BSL, ISL, …): enforced by Racket and reported as
-Racket reports it. A file is never run in a more permissive language.
+**Language restrictions** apply to the teaching languages: Beginning Student,
+Intermediate Student and the others. Racket enforces them, and PhDRacket
+reports them exactly as Racket does. A file never runs in a more permissive
+language than it declares.
 
-**Layer B, course and assignment rules**: not enforced by Racket. Reported only
-when an explicit assignment profile lists them, as **Course Rule Warnings**,
-visibly distinct from Racket errors, and never preventing a save. PhDRacket
-does not infer such rules and does not invent them.
+**Course and assignment rules** are restrictions a course adds beyond the
+language. Racket does not enforce them. PhDRacket will report them only when
+an explicit assignment profile lists them. They will be labeled
+*Course Rule Warning*, kept separate from Racket errors, and will never
+prevent saving. PhDRacket does not infer such rules and does not invent them.
 
 ## Assignment profiles (planned)
+
+An assignment profile contains only explicitly configured information and
+never contains grading data:
 
 ```json
 {
@@ -52,11 +64,12 @@ does not infer such rules and does not invent them.
 }
 ```
 
-Assignment profiles are separate from course profiles. They contain only
-explicitly configured information, never grading data, and live in
-`.phdracket/` or application storage, never in source files.
+Assignment profiles are separate from course profiles. They are stored in a
+`.phdracket` folder or in application storage, never in source files.
 
 ## Profile format
+
+The built-in profiles follow this structure:
 
 ```json
 {
@@ -67,5 +80,4 @@ explicitly configured information, never grading data, and live in
 }
 ```
 
-(The built-in TypeScript definitions follow this shape. User-defined profile
-files are planned.)
+User-defined profile files are planned.

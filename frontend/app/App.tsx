@@ -7,6 +7,7 @@ import { ProblemsPanel } from "@frontend/problems/ProblemsPanel";
 import { StatusBar } from "@frontend/status-bar/StatusBar";
 import { TestsPanel } from "@frontend/tests/TestsPanel";
 import { StepperPanel } from "@frontend/stepper/StepperPanel";
+import { Explorer } from "@frontend/explorer/Explorer";
 import { resolveTheme } from "@frontend/settings/preferences";
 import { Dialogs } from "./Dialogs";
 import { checkForUpdates } from "./updates";
@@ -16,6 +17,7 @@ import {
   dismissNotice,
   getState,
   initialize,
+  openFolderWithDialog,
   openWithDialog,
   runActive,
   saveDoc,
@@ -24,6 +26,7 @@ import {
   setPrefs,
   stepActive,
   stopProgram,
+  toggleExplorer,
   useApp,
   type PanelTab,
 } from "./store";
@@ -40,6 +43,7 @@ function Toolbar() {
       <nav className="toolbar-group" aria-label="File">
         <button onClick={() => setDialog("new-file")} title="New file (Ctrl+N)">New</button>
         <button onClick={() => void openWithDialog()} title="Open file (Ctrl+O)">Open</button>
+        <button onClick={() => void openFolderWithDialog()} title="Open folder (Ctrl+Shift+O)">Open Folder</button>
         <button onClick={() => void saveDoc()} disabled={!doc} title="Save (Ctrl+S)">Save</button>
       </nav>
       <span className="toolbar-spacer" />
@@ -152,9 +156,15 @@ function useGlobalShortcuts() {
       if (e.defaultPrevented) return;
       const mod = e.ctrlKey || e.metaKey;
       const key = e.key.toLowerCase();
-      if (mod && key === "o") {
+      if (mod && e.shiftKey && key === "o") {
+        e.preventDefault();
+        void openFolderWithDialog();
+      } else if (mod && key === "o") {
         e.preventDefault();
         void openWithDialog();
+      } else if (mod && key === "b") {
+        e.preventDefault();
+        toggleExplorer();
       } else if (mod && key === "n") {
         e.preventDefault();
         setDialog("new-file");
@@ -186,6 +196,7 @@ function useGlobalShortcuts() {
 
 export function App() {
   const prefs = useApp((s) => s.prefs);
+  const explorerVisible = prefs.explorerVisible;
   useGlobalShortcuts();
 
   useEffect(() => {
@@ -217,10 +228,13 @@ export function App() {
   return (
     <div className="app">
       <Toolbar />
-      <main className="workspace">
-        <EditorArea />
-        <BottomPanel />
-      </main>
+      <div className="body">
+        {explorerVisible && <Explorer />}
+        <main className="workspace">
+          <EditorArea />
+          <BottomPanel />
+        </main>
+      </div>
       <StatusBar />
       <Dialogs />
       <Notices />
