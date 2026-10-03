@@ -52,17 +52,41 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: PhDRacket ${{ github.ref_name }} Beta
           releaseBody: |
-            Test release of PhDRacket, a modern editor for Racket and the HtDP teaching languages.
+            PhDRacket is a modern desktop IDE for Racket and the HtDP teaching languages. Programs run in the official Racket installation on your computer, and `.rkt` files stay exactly as DrRacket expects them.
+
+            **What's new:** see the [release notes](https://github.com/ouyang-matters/PhDRacket/blob/main/docs/RELEASE_NOTES.md).
+
+            ## Quick install
+
+            **macOS** (Apple Silicon and Intel), in Terminal:
+
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/install/install-macos.sh | bash
+            ```
+
+            **Windows**, in PowerShell:
+
+            ```powershell
+            irm https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/install/install-windows.ps1 | iex
+            ```
+
+            The command downloads this release, checks it against the checksum published by GitHub and installs it. On macOS this avoids the *Open Anyway* step below.
+
+            ## Manual install
 
             **Windows:** download `PhDRacket_<version>_x64-setup.exe` and run it. Administrator rights are not required. If Windows SmartScreen shows a warning, choose *More info*, then *Run anyway*. The installer is not code-signed yet.
 
             **macOS (Apple Silicon and Intel):** download `PhDRacket_<version>_universal.dmg`, open it and drag PhDRacket into Applications. The app is not notarized yet. The first time you open it, macOS blocks it; open *System Settings*, go to *Privacy & Security* and click *Open Anyway*.
 
-            On first launch, PhDRacket finds your Racket installation. If Racket is not installed, click *Install Racket 9.3* in the Setup dialog: PhDRacket downloads the official installer from racket-lang.org, verifies its checksum and installs it. On Windows, the official Racket installer asks for administrator permission once.
+            ## First launch
 
-            Installing and using PhDRacket requires accepting the [Beta Terms of Use](https://github.com/ouyang-matters/PhDRacket/blob/main/docs/TERMS.md). The Windows installer and the first-run Setup dialog ask you to accept them.
+            This is a **beta**. Installing and using PhDRacket requires accepting the [Beta Terms of Use](https://github.com/ouyang-matters/PhDRacket/blob/main/docs/TERMS.md); the Windows installer and the first-run Setup dialog ask you to accept them.
 
-            Installed copies check for new versions at startup and install them with one click.
+            Setup finds your Racket installation. If Racket is not installed, click *Install Racket 9.3*: PhDRacket downloads the official installer from racket-lang.org, verifies its checksum and installs it. On Windows, the official Racket installer asks for administrator permission once.
+
+            ## Updating
+
+            Installed copies check for new versions at startup and install them with one click. The check can be turned off in Settings.
 
             Contact: support@aqouyang.com, https://www.aqouyang.com
 
