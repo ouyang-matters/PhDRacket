@@ -44,12 +44,47 @@ pub fn bridge_dir(cache_dir: &Path, runtime: &RuntimeInfo) -> PathBuf {
 }
 
 /// Ensures the bridge is written and compiled; returns the main file's path.
+///
+/// Several processes may install at the same time (two app windows on first
+/// launch, parallel tests). Each one compiles in a private staging folder and
+/// then renames it into place in one step, so no process can ever load a
+/// partially written or partially compiled bridge.
 pub fn install(cache_dir: &Path, runtime: &RuntimeInfo) -> Result<PathBuf, BridgeError> {
     let dir = bridge_dir(cache_dir, runtime);
     let main = dir.join(BRIDGE_MAIN);
     if dir.join(COMPILED_MARKER).is_file() {
         return Ok(main);
     }
+    let parent = dir.parent().expect("bridge dir has a parent");
+    fs::create_dir_all(parent).map_err(|e| BridgeError::Io(parent.to_owned(), e))?;
+    let staging = parent.join(format!(
+        ".staging-{}-{}",
+        std::process::id(),
+        STAGING_SEQ.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+    ));
+    let result = compile_into(&staging, runtime);
+    if let Err(e) = result {
+        let _ = fs::remove_dir_all(&staging);
+        return Err(e);
+    }
+    // An incomplete folder (from an older version or an interrupted install)
+    // is replaced; a complete one installed meanwhile by another process wins.
+    if dir.exists() && !dir.join(COMPILED_MARKER).is_file() {
+        let _ = fs::remove_dir_all(&dir);
+    }
+    if fs::rename(&staging, &dir).is_err() {
+        let _ = fs::remove_dir_all(&staging);
+        if !dir.join(COMPILED_MARKER).is_file() {
+            return Err(BridgeError::Io(dir.clone(), std::io::Error::other("could not install the bridge")));
+        }
+    }
+    Ok(main)
+}
+
+static STAGING_SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Writes and compiles the bridge in `dir`, marking it complete at the end.
+fn compile_into(dir: &Path, runtime: &RuntimeInfo) -> Result<(), BridgeError> {
     for (name, contents) in BRIDGE_FILES {
         let p = dir.join(name);
         if let Some(parent) = p.parent() {
@@ -60,10 +95,10 @@ pub fn install(cache_dir: &Path, runtime: &RuntimeInfo) -> Result<PathBuf, Bridg
     let out = hide_console(
         Command::new(&runtime.executable)
             .args(["-l-", "raco", "make", "-v", BRIDGE_MAIN])
-            .current_dir(&dir),
+            .current_dir(dir),
     )
     .output()
-    .map_err(|e| BridgeError::Io(dir.clone(), e))?;
+    .map_err(|e| BridgeError::Io(dir.to_owned(), e))?;
     if !out.status.success() {
         return Err(BridgeError::Compile {
             racket: runtime.executable.clone(),
@@ -75,8 +110,7 @@ pub fn install(cache_dir: &Path, runtime: &RuntimeInfo) -> Result<PathBuf, Bridg
         });
     }
     let marker = dir.join(COMPILED_MARKER);
-    fs::write(&marker, &runtime.version).map_err(|e| BridgeError::Io(marker, e))?;
-    Ok(main)
+    fs::write(&marker, &runtime.version).map_err(|e| BridgeError::Io(marker, e))
 }
 
 #[cfg(test)]

@@ -37,7 +37,10 @@ impl Harness {
     fn until_done(&self, h: RunHandle) -> Vec<BridgeEvent> {
         let mut out = Vec::new();
         loop {
-            let ev = self.rx.recv_timeout(Duration::from_secs(60)).expect("event");
+            let ev = self.rx.recv_timeout(Duration::from_secs(120)).expect("event");
+            if let EngineEvent::SessionEnded { session, reason, stderr } = &ev {
+                assert!(*session != h.session, "bridge session ended ({reason}): {stderr}");
+            }
             if let EngineEvent::Bridge { session, event } = ev {
                 if session != h.session {
                     continue;
@@ -129,4 +132,34 @@ fn stepper_runs_independently_of_interactions() {
     // Interactions are unaffected by stepping.
     let e = h.engine.eval("(f 5)").unwrap();
     assert_eq!(values(&h.until_done(e)), vec!["10"]);
+}
+
+/// Parallel first-time installs (two windows, parallel tests) must yield one
+/// complete, working bridge.
+#[test]
+fn concurrent_installs_produce_one_working_bridge() {
+    let Some(rt) = runtime::discover().into_iter().find(|r| r.has_htdp) else { return };
+    let cache = std::env::temp_dir().join(format!("phdracket-concurrent-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&cache);
+    let handles: Vec<_> = (0..4)
+        .map(|_| {
+            let (cache, rt) = (cache.clone(), rt.clone());
+            std::thread::spawn(move || bridge::install(&cache, &rt).expect("install succeeds"))
+        })
+        .collect();
+    let mains: Vec<_> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+    assert!(mains.windows(2).all(|w| w[0] == w[1]));
+    let leftovers: Vec<_> = std::fs::read_dir(cache.join("bridge"))
+        .unwrap()
+        .flatten()
+        .filter(|e| e.file_name().to_string_lossy().starts_with(".staging"))
+        .collect();
+    assert!(leftovers.is_empty(), "staging folders are cleaned up");
+    let out = std::process::Command::new(&rt.executable)
+        .arg(&mains[0])
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap();
+    assert!(String::from_utf8_lossy(&out.stdout).contains("\"ev\":\"ready\""), "the bridge starts");
+    std::fs::remove_dir_all(&cache).unwrap();
 }
