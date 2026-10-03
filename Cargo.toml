@@ -3,7 +3,7 @@ resolver = "2"
 members = ["backend", "apps/desktop/src-tauri"]
 
 [workspace.package]
-version = "0.1.0-beta.1"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/ouyang-matters/PhDRacket"
