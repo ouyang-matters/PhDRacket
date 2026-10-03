@@ -10,7 +10,8 @@
     "build": "tsc --noEmit -p tsconfig.json && vite build",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "terms": "node apps/desktop/scripts/terms-txt.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.1",

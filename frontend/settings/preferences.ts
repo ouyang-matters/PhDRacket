@@ -25,6 +25,8 @@ export interface Preferences {
   showAnnouncements: boolean;
   /** Ids of announcements already shown. */
   seenAnnouncements: string[];
+  /** Version (Last Updated date) of the Beta Terms of Use the user accepted. */
+  termsAccepted: string;
   /** The first-run Setup dialog has been completed. */
   setupDone: boolean;
   /** Ask GitHub for a newer release at startup (nothing is sent but the request). */
@@ -49,6 +51,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   explorerWidth: 240,
   checkForUpdates: true,
   setupDone: false,
+  termsAccepted: "",
   showAnnouncements: true,
   seenAnnouncements: [],
 };

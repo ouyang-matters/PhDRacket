@@ -108,6 +108,22 @@ code-signing certificate or notarized, so Windows SmartScreen and macOS
 Gatekeeper show a warning on first launch. The installation steps in the
 README explain how to proceed.
 
+## Beta Terms of Use
+
+`docs/TERMS.md` is the only source of the Terms. The app shows it in Setup
+and About, and the Windows installer shows a plain-text copy on its license
+page. After changing the Terms:
+
+1. Update the *Last Updated* line. A new date asks every user to accept the
+   Terms again the next time they start PhDRacket.
+2. Regenerate the installer copy:
+
+   ```bash
+   pnpm terms
+   ```
+
+A test fails if the installer copy differs from `docs/TERMS.md`.
+
 ## Announcements
 
 To show a notice to users, add an entry to `announcements/current.json` on

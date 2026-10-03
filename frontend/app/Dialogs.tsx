@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { checkForUpdates, installUpdate, useUpdate } from "./updates";
 import { SetupDialog } from "./Setup";
 import { Modal } from "./Modal";
+import { TermsView } from "@frontend/legal/TermsView";
+import { TERMS_VERSION } from "@frontend/legal/terms";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import type { RuntimeInfo } from "@shared/protocol";
 import { backend } from "@frontend/ipc/backend";
@@ -158,6 +160,15 @@ function AnnouncementDialog() {
   );
 }
 
+function TermsDialog() {
+  return (
+    <Modal title="Beta Terms of Use" onClose={() => setDialog(null)}>
+      <p className="muted small">Last Updated: {TERMS_VERSION}</p>
+      <TermsView />
+    </Modal>
+  );
+}
+
 function AboutDialog() {
   const [version, setVersion] = useState("");
   useEffect(() => {
@@ -173,6 +184,12 @@ function AboutDialog() {
       <UpdateLine />
       <p className="muted small">
         Independent open-source project. Not affiliated with the University of Waterloo or the Racket project.
+      </p>
+      <p className="small">
+        <button className="link" onClick={() => setDialog("terms")}>
+          Beta Terms of Use
+        </button>
+        <span className="muted"> · support@aqouyang.com</span>
       </p>
     </Modal>
   );
@@ -262,6 +279,8 @@ export function Dialogs() {
       return <SetupDialog />;
     case "announcement":
       return <AnnouncementDialog />;
+    case "terms":
+      return <TermsDialog />;
     default:
       return null;
   }

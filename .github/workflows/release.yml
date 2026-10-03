@@ -60,7 +60,11 @@ jobs:
 
             On first launch, PhDRacket finds your Racket installation. If Racket is not installed, click *Install Racket 9.3* in the Setup dialog: PhDRacket downloads the official installer from racket-lang.org, verifies its checksum and installs it. On Windows, the official Racket installer asks for administrator permission once.
 
+            Installing and using PhDRacket requires accepting the [Beta Terms of Use](https://github.com/ouyang-matters/PhDRacket/blob/main/docs/TERMS.md). The Windows installer and the first-run Setup dialog ask you to accept them.
+
             Installed copies check for new versions at startup and install them with one click.
+
+            Contact: support@aqouyang.com, https://www.aqouyang.com
 
             PhDRacket is an independent open-source project. It is not affiliated with or endorsed by the University of Waterloo or the Racket project.
           releaseDraft: false

@@ -7,6 +7,9 @@ import type { InstallPlan, InstallProgress } from "@shared/protocol";
 import { PROFILES, profileById } from "@shared/models/profiles";
 import { backend } from "@frontend/ipc/backend";
 import type { ThemeChoice } from "@frontend/settings/preferences";
+import { exit } from "@tauri-apps/plugin-process";
+import { TERMS_VERSION } from "@frontend/legal/terms";
+import { TermsView } from "@frontend/legal/TermsView";
 import { Modal } from "./Modal";
 import { selectRuntime, setDialog, setPrefs, useApp } from "./store";
 
@@ -40,6 +43,7 @@ export function SetupDialog() {
   const [installing, setInstalling] = useState(false);
   const [progress, setProgress] = useState<InstallProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(prefs.termsAccepted === TERMS_VERSION);
 
   useEffect(() => {
     void backend.installPlan(version).then((p) => {
@@ -68,7 +72,7 @@ export function SetupDialog() {
   const canInstall = !!plan?.installer;
 
   function finish() {
-    setPrefs({ setupDone: true });
+    setPrefs({ setupDone: true, termsAccepted: TERMS_VERSION });
     setDialog(null);
   }
 
@@ -93,8 +97,17 @@ export function SetupDialog() {
     progress?.phase === "downloading" && progress.total ? Math.round((progress.received / progress.total) * 100) : null;
 
   return (
-    <Modal title="Set up PhDRacket" onClose={() => !installing && finish()}>
+    <Modal title="Set up PhDRacket" onClose={() => agreed && !installing && finish()} dismissable={agreed && !installing}>
       <div className="setup">
+        <section>
+          <h3>Beta Terms of Use</h3>
+          <TermsView className="terms-box" />
+          <label className="check terms-check">
+            <input type="checkbox" checked={agreed} disabled={installing} onChange={(e) => setAgreed(e.target.checked)} />
+            I have read and agree to the PhDRacket Beta Terms of Use
+          </label>
+        </section>
+
         <section>
           <h3>Course</h3>
           <select
@@ -198,7 +211,14 @@ export function SetupDialog() {
         </section>
 
         <div className="row end">
-          <button className="primary" disabled={installing || runtime.state === "detecting"} onClick={() => void start()}>
+          <button disabled={installing} onClick={() => void exit(0)}>
+            Quit
+          </button>
+          <button
+            className="primary"
+            disabled={!agreed || installing || runtime.state === "detecting"}
+            onClick={() => void start()}
+          >
             {matches || (ready && choice === "existing")
               ? "Finish"
               : choice === "install"

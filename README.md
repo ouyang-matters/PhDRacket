@@ -27,8 +27,9 @@ Download the latest test release from the
      The app is not notarized yet. The first time you open it, macOS blocks
      it; open *System Settings*, go to *Privacy & Security* and click
      *Open Anyway*.
-2. Start PhDRacket. The Setup dialog asks for your course and theme, with
-   defaults already selected.
+2. Start PhDRacket. The Setup dialog shows the
+   [Beta Terms of Use](docs/TERMS.md), which you must accept, and asks for
+   your course and theme, with defaults already selected.
    - If Racket is already installed, PhDRacket finds it, and you click
      *Finish*.
    - If not, click *Install Racket 9.3*. PhDRacket downloads the official
@@ -122,6 +123,11 @@ release process.
 | [Testing](docs/TESTING.md) | Test suites and the golden corpus |
 | [Contributing](docs/CONTRIBUTING.md) | Development setup, rules and releases |
 | [Roadmap](docs/ROADMAP.md) | Development phases |
+| [Beta Terms of Use](docs/TERMS.md) | Terms accepted when installing or first starting PhDRacket |
+
+## Contact
+
+support@aqouyang.com · https://www.aqouyang.com
 
 ## License
 

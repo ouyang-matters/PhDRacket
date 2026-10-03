@@ -11,3 +11,4 @@ compatibility-tests/corpus/** -text
 compatibility-tests/stepper-corpus/** -text
 compatibility-tests/expected/** -text
 compatibility-tests/fixtures/** -text
+apps/desktop/src-tauri/TERMS.txt -text

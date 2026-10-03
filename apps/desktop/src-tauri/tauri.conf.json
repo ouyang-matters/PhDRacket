@@ -50,7 +50,8 @@
     "macOS": {
       "signingIdentity": "-",
       "minimumSystemVersion": "11.0"
-    }
+    },
+    "licenseFile": "TERMS.txt"
   },
   "plugins": {
     "updater": {

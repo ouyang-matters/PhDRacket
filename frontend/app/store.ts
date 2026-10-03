@@ -28,6 +28,7 @@ import {
   type StepperState,
 } from "@frontend/stepper/stepper-state";
 import { profileById, type CourseProfile } from "@shared/models/profiles";
+import { TERMS_VERSION } from "@frontend/legal/terms";
 import { parseAnnouncements, pendingAnnouncements, todayString, type Announcement } from "./announcements";
 import { modnameFor, newFileText, renameGeneratedHeader, NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { detectLanguage } from "@frontend/workspace/language";
@@ -69,7 +70,7 @@ export interface AppState {
   recentFiles: string[];
   /** Folder shown in the Explorer. */
   folder: string | null;
-  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup" | "announcement";
+  dialog: null | "new-file" | "runtime" | "about" | "settings" | "update" | "setup" | "announcement" | "terms";
   /** Announcements waiting to be shown. */
   announcements: Announcement[];
   /** Bumped when model content changes, so dirty markers re-render. */
@@ -502,7 +503,13 @@ export function setPanel(panel: PanelTab) {
 }
 
 export function setDialog(dialog: AppState["dialog"]) {
+  // Nothing else opens until the current Beta Terms are accepted.
+  if (state.dialog === "setup" && state.prefs.termsAccepted !== TERMS_VERSION && dialog !== "setup") return;
   set({ dialog });
+}
+
+export function termsAccepted(s: AppState = state): boolean {
+  return s.prefs.termsAccepted === TERMS_VERSION;
 }
 
 export async function selectRuntime(executable: string | null) {
@@ -529,8 +536,8 @@ export async function initialize() {
     prefs,
     recentFiles: settings.recentFiles,
     folder: settings.workspaceFolder,
-    // First launch: one Setup dialog with clean defaults.
-    dialog: prefs.setupDone ? null : "setup",
+    // First launch, or new Terms: one Setup dialog with clean defaults.
+    dialog: prefs.setupDone && prefs.termsAccepted === TERMS_VERSION ? null : "setup",
   });
 }
 

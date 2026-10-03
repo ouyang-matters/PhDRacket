@@ -106,9 +106,16 @@ try {
   await screenshot("00-setup");
   const setupButton = await evaluate(`document.querySelector(".setup .primary")?.textContent`);
   check(setupButton === "Finish", `Setup offers "${setupButton}" when Racket ${rt.version} is installed`);
+  check(await evaluate(`document.body.innerText.includes("PhDRacket Beta Terms of Use")`), "Setup shows the Beta Terms of Use");
+  check(await evaluate(`document.querySelector(".setup .primary").disabled`), "Finish is disabled until the Terms are accepted");
+  await evaluate(`document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))`);
+  await sleep(200);
+  check((await evaluate(`${S}.getState().dialog`)) === "setup", "Setup cannot be dismissed before the Terms are accepted");
+  await evaluate(`document.querySelector(".terms-check input").click()`);
+  await sleep(200);
   await evaluate(`document.querySelector(".setup .primary").click()`);
   await waitFor(`${S}.getState().dialog === null && ${S}.getState().prefs.setupDone`, "Setup to finish");
-  check(true, "Setup finishes and is remembered");
+  check((await state("prefs.termsAccepted")) === "October 3, 2026", "accepting records the Terms version");
   await screenshot("01-start");
 
   // Announcements: display-only, shown once.

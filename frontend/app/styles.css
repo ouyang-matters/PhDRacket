@@ -1199,3 +1199,44 @@ mark.step-after {
   white-space: pre-wrap;
   margin: 0 0 1rem;
 }
+
+/* Terms of Use */
+.terms h3 {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+.terms h4 {
+  font-size: 0.92rem;
+  margin: 1rem 0 0.3rem;
+}
+
+.terms p {
+  margin: 0.35rem 0;
+}
+
+.terms ul {
+  margin: 0.25rem 0;
+  padding-left: 1.4rem;
+}
+
+.pre-line {
+  white-space: pre-line;
+}
+
+.terms-box {
+  max-height: 14rem;
+  overflow: auto;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  font-size: 0.88rem;
+}
+
+.terms-check {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
