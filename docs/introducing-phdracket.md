@@ -6,11 +6,11 @@ What PhDRacket changes is the editing experience: a full desktop workbench with 
 
 This article walks through the main features using a small example: insertion sort written with the HtDP design recipe in `#lang htdp/bsl`, with a data definition, signatures, purpose statements and four `check-expect` tests. The screenshots show PhDRacket 0.1.1 Beta.
 
-![The official HtDP Stepper, showing each reduction step side by side](images/introducing/01-stepper-dark.png)
+![The official HtDP Stepper, showing each reduction step side by side](images/introducing/stepper-dark.png)
 
 ## Definitions and Interactions
 
-![After Run, the Interactions panel evaluates in the environment of the Definitions](images/introducing/02-interactions.png)
+![After Run, the Interactions panel evaluates in the environment of the Definitions](images/introducing/interactions.png)
 
 The layout follows the model HtDP courses already teach: Definitions in the editor, Interactions below.
 
@@ -23,7 +23,7 @@ The Explorer on the left opens an entire course or assignment folder, and files 
 
 ## Tests
 
-![The Tests panel summarises passed and failed checks](images/introducing/03-tests.png)
+![The workbench: Explorer, editor and the Tests panel after a Run](images/introducing/workbench.png)
 
 Results of `check-expect` and related forms are collected in a dedicated Tests panel that shows how many checks passed, how many failed and the total.
 
@@ -33,7 +33,7 @@ Results of `check-expect` and related forms are collected in a dedicated Tests p
 
 ## Stepper
 
-![The Stepper reducing insert, with the current expression highlighted in the editor](images/introducing/04-stepper-light.png)
+![The Stepper reducing insert, with the current expression highlighted in the editor](images/introducing/stepper-light.png)
 
 The Stepper is one of the most effective tools in an HtDP course for understanding recursion. PhDRacket integrates the official HtDP Stepper in the bottom panel, without a separate window.
 
@@ -46,26 +46,46 @@ In the first screenshot, the recursion has fully unfolded into `(insert 3 (inser
 
 ## The workbench
 
-![Two files side by side in split editors](images/introducing/05-workbench.png)
+PhDRacket works like a full desktop IDE while staying focused on Racket. The menu bar has File, Edit, Selection, View, Go, Run, Tools and Help, and every region of the window (sidebar, panels, status bar) can be hidden. Zen Mode hides everything but the editors.
 
-PhDRacket works like a full desktop IDE, while staying quiet and focused on Racket:
+### Command palette and Go to File
 
-- **Menus** (File, Edit, Selection, View, Go, Run, Tools, Help) and a **command palette** (Ctrl+Shift+P) where every command can be searched, with its shortcut. **Go to File** (Ctrl+P) opens any file in the folder.
-- **Split editors.** Split Right (Ctrl+\\) or Split Down, as many times as you like. A file open in two editors is one buffer, so a change in one appears in the other.
-- **Tabs** can be dragged between editors; right-click for Close Others, Split and Move into New Group.
-- **Find in Files** (Ctrl+Shift+F) searches the open folder.
-- **Editor:** find and replace, multiple cursors, Go to Symbol (Ctrl+T) and Go to Definition (F12) within a file, and Select Enclosing S-expression.
-- **Choose Language.** Click the language in the status bar to switch between the teaching languages and `#lang racket`. Only the language declaration changes, in the same format DrRacket writes, and the change can be undone.
+![The command palette filtering commands as you type](images/introducing/command-palette.png)
+
+Every action in PhDRacket is a command. The **command palette** (Ctrl+Shift+P) searches all of them and shows each one's keyboard shortcut. **Go to File** (Ctrl+P) opens any file in the folder by name; typing `>` switches to commands, and `:` in the palette jumps to a line.
+
+### Split editors
+
+![Two files side by side in split editors](images/introducing/split-editors.png)
+
+- **Split Right** (`Ctrl+\`) or **Split Down**, as many times as you like, nested in any direction.
+- A file open in two editors is one buffer, so a change in one appears in the other at once. Each editor keeps its own cursor and scroll position.
+- **Tabs** can be dragged to reorder them or into another editor. Right-click a tab for Close Others, Close to the Right, Split and Move into New Group; Reopen Closed Editor is Ctrl+Shift+T.
+
+### Find in Files
+
+![Find in Files listing every match in the folder](images/introducing/find-in-files.png)
+
+**Find in Files** (Ctrl+Shift+F) searches the open folder and lists every match by file and line; clicking a result opens it. Inside a file, the editor has find and replace, multiple cursors, line moves, **Go to Symbol** (Ctrl+T), **Go to Definition** (F12) and **Select Enclosing S-expression** (Ctrl+Alt+Up).
+
+### Choose Language
+
+![Choosing the teaching language of the current file](images/introducing/choose-language.png)
+
+Click the language in the status bar to switch between the teaching languages (Beginning Student through Advanced Student) and `#lang racket`. Only the language declaration changes, in the same format DrRacket writes, and the change can be undone like any other edit.
 
 ## Themes and settings
 
-![Settings, with the color themes](images/introducing/06-themes.png)
+![Settings, with previews of every color theme](images/introducing/settings-themes.png)
 
-Settings has pages for General, Appearance, Editor, Files and Keyboard Shortcuts:
+Settings (Ctrl+,) has pages for General, Appearance, Editor, Files and Keyboard Shortcuts.
 
-- **Themes:** PhDRacket Light and Dark, Midnight, Paper, two high-contrast themes, and two unofficial community themes, Waterloo Math Pink and Waterloo Black & Gold. Every theme is checked for readable contrast, and the editor, panels and menus change together.
-- **Keyboard shortcuts** can be changed.
-- **Auto save** can be off, after a delay, or when the editor or window loses focus. Closing brackets, closing quotes and word completion each have their own switch.
+- **Themes:** PhDRacket Light and Dark, Midnight, Paper, High Contrast Dark and Light, and two unofficial community themes, Waterloo Math Pink and Waterloo Black & Gold. Settings shows a preview of each, and *Preferences: Color Theme* in the command palette previews themes as you move through the list. Every theme is checked for readable contrast, and the editor, panels and menus change together without a restart.
+- **Keyboard shortcuts** can be changed, and conflicts are marked.
+- **Auto save** can be off, after a delay, or when the editor or the window loses focus. It never saves a file whose DrRacket language lines were edited. Closing brackets, closing quotes and word completion each have their own switch.
+- Closing or quitting with unsaved files asks in a dialog with **Save**, **Don't Save** and **Cancel**.
+
+![The Waterloo Math Pink community theme](images/introducing/theme-waterloo-pink.png)
 
 ## Compatibility with DrRacket
 
