@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { resolveMenu, useMenusVersion } from "@frontend/commands/menus";
 import { MenuList } from "./MenuList";
-import { BrandMark } from "./BrandMark";
+import { TossableMark } from "./CapToss";
 
 export const MENUBAR: { id: string; title: string }[] = [
   { id: "menubar.file", title: "File" },
@@ -60,7 +60,7 @@ export function MenuBar({ children, locked = false }: { children?: React.ReactNo
 
   return (
     <header className="menubar" ref={ref} data-tauri-drag-region>
-      <BrandMark size={18} className="menubar-mark" />
+      <TossableMark size={18} className="menubar-mark" />
       <nav role="menubar" aria-label="Application menu" className="menubar-menus">
         {menus.map((m, i) => (
           <div key={m.id} className="menubar-entry">
