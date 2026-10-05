@@ -1,6 +1,8 @@
 // Editor and UI preferences. Stored by the backend in the per-user config
 // directory; never written into projects or source files.
 
+import { DEFAULT_HIDDEN } from "@frontend/explorer/hidden";
+
 /** A theme id from frontend/theme/themes.ts, or "system" (light or dark to
  * match the operating system). */
 export type ThemeChoice = string;
@@ -66,6 +68,12 @@ export interface Preferences {
   setupDone: boolean;
   /** Ask GitHub for a newer release at startup (nothing is sent but the request). */
   checkForUpdates: boolean;
+  /** Patterns of files the Explorer hides (frontend/explorer/hidden.ts). */
+  hiddenFiles: string[];
+  /** The Explorer shows hidden files anyway (its eye button). */
+  showHiddenFiles: boolean;
+  /** Addresses recently opened in browser tabs, newest first. */
+  browserRecent: string[];
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -100,6 +108,9 @@ export const DEFAULT_PREFERENCES: Preferences = {
   termsAccepted: "",
   showAnnouncements: true,
   seenAnnouncements: [],
+  hiddenFiles: DEFAULT_HIDDEN,
+  showHiddenFiles: false,
+  browserRecent: [],
 };
 
 export function mergePreferences(stored: unknown): Preferences {
@@ -130,6 +141,8 @@ export function mergePreferences(stored: unknown): Preferences {
       )
     : [];
   if (out.computeTarget !== "local" && !out.computeHosts.some((h) => h.id === out.computeTarget)) out.computeTarget = "local";
+  out.hiddenFiles = Array.isArray(s.hiddenFiles) ? s.hiddenFiles.filter((p): p is string => typeof p === "string" && p.trim() !== "") : [...DEFAULT_HIDDEN];
+  out.browserRecent = Array.isArray(s.browserRecent) ? s.browserRecent.filter((u): u is string => typeof u === "string" && /^https?:\/\//.test(u)).slice(0, 12) : [];
   out.fontSize = Math.min(Math.max(out.fontSize, 8), 40);
   out.uiScale = Math.min(Math.max(out.uiScale, 0.75), 2);
   return out;

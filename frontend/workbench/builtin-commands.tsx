@@ -49,11 +49,15 @@ import { topLevelDefinitions } from "@frontend/editor/symbols";
 import { groupOrder } from "./layout";
 import { registerCommands, type Command } from "@frontend/commands/registry";
 import { registerMenuItems, registerMenuProvider, type MenuItem } from "@frontend/commands/menus";
+import { installExplorerCommands } from "@frontend/explorer/commands";
+import { openBrowserTab } from "@frontend/browser/BrowserView";
 import { runEditorAction, targetEditor } from "./editors";
 import { showCommandPalette, showLanguagePicker, showProfilePicker, showQuickOpen, showThemePicker } from "./pickers";
 import { toggleSidebarView } from "./sidebar";
 
 const hasDoc = () => !!activeDoc();
+/** A document or a browser tab is active. */
+const hasTab = () => !!getState().layout.groups[getState().layout.activeGroup]?.active;
 const hasEditor = () => !!targetEditor()?.getModel();
 const notInInteractions = (c: { focus: string }) => c.focus !== "interactions";
 const runtimeReady = () => getState().runtime.state === "ready" && hasDoc();
@@ -71,6 +75,12 @@ function tabArgs(args: unknown): { groupId: string; docId: string } | null {
   const s = getState();
   const g = s.layout.groups[s.layout.activeGroup];
   return g?.active ? { groupId: g.id, docId: g.active } : null;
+}
+
+/** A tab's file path, or a browser tab's address. */
+function tabPath(id: string): string | null {
+  const s = getState();
+  return s.docs.find((d) => d.id === id)?.path ?? (s.webTabs.find((w) => w.id === id)?.url || null);
 }
 
 // Structural selection: each editor remembers the selections it expanded from.
@@ -203,8 +213,8 @@ export const BUILTIN_COMMANDS: Command[] = [
   { id: "view.toggleMenuBar", title: "Toggle Menu Bar", category: "View", checked: () => getState().prefs.menuBarVisible, run: () => setPrefs({ menuBarVisible: !getState().prefs.menuBarVisible }) },
   { id: "view.toggleZenMode", title: "Zen Mode", category: "View", checked: () => getState().zen, run: toggleZen },
   { id: "view.toggleFullScreen", title: "Full Screen", category: "View", keybinding: "F11", run: toggleFullScreen },
-  { id: "view.splitEditorRight", title: "Split Editor Right", category: "View", icon: "splitRight", keybinding: "Mod+\\", enabled: hasDoc, run: () => splitEditor("right") },
-  { id: "view.splitEditorDown", title: "Split Editor Down", category: "View", icon: "splitDown", enabled: hasDoc, run: () => splitEditor("down") },
+  { id: "view.splitEditorRight", title: "Split Editor Right", category: "View", icon: "splitRight", keybinding: "Mod+\\", enabled: hasTab, run: () => splitEditor("right") },
+  { id: "view.splitEditorDown", title: "Split Editor Down", category: "View", icon: "splitDown", enabled: hasTab, run: () => splitEditor("down") },
   { id: "view.layoutSingle", title: "Single", category: "View: Editor Layout", run: () => applyEditorLayout("single") },
   { id: "view.layoutTwoColumns", title: "Two Columns", category: "View: Editor Layout", run: () => applyEditorLayout("two-columns") },
   { id: "view.layoutTwoRows", title: "Two Rows", category: "View: Editor Layout", run: () => applyEditorLayout("two-rows") },
@@ -282,6 +292,21 @@ export const BUILTIN_COMMANDS: Command[] = [
   { id: "help.checkForUpdates", title: "Check for Updates…", category: "Help", run: () => checkForUpdates() },
   { id: "help.releaseNotes", title: "Release Notes", category: "Help", run: () => openUrl(LINKS.releaseNotes) },
   { id: "help.terms", title: "Beta Terms of Use", category: "Help", run: () => setDialog("terms") },
+  {
+    id: "view.openBrowser",
+    title: "Open Browser Tab",
+    category: "View",
+    icon: "globe",
+    keybinding: "Mod+Shift+B",
+    run: () => openBrowserTab(false),
+  },
+  {
+    id: "view.openBrowserToSide",
+    title: "Open Browser Tab to the Side",
+    category: "View",
+    icon: "globe",
+    run: () => openBrowserTab(true),
+  },
   { id: "help.about", title: "About PhDRacket", category: "Help", run: () => setDialog("about") },
 
   // Editor tabs (context menu)
@@ -311,7 +336,7 @@ export const BUILTIN_COMMANDS: Command[] = [
       title: `Split ${dir === "right" ? "Right" : "Down"}`,
       category: "View",
       palette: false,
-      enabled: hasDoc,
+      enabled: hasTab,
       run: (args) => {
         const t = tabArgs(args);
         if (!t) return;
@@ -325,7 +350,7 @@ export const BUILTIN_COMMANDS: Command[] = [
       id: `editor.moveToNewGroup${dir === "right" ? "Right" : "Down"}`,
       title: `Move into New Group ${dir === "right" ? "Right" : "Below"}`,
       category: "View",
-      enabled: hasDoc,
+      enabled: hasTab,
       run: (args) => {
         const t = tabArgs(args);
         if (t) moveTabToNewGroup(t.groupId, t.docId, dir);
@@ -338,11 +363,11 @@ export const BUILTIN_COMMANDS: Command[] = [
     category: "File",
     enabled: () => {
       const t = tabArgs(undefined);
-      return !!t && !!getState().docs.find((d) => d.id === t.docId)?.path;
+      return !!t && !!tabPath(t.docId);
     },
     run: (args) => {
       const t = tabArgs(args);
-      const path = t && getState().docs.find((d) => d.id === t.docId)?.path;
+      const path = t && tabPath(t.docId);
       if (path) void navigator.clipboard.writeText(path);
     },
   },
@@ -400,6 +425,8 @@ export const BUILTIN_MENUS: Record<string, MenuItem[]> = {
     item("workbench.commandPalette", "1_palette"),
     item("view.explorer", "2_views", 1),
     item("view.search", "2_views", 2),
+    item("view.openBrowser", "2_views", 3),
+    item("view.openBrowserToSide", "2_views", 4),
     item("view.problems", "3_panels", 1),
     item("view.tests", "3_panels", 2),
     item("view.interactions", "3_panels", 3),
@@ -519,6 +546,7 @@ export function installBuiltinCommands() {
   if (installed) return;
   installed = true;
   registerCommands(BUILTIN_COMMANDS);
+  installExplorerCommands();
   for (const [menu, items] of Object.entries(BUILTIN_MENUS)) registerMenuItems(menu, items);
   registerMenuProvider("menubar.file.recent", () =>
     getState()

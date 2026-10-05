@@ -34,6 +34,7 @@ import { modnameFor, newFileText, renameGeneratedHeader, NEW_FILE_LANGUAGES } fr
 import { detectLanguage } from "@frontend/workspace/language";
 import { languageChangeEdit } from "@frontend/workspace/change-language";
 import * as L from "@frontend/workbench/layout";
+import { isWithin, rebase } from "@frontend/explorer/paths";
 
 export interface Doc {
   id: string;
@@ -68,8 +69,24 @@ export interface UnsavedPrompt {
 
 export type UnsavedChoice = "save" | "discard" | "cancel";
 
+/** A browser tab (frontend/browser): a web page in an editor group. Its id
+ * starts with "web-", so layouts tell it apart from documents. */
+export interface WebTab {
+  id: string;
+  /** The page shown, or "" before an address is entered. */
+  url: string;
+  title: string;
+  loading: boolean;
+}
+
+export function isWebTabId(id: string | null | undefined): boolean {
+  return !!id && id.startsWith("web-");
+}
+
 export interface AppState {
   docs: Doc[];
+  /** Browser tabs; they live in editor groups like documents. */
+  webTabs: WebTab[];
   /** The document in the active editor group; kept in step with `layout`. */
   activeId: string | null;
   /** Editor groups and their split layout. */
@@ -100,6 +117,7 @@ export interface AppState {
 
 let state: AppState = {
   docs: [],
+  webTabs: [],
   activeId: null,
   layout: L.initialLayout(),
   panelMaximized: false,
@@ -218,7 +236,18 @@ function createDoc(init: Omit<Doc, "id" | "model" | "savedVersion"> & { text: st
   return doc;
 }
 
-export async function openPath(path: string) {
+let keepFocus = false;
+
+/** False once after a document was opened with `preserveFocus` (the
+ * Explorer keeps the keyboard when a click opens a file). */
+export function editorMayTakeFocus(): boolean {
+  const ok = !keepFocus;
+  keepFocus = false;
+  return ok;
+}
+
+export async function openPath(path: string, opts: { preserveFocus?: boolean } = {}) {
+  keepFocus = !!opts.preserveFocus;
   const existing = state.docs.find((d) => d.path === path);
   if (existing) {
     setLayout(L.openTab(state.layout, existing.id));
@@ -265,6 +294,68 @@ export async function openFolderWithDialog() {
 export function setFolder(path: string | null) {
   set((s) => ({ folder: path, prefs: path ? { ...s.prefs, explorerVisible: true } : s.prefs }));
   void backend.setWorkspaceFolder(path);
+  watchFolder(path);
+}
+
+let webSeq = 1;
+
+/** Opens a browser tab (empty: it asks for an address). `toSide` opens it in
+ * a new group to the right of the active one, beside the code. */
+export function openWebTab(url = "", toSide = false): string {
+  const tab: WebTab = { id: `web-${webSeq++}`, url, title: url ? url : "New Tab", loading: !!url };
+  const layout = toSide && state.layout.groups[state.layout.activeGroup]?.tabs.length
+    ? L.splitGroup(state.layout, state.layout.activeGroup, "right", tab.id)
+    : L.openTab(state.layout, tab.id);
+  setLayout(layout, { webTabs: [...state.webTabs, tab] });
+  return tab.id;
+}
+
+export function updateWebTab(id: string, patch: Partial<WebTab>) {
+  if (!state.webTabs.some((t) => t.id === id)) return;
+  set((s) => ({ webTabs: s.webTabs.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
+}
+
+/** Remembers an address for the address bar's suggestions. */
+export function rememberWebAddress(url: string) {
+  const recent = [url, ...state.prefs.browserRecent.filter((u) => u !== url)].slice(0, 12);
+  setPrefs({ browserRecent: recent });
+}
+
+function closeWebTab(id: string) {
+  void backend.browserClose(id).catch(() => {});
+  setLayout(L.removeDoc(state.layout, id), { webTabs: state.webTabs.filter((t) => t.id !== id) });
+}
+
+/** Watches the open folder so the Explorer shows changes made anywhere. */
+function watchFolder(path: string | null) {
+  backend.watchFolder(path).catch((e) => path && notify("warning", `Changes in the folder will not appear automatically: ${e}`));
+}
+
+/** Open documents follow a file or folder renamed or moved in the Explorer. */
+export function followMove(from: string, to: string) {
+  const moved = state.docs.filter((d) => d.path && isWithin(d.path, from));
+  for (const d of moved) {
+    d.path = rebase(d.path!, from, to);
+    d.name = fileName(d.path);
+  }
+  set((s) => ({
+    docs: moved.length ? [...s.docs] : s.docs,
+    recentFiles: s.recentFiles.map((p) => (isWithin(p, from) ? rebase(p, from, to) : p)),
+  }));
+}
+
+/** Closes the tabs of a file or folder the Explorer moved to the Recycle Bin.
+ * The Explorer has already asked about unsaved changes. */
+export function forgetDeleted(path: string) {
+  const gone = state.docs.filter((d) => d.path && isWithin(d.path, path));
+  if (gone.length === 0) return;
+  let layout = state.layout;
+  for (const d of gone) {
+    void backend.closeSource(d.path!);
+    layout = L.removeDoc(layout, d.id);
+  }
+  setLayout(layout, { docs: state.docs.filter((d) => !gone.includes(d)) });
+  for (const d of gone) d.model.dispose();
 }
 
 export function toggleExplorer() {
@@ -381,6 +472,10 @@ export async function closeTab(groupId: string, docId: string): Promise<boolean>
     setLayout(L.closeTab(state.layout, groupId, docId));
     return true;
   }
+  if (isWebTabId(docId)) {
+    closeWebTab(docId);
+    return true;
+  }
   const doc = state.docs.find((d) => d.id === docId);
   return doc ? closeDoc(doc) : true;
 }
@@ -425,6 +520,8 @@ export function canReopenClosedEditor(): boolean {
 export function splitEditor(direction: L.SplitDirection, groupId: string = state.layout.activeGroup) {
   const g = state.layout.groups[groupId];
   if (!g) return;
+  // A web page can be shown in one place only: splitting moves it beside the code.
+  if (isWebTabId(g.active)) return setLayout(L.moveToNewGroup(state.layout, groupId, g.active!, direction));
   setLayout(L.splitGroup(state.layout, groupId, direction, g.active));
 }
 
@@ -720,6 +817,7 @@ export async function initialize() {
     // First launch, or new Terms: one Setup dialog with clean defaults.
     dialog: prefs.setupDone && prefs.termsAccepted === TERMS_VERSION ? null : "setup",
   });
+  if (settings.workspaceFolder) watchFolder(settings.workspaceFolder);
 }
 
 /** Fetches announcements and queues the ones for this user. Quiet on failure. */

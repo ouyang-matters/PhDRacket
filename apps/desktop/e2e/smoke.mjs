@@ -42,6 +42,8 @@ const app = spawn(exe, [], {
     WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}`,
     // Keep the user's real settings (recent files, preferences) untouched.
     PHDRACKET_SETTINGS_FILE: join(tmpdir(), `phdracket-e2e-settings-${process.pid}.json`),
+    // Own WebView2 profile, so an installed PhDRacket that is running does not conflict.
+    WEBVIEW2_USER_DATA_FOLDER: join(tmpdir(), `phdracket-e2e-webview2-${process.pid}`),
   },
   stdio: "inherit",
 });

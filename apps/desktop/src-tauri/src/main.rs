@@ -1,6 +1,7 @@
 // Prevents an additional console window on Windows in release builds.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod browser;
 mod commands;
 
 fn main() {
@@ -34,6 +35,24 @@ fn main() {
             commands::workspace_files,
             commands::workspace_search,
             commands::workspace_set_folder,
+            commands::workspace_watch,
+            browser::browser_open,
+            browser::browser_place,
+            browser::browser_navigate,
+            browser::browser_history,
+            browser::browser_focus,
+            browser::browser_close,
+            commands::fs_list,
+            commands::fs_create_file,
+            commands::fs_create_dir,
+            commands::fs_rename,
+            commands::fs_duplicate,
+            commands::fs_copy,
+            commands::fs_move,
+            commands::fs_trash,
+            commands::fs_properties,
+            commands::fs_folder_stats,
+            commands::fs_reveal,
             commands::settings_get,
             commands::settings_set_ui,
             commands::app_info,

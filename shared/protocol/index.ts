@@ -167,6 +167,35 @@ export interface DirEntry {
   isDir: boolean;
 }
 
+/** One Explorer entry (backend/src/files.rs). Times are ms since the epoch. */
+export interface FileEntry {
+  name: string;
+  path: string;
+  isDir: boolean;
+  size: number;
+  modified: number | null;
+}
+
+export interface FileProperties {
+  name: string;
+  path: string;
+  isDir: boolean;
+  size: number;
+  created: number | null;
+  modified: number | null;
+  readonly: boolean;
+  lines: number | null;
+  /** The first lines of a text file. */
+  head: string | null;
+}
+
+export interface FolderStats {
+  files: number;
+  folders: number;
+  size: number;
+  truncated: boolean;
+}
+
 export interface Settings {
   racketExecutable: string | null;
   recentFiles: string[];

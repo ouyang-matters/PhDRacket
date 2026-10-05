@@ -1,7 +1,8 @@
 // Settings, in pages: General, Appearance, Editor, Files and Keyboard
 // Shortcuts. Every change applies at once and is saved with the preferences.
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { DEFAULT_HIDDEN, HIDDEN_PRESETS, customPatterns, parsePatterns, presetEnabled, setPreset } from "@frontend/explorer/hidden";
 import { Modal } from "@frontend/app/Modal";
 import { setDialog, setPrefs, setSettingsPage, useApp } from "@frontend/app/store";
 import { PROFILES } from "@shared/models/profiles";
@@ -178,9 +179,43 @@ const AUTOSAVE: { id: AutosaveMode; label: string }[] = [
   { id: "onWindowChange", label: "When the window loses focus" },
 ];
 
+/** Which files the Explorer lists. */
+function HiddenFiles() {
+  const patterns = useApp((s) => s.prefs.hiddenFiles);
+  const custom = customPatterns(patterns);
+  const [text, setText] = useState(custom.join("\n"));
+  useEffect(() => setText(customPatterns(patterns).join("\n")), [patterns]);
+  const saveCustom = () => {
+    const kept = patterns.filter((p) => !custom.includes(p));
+    setPrefs({ hiddenFiles: [...kept, ...parsePatterns(text).filter((p) => !kept.includes(p))] });
+  };
+  return (
+    <Section title="Hidden in the Explorer">
+      <p className="setting-hint">
+        Hidden files stay on disk and in Quick Open and Search; only the Explorer stops listing them. Its eye button shows them for a moment.
+      </p>
+      {HIDDEN_PRESETS.map((p) => (
+        <label key={p.id} className="setting-check">
+          <input type="checkbox" checked={presetEnabled(patterns, p)} onChange={(e) => setPrefs({ hiddenFiles: setPreset(patterns, p, e.target.checked) })} />
+          <span>{p.label}</span>
+        </label>
+      ))}
+      <Row label="Other patterns" hint="One per line. *.log hides files by name, drafts/ hides folders, docs/*.pdf is matched from the open folder.">
+        <textarea className="setting-patterns" rows={4} spellCheck={false} aria-label="Other hidden file patterns" value={text} placeholder={"*.log\ndrafts/"} onChange={(e) => setText(e.target.value)} onBlur={saveCustom} />
+      </Row>
+      <Check pref="showHiddenFiles" label="Show hidden files anyway" />
+      <div className="row">
+        <button onClick={() => setPrefs({ hiddenFiles: [...DEFAULT_HIDDEN] })}>Restore Defaults</button>
+      </div>
+    </Section>
+  );
+}
+
 function Files() {
   const prefs = useApp((s) => s.prefs);
   return (
+    <>
+    <HiddenFiles />
     <Section title="Saving">
       <Row label="Auto save" hint="Only files that already have a file name are saved automatically.">
         <select value={prefs.autosave} onChange={(e) => setPrefs({ autosave: e.target.value as AutosaveMode })}>
@@ -200,6 +235,7 @@ function Files() {
         A file whose DrRacket language lines were edited is never saved automatically; saving it asks for confirmation.
       </p>
     </Section>
+    </>
   );
 }
 

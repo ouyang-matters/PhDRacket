@@ -9,9 +9,11 @@ import {
   activateTab,
   autosaveOnEditorBlur,
   closeTab,
+  editorMayTakeFocus,
   focusGroup,
   getState,
   isDirty,
+  isWebTabId,
   moveTab,
   resizeEditorSplit,
   useApp,
@@ -25,6 +27,7 @@ import { activeGroupEditor, registerGroupEditor, setActiveGroupId } from "@front
 import { openContextMenu } from "@frontend/workbench/ContextMenu";
 import { Icon, type IconName } from "@frontend/workbench/icons";
 import { StartPage } from "@frontend/workbench/StartPage";
+import { BrowserView } from "@frontend/browser/BrowserView";
 
 /** The Definitions editor of the active group, if mounted. */
 export function definitionsEditor() {
@@ -72,6 +75,7 @@ function readTab(e: DragEvent): { groupId: string; docId: string } | null {
 function Tabs({ groupId }: { groupId: string }) {
   const group = useApp((s) => s.layout.groups[groupId]);
   const docs = useApp((s) => s.docs);
+  const webTabs = useApp((s) => s.webTabs);
   const active = useApp((s) => s.layout.activeGroup === groupId);
   useApp((s) => s.revision);
   const [dropAt, setDropAt] = useState<number | null>(null);
@@ -100,9 +104,53 @@ function Tabs({ groupId }: { groupId: string }) {
       onDrop={(e) => onDrop(e, group.tabs.length)}
     >
       {group.tabs.map((id, i) => {
+        const selected = id === group.active;
+        const web = isWebTabId(id) ? webTabs.find((w) => w.id === id) : null;
+        if (web) {
+          return (
+            <div
+              key={id}
+              role="tab"
+              aria-selected={selected}
+              draggable
+              className={`tab web${selected ? " active" : ""}${selected && active ? " focused" : ""}${dropAt === i ? " drop-before" : ""}`}
+              title={web.url || "New browser tab"}
+              onClick={() => activateTab(groupId, id)}
+              onAuxClick={(e) => e.button === 1 && void closeTab(groupId, id)}
+              onContextMenu={(e) => openContextMenu(e, "editor.tabContext", { groupId, docId: id })}
+              onDragStart={(e) => {
+                e.dataTransfer.setData(TAB_MIME, JSON.stringify({ groupId, docId: id }));
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragOver={(e) => {
+                if (!e.dataTransfer.types.includes(TAB_MIME)) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const r = e.currentTarget.getBoundingClientRect();
+                setDropAt(e.clientX < r.left + r.width / 2 ? i : i + 1);
+              }}
+              onDrop={(e) => {
+                e.stopPropagation();
+                onDrop(e, dropAt ?? i);
+              }}
+            >
+              <Icon name="globe" size={13} />
+              <span className="tab-name">{web.title}</span>
+              <button
+                className="tab-close"
+                aria-label={`Close ${web.title}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void closeTab(groupId, id);
+                }}
+              >
+                ×
+              </button>
+            </div>
+          );
+        }
         const d = docs.find((x) => x.id === id);
         if (!d) return null;
-        const selected = id === group.active;
         return (
           <div
             key={id}
@@ -166,7 +214,8 @@ function ToolButton({ command, icon, label, className }: { command: string; icon
 /** Contextual actions for the group: Run is the obvious default. */
 function GroupToolbar({ groupId }: { groupId: string }) {
   const active = useApp((s) => s.layout.activeGroup === groupId);
-  const hasDoc = useApp((s) => !!s.layout.groups[groupId]?.active);
+  const hasTab = useApp((s) => !!s.layout.groups[groupId]?.active);
+  const hasDoc = useApp((s) => !!s.layout.groups[groupId]?.active && !isWebTabId(s.layout.groups[groupId]?.active));
   const running = useApp((s) => s.run.status === "running");
   const many = useApp((s) => Object.keys(s.layout.groups).length > 1);
   return (
@@ -178,7 +227,7 @@ function GroupToolbar({ groupId }: { groupId: string }) {
           <ToolButton command="run.run" icon="run" label="Run" className="run" />
         </>
       )}
-      {hasDoc && <ToolButton command="view.splitEditorRight" icon="splitRight" />}
+      {hasTab && <ToolButton command="view.splitEditorRight" icon="splitRight" />}
       {many && <ToolButton command="view.closeEditorGroup" icon="close" />}
     </div>
   );
@@ -262,7 +311,7 @@ function EditorGroupView({ groupId }: { groupId: string }) {
       editor.setModel(doc.model);
       const vs = viewStates.get(`${groupId}:${doc.id}`);
       if (vs) editor.restoreViewState(vs);
-      if (getState().layout.activeGroup === groupId) editor.focus();
+      if (getState().layout.activeGroup === groupId && editorMayTakeFocus()) editor.focus();
     }
     decorations.current?.set(metadataDecorations(doc));
   }, [doc, groupId, languageKey]);
@@ -330,7 +379,8 @@ function EditorGroupView({ groupId }: { groupId: string }) {
             attaches menus and other overflow widgets to this container, beside
             .monaco-editor; without it the editor's context menu has no colors. */}
         <div className="monaco-host monaco-component" ref={host} />
-        {!doc && <div className="group-watermark">{groupWatermark()}</div>}
+        {!doc && !isWebTabId(docId) && <div className="group-watermark">{groupWatermark()}</div>}
+        {isWebTabId(docId) && <BrowserView key={docId} id={docId!} active />}
       </div>
     </section>
   );
@@ -405,7 +455,7 @@ function LayoutView({ node }: { node: LayoutNode }) {
 
 export function EditorArea() {
   const root = useApp((s) => s.layout.root);
-  const empty = useApp((s) => s.docs.length === 0 && s.layout.root.type === "group");
+  const empty = useApp((s) => s.docs.length === 0 && s.webTabs.length === 0 && s.layout.root.type === "group");
   return (
     <section className="editor-area" aria-label="Editors">
       <LayoutView node={root} />
