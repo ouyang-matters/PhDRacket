@@ -98,13 +98,62 @@ panel framework provides switching, closing (Ctrl+J), maximizing and
 resizing; a panel can keep its state while hidden (Interactions does) and
 can be offered conditionally (Tasks appears once a remote host exists).
 
+## Explorer
+
+The Explorer (`frontend/explorer/`) shows the open folder. Its file
+operations go through `backend/src/files.rs`, which refuses any path outside
+the open folder, never overwrites an existing name, and deletes only to the
+Recycle Bin (Trash):
+
+- **New File**, **New Folder** and **Rename** (F2) type the name in place.
+- **Duplicate** (Ctrl+D), **Cut**, **Copy** and **Paste** (Ctrl+X, C, V), and
+  drag and drop onto a folder. Copies get a fresh name ("a3 copy.rkt").
+- **Delete** asks in the app, and says when an open file has unsaved changes.
+- **Copy Path**, **Copy Relative Path**, **Reveal in File Explorer**,
+  **Properties** (type, language, location, size, lines, dates, read-only;
+  folders count their contents).
+- Arrow keys move the selection; Enter opens. A click opens a file and keeps
+  the keyboard in the tree; a double click moves to the editor. Open tabs
+  follow renames and moves; a deleted file's tab closes.
+- The selected file's size, lines and date show under the tree; hovering
+  shows them too.
+- The open folder is watched: files added, removed or changed by other
+  programs appear at once.
+- **Hidden files**: Settings > Files lists common groups (Racket build output,
+  backups, dot files, system files, tool folders) and takes custom patterns
+  (`*.log`, `drafts/`, `docs/*.pdf`). The eye button shows hidden files for a
+  moment. Hiding applies to the Explorer only; Quick Open and Find in Files
+  are unchanged.
+
+## Browser tabs
+
+View > Open Browser Tab (Ctrl+Shift+B) opens a web page as an editor tab, so
+an assignment page can sit beside the code in a split; View > Open Browser
+Tab to the Side opens it in a new group at once. The tab has an address bar
+(a bare address such as `student.cs.uwaterloo.ca/~cs145` becomes https),
+Back, Forward, Reload and Open in your web browser, and suggests recent
+addresses.
+
+The page is a native webview (`apps/desktop/src-tauri/src/browser.rs`) kept
+over its tab's area, because most course sites refuse to load in frames. It
+hides while a menu, dialog or palette would overlap it. Pages:
+
+- cannot call PhDRacket's commands (the app's capability covers only its own
+  pages),
+- may show only http and https pages; other links are not followed,
+- open links that ask for a new window as new browser tabs.
+
+Splitting a browser tab moves it into the new group (a page is shown in one
+place at a time).
+
 ## Settings and dialogs
 
 Settings (File > Preferences > Settings, Ctrl+,) has pages: General (course
 profile, update checks, startup animation, remote hosts), Appearance (theme
 cards with previews, layout, motion), Editor (font, automatic closing of
-brackets and quotes, word completion, display), Files (auto save: off, after a
-delay, when the editor loses focus, or when the window loses focus) and
+brackets and quotes, word completion, display), Files (files hidden in the
+Explorer; auto save: off, after a delay, when the editor loses focus, or when
+the window loses focus) and
 Keyboard Shortcuts. Auto save never saves a file whose DrRacket language
 lines were edited, and never an untitled file.
 

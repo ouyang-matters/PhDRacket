@@ -133,13 +133,16 @@ The Rust crate in `backend/src/`:
 | `runtime.rs` | Discovery and probing of Racket installations. |
 | `bridge.rs` | Installing and compiling the bridge. |
 | `engine.rs` | The Run, Interactions and Stepper processes. |
-| `workspace.rs` | Read-only folder listing for the Explorer, recursive listing for Go to File, and Find in Files. |
+| `workspace.rs` | Recursive listing for Go to File, and Find in Files (read-only). |
+| `files.rs` | The Explorer's file operations: listing, create, rename, copy, move, delete to the Recycle Bin, properties, and watching the open folder. Every operation is confined to the open folder and never overwrites. |
 | `remote.rs` | Running a program on an SSH host for remote compute, through the system `ssh` client in batch mode. |
 | `protocol.rs` | Typed messages. |
 | `settings.rs` | Application settings in the per-user configuration directory. |
 
 The Tauri shell (`apps/desktop/src-tauri/src/commands.rs`) adapts these
-modules to IPC commands and adds no logic of its own. When a program is run,
+modules to IPC commands and adds no logic of its own. `browser.rs` in the
+shell manages browser tabs: native child webviews placed over their editor
+tabs, limited to http and https, without access to the app's commands. When a program is run,
 the backend sends exactly the text that saving would write, with the same line
 endings. A UTF-8 byte-order mark is removed, as Racket's load handler also
 ignores it.
@@ -160,7 +163,8 @@ signature and installs it only after the user confirms.
 | `compute/` | Remote compute targets and tasks |
 | `ipc/` | The only module that calls the backend |
 | `editor/` | Monaco setup (bundled locally, without Monaco's language services), Racket tokenizer, conversion of Racket source locations to editor ranges |
-| `explorer/` | Folder tree |
+| `explorer/` | Folder tree, file operations, hidden-file patterns, Properties |
+| `browser/` | Browser tabs: address bar and placement of the native page |
 | `interactions/` | Interactions panel |
 | `run/` | Pure reducer from bridge events to Run and Interactions state |
 | `stepper/` | Stepper state and panel |

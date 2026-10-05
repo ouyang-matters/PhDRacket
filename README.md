@@ -86,9 +86,16 @@ click. The check can be turned off in Settings.
   (Ctrl+P), configurable keyboard shortcuts, and editor groups that split
   right and down, with the same file shown in several groups as one buffer.
   See [Workbench](docs/WORKBENCH.md).
-- **Editor.** Tabs, a folder explorer, Find in Files, find and replace,
-  multiple cursors, structural selection of S-expressions, Go to Symbol and
-  Go to Definition within a file, bracket matching, configurable fonts.
+- **Editor.** Tabs, Find in Files, find and replace, multiple cursors,
+  structural selection of S-expressions, Go to Symbol and Go to Definition
+  within a file, bracket matching, configurable fonts.
+- **Explorer.** Create, rename, duplicate, cut, copy, paste and drag files
+  and folders; Delete moves to the Recycle Bin. Properties show size, lines,
+  language and dates. Changes made outside PhDRacket appear at once. Choose
+  which files to hide in Settings > Files.
+- **Browser tabs.** Open the assignment page, course notes or documentation
+  in a tab beside your code (Ctrl+Shift+B). Pages cannot see your files or
+  use PhDRacket.
 - **Themes.** PhDRacket Light and Dark, Midnight, Paper, two high-contrast
   themes and two unofficial Waterloo-inspired themes, all checked for
   contrast, with live preview.
@@ -116,7 +123,7 @@ connection.
 
 ## Status
 
-The current version is **0.1.1 Beta**; see the
+The current version is **0.1.2 Beta**; see the
 [release notes](docs/RELEASE_NOTES.md). PhDRacket is in early development and
 in beta: using it requires accepting the [Beta Terms of Use](docs/TERMS.md).
 The current focus is the student workflow (Phase 2 of the

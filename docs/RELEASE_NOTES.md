@@ -1,5 +1,34 @@
 # Release notes
 
+## 0.1.2 Beta
+
+### Explorer
+
+- **File operations**: New File and New Folder (named in place), Rename (F2),
+  Duplicate (Ctrl+D), Cut, Copy and Paste (Ctrl+X, C, V), drag and drop into
+  folders, Copy Path, Copy Relative Path and Reveal in File Explorer.
+- **Delete** moves to the Recycle Bin, after asking. If an open file has
+  unsaved changes, the dialog says so.
+- **Properties**: type, language, location, size, lines, created and
+  modified dates; folders count their files. The selected file's size and
+  lines also show under the tree.
+- **Live updates**: files added, removed or changed by other programs appear
+  at once.
+- **Hidden files**: Settings > Files lets you hide Racket build output,
+  backups, dot files, system files and tool folders, or your own patterns
+  such as `*.log` or `drafts/`. The eye button shows them for a moment.
+- Open tabs follow a renamed or moved file. File operations work only inside
+  the open folder and never overwrite a file.
+
+### Browser tabs
+
+- **View > Open Browser Tab** (Ctrl+Shift+B) opens a web page in a tab, so
+  the assignment page and your code can sit side by side (View > Open
+  Browser Tab to the Side). Address bar, Back, Forward, Reload and Open in
+  your web browser; recent addresses are suggested.
+- Pages cannot see your files or use PhDRacket, and only web pages (http,
+  https) open. Links that open a new window open a new browser tab.
+
 ## 0.1.1 Beta
 
 A new workbench: PhDRacket now works like a full desktop IDE. Programs still
