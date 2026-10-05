@@ -33,6 +33,8 @@ user's computer.
 | serde, serde_json | Apache-2.0 or MIT |
 | sha2 | Apache-2.0 or MIT |
 | thiserror | Apache-2.0 or MIT |
+| notify (folder watching) | CC0-1.0 |
+| trash (Recycle Bin) | MIT |
 | Vite, Vitest | MIT |
 | TypeScript | Apache-2.0 |
 

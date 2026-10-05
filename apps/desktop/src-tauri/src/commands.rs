@@ -11,6 +11,7 @@ use phdracket_core::settings::Settings;
 use phdracket_core::source::{self, OpenedSource, SaveOutcome, SourceSnapshot};
 use phdracket_core::bridge;
 use phdracket_core::workspace::{self, DirEntry};
+use phdracket_core::files;
 use phdracket_core::install::{self, InstallProgress, InstallerInfo};
 use phdracket_core::remote;
 use serde::Serialize;
@@ -42,6 +43,7 @@ pub struct AppState {
     settings: Mutex<Option<Settings>>,
     remote_tasks: Mutex<HashMap<u64, remote::Task>>,
     next_task: Mutex<u64>,
+    watcher: Mutex<Option<files::FolderWatcher>>,
 }
 
 /// The settings file. PHDRACKET_SETTINGS_FILE overrides it (used by the
@@ -436,4 +438,112 @@ pub struct AppInfo {
 #[tauri::command]
 pub fn app_info() -> AppInfo {
     AppInfo { name: "PhDRacket", version: env!("CARGO_PKG_VERSION"), os: std::env::consts::OS }
+}
+
+// --- Explorer file operations (backend/src/files.rs) ------------------------
+// Every command takes the open folder as `root` and refuses paths outside it.
+
+fn file_err(e: files::FileError) -> String {
+    e.to_string()
+}
+
+/// Open documents follow a rename or move: their save snapshots move with them.
+fn rekey_snapshots(state: &AppState, from: &Path, to: &Path) {
+    let mut snaps = state.snapshots.lock().unwrap();
+    let moved: Vec<PathBuf> = snaps.keys().filter(|p| p.starts_with(from)).cloned().collect();
+    for old in moved {
+        if let (Some(snap), Ok(rest)) = (snaps.remove(&old), old.strip_prefix(from)) {
+            let new = if rest.as_os_str().is_empty() { to.to_path_buf() } else { to.join(rest) };
+            snaps.insert(new, snap);
+        }
+    }
+}
+
+#[tauri::command]
+pub fn fs_list(root: String, dir: String) -> Result<Vec<files::Entry>, String> {
+    files::list(Path::new(&root), Path::new(&dir)).map_err(file_err)
+}
+
+#[tauri::command]
+pub fn fs_create_file(root: String, dir: String, name: String) -> Result<PathBuf, String> {
+    files::create_file(Path::new(&root), Path::new(&dir), &name).map_err(file_err)
+}
+
+#[tauri::command]
+pub fn fs_create_dir(root: String, dir: String, name: String) -> Result<PathBuf, String> {
+    files::create_dir(Path::new(&root), Path::new(&dir), &name).map_err(file_err)
+}
+
+#[tauri::command]
+pub fn fs_rename(state: State<AppState>, root: String, path: String, name: String) -> Result<PathBuf, String> {
+    let to = files::rename(Path::new(&root), Path::new(&path), &name).map_err(file_err)?;
+    rekey_snapshots(&state, Path::new(&path), &to);
+    Ok(to)
+}
+
+#[tauri::command]
+pub async fn fs_duplicate(root: String, path: String) -> Result<PathBuf, String> {
+    tauri::async_runtime::spawn_blocking(move || files::duplicate(Path::new(&root), Path::new(&path)).map_err(file_err))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn fs_copy(root: String, src: String, dest: String) -> Result<PathBuf, String> {
+    tauri::async_runtime::spawn_blocking(move || files::copy_into(Path::new(&root), Path::new(&src), Path::new(&dest)).map_err(file_err))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn fs_move(app: AppHandle, root: String, src: String, dest: String) -> Result<PathBuf, String> {
+    let from = PathBuf::from(&src);
+    let to = tauri::async_runtime::spawn_blocking(move || files::move_into(Path::new(&root), Path::new(&src), Path::new(&dest)).map_err(file_err))
+        .await
+        .map_err(|e| e.to_string())??;
+    rekey_snapshots(&app.state::<AppState>(), &from, &to);
+    Ok(to)
+}
+
+#[tauri::command]
+pub async fn fs_trash(root: String, path: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || files::trash(Path::new(&root), Path::new(&path)).map_err(file_err))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub fn fs_properties(root: String, path: String) -> Result<files::Properties, String> {
+    files::properties(Path::new(&root), Path::new(&path)).map_err(file_err)
+}
+
+#[tauri::command]
+pub async fn fs_folder_stats(root: String, dir: String) -> Result<files::FolderStats, String> {
+    tauri::async_runtime::spawn_blocking(move || files::folder_stats(Path::new(&root), Path::new(&dir), 200_000).map_err(file_err))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Shows the file in the system file manager.
+#[tauri::command]
+pub fn fs_reveal(root: String, path: String) -> Result<(), String> {
+    let p = files::properties(Path::new(&root), Path::new(&path)).map_err(file_err)?.path;
+    tauri_plugin_opener::reveal_item_in_dir(p).map_err(|e| e.to_string())
+}
+
+/// Watches the open folder (`None` stops). Changes arrive as
+/// `workspace-changed` events listing the folders whose contents changed.
+#[tauri::command]
+pub fn workspace_watch(app: AppHandle, state: State<AppState>, path: Option<String>) -> Result<(), String> {
+    let mut slot = state.watcher.lock().unwrap();
+    *slot = None;
+    if let Some(p) = path {
+        let emitter = app.clone();
+        let w = files::watch(Path::new(&p), move |dirs| {
+            let _ = emitter.emit("workspace-changed", dirs);
+        })
+        .map_err(file_err)?;
+        *slot = Some(w);
+    }
+    Ok(())
 }
