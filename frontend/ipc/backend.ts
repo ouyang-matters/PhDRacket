@@ -77,6 +77,11 @@ export const backend = {
   run: (path: string | null, text: string) => invoke<RunHandle>("run_program", { path, text }),
   evalInteraction: (text: string) => invoke<RunHandle>("eval_interaction", { text }),
   stop: () => invoke<boolean>("stop_program"),
+  debug: (path: string | null, text: string, breakpoints: number[]) => invoke<RunHandle>("debug_program", { path, text, breakpoints }),
+  debugControl: (action: "continue" | "step-into" | "step-over" | "step-out" | "pause" | "breakpoints", lines: number[] = []) =>
+    invoke<void>("debug_control", { action, lines }),
+  /** Background analysis; the result is a `check-result` event of the returned session. */
+  check: (path: string | null, text: string, exports: boolean) => invoke<RunHandle>("check_program", { path, text, exports }),
   step: (path: string | null, text: string) => invoke<RunHandle>("step_program", { path, text }),
   stopStepper: () => invoke<boolean>("stop_stepper"),
 

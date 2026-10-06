@@ -50,6 +50,8 @@ import { groupOrder } from "./layout";
 import { registerCommands, type Command } from "@frontend/commands/registry";
 import { registerMenuItems, registerMenuProvider, type MenuItem } from "@frontend/commands/menus";
 import { installExplorerCommands } from "@frontend/explorer/commands";
+import { hasAnalysis } from "@frontend/analysis/analysis";
+import { installDebugCommands } from "@frontend/debug/commands";
 import { openBrowserTab } from "@frontend/browser/BrowserView";
 import { runEditorAction, targetEditor } from "./editors";
 import { showCommandPalette, showLanguagePicker, showProfilePicker, showQuickOpen, showThemePicker } from "./pickers";
@@ -239,8 +241,8 @@ export const BUILTIN_COMMANDS: Command[] = [
   editorAction("go.line", "Go to Line/Column…", "editor.action.gotoLine", "Go", "Mod+G"),
   { id: "go.symbol", title: "Go to Symbol…", category: "Go", keybinding: "Mod+T", enabled: hasEditor, run: () => runEditorAction("editor.action.quickOutline") },
   editorAction("go.definition", "Go to Definition", "editor.action.revealDefinition", "Go", "F12"),
+  editorAction("go.references", "Go to References", "editor.action.goToReferences", "Go", "Shift+F12"),
   // Not implemented yet: hidden rather than broken.
-  { id: "go.references", title: "Go to References", category: "Go", visible: () => false, run: () => {} },
   { id: "go.back", title: "Back", category: "Go", visible: () => false, run: () => {} },
   { id: "go.forward", title: "Forward", category: "Go", visible: () => false, run: () => {} },
   editorAction("go.nextProblem", "Next Problem", "editor.action.marker.next", "Go", "F8"),
@@ -530,6 +532,8 @@ function registerLanguageNavigation() {
   });
   monaco.languages.registerDefinitionProvider(RACKET_LANGUAGE_ID, {
     provideDefinition: (model, position) => {
+      // Once the program is checked, frontend/analysis follows Racket's scopes.
+      if (hasAnalysis(model)) return null;
       const word = model.getWordAtPosition(position);
       if (!word) return null;
       const def = topLevelDefinitions(model.getValue()).find((d) => d.name === word.word);
@@ -545,6 +549,8 @@ let installed = false;
 export function installBuiltinCommands() {
   if (installed) return;
   installed = true;
+  // Before the built-in commands: their shared keys (F11) go to the debugger while it is paused.
+  installDebugCommands();
   registerCommands(BUILTIN_COMMANDS);
   installExplorerCommands();
   for (const [menu, items] of Object.entries(BUILTIN_MENUS)) registerMenuItems(menu, items);

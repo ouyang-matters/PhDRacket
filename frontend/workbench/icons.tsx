@@ -4,6 +4,10 @@
 // text color and are sized by design tokens.
 
 import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Pause,
+  Redo2,
   ArrowLeft,
   ArrowRight,
   ExternalLink,
@@ -79,6 +83,10 @@ const ICONS = {
   newFile: FilePlus,
   openFile: FolderOpen,
   folder: Folder,
+  pause: Pause,
+  stepOver: Redo2,
+  stepInto: ArrowDownToLine,
+  stepOut: ArrowUpFromLine,
   back: ArrowLeft,
   forward: ArrowRight,
   external: ExternalLink,

@@ -48,7 +48,61 @@ export type BridgeEvent =
   | { ev: "done"; id: RequestId; ok: boolean }
   | { ev: "step"; id: RequestId; index: number; step: StepData }
   | { ev: "stepper-finished"; id: RequestId; outcome: "finished" | "error" | "limit"; count: number }
+  | { ev: "check-result"; id: RequestId; result: CheckResult }
+  | { ev: "breakpoints"; id: RequestId; lines: number[] }
+  | {
+      ev: "paused";
+      id: RequestId;
+      kind: "before" | "after";
+      /** 0-based character (code point) offset and length of the expression. */
+      position: number;
+      span: number;
+      line: number;
+      /** "after": the value the expression produced. */
+      value: string | null;
+      frames: DebugFrame[];
+    }
+  | { ev: "resumed"; id: RequestId }
   | { ev: "protocol-error"; message: string };
+
+/** A [start, end) range of 0-based character (code point) offsets. */
+export type CpRange = [number, number];
+
+/** Background analysis (backend/racket/private/analysis.rkt), from DrRacket's Check Syntax. */
+export interface CheckResult {
+  diagnostics: CheckDiagnostic[];
+  /** The language module, as Racket writes it (null: no language). */
+  language?: string | null;
+  /** From a binding to one of its uses. */
+  arrows?: { from: CpRange; to: CpRange }[];
+  hovers?: { from: CpRange; text: string }[];
+  /** Bindings with no uses. */
+  unused?: CpRange[];
+  /** Module-level definitions. */
+  definitions?: { from: CpRange; name: string }[];
+  docs?: { from: CpRange; label: string; url: string }[];
+  /** The language's names, when requested. */
+  exports?: { name: string; kind: "value" | "syntax" }[] | null;
+  failure?: string;
+}
+
+export interface CheckDiagnostic {
+  severity: "error" | "warning";
+  message: string;
+  line: number;
+  column: number;
+  /** 0-based code point offset. */
+  position: number;
+  span: number;
+}
+
+export interface DebugFrame {
+  label: string;
+  position: number | null;
+  span: number;
+  line: number | null;
+  bindings: { name: string; value: string }[];
+}
 
 /** One expression as rendered by the stepper. `highlights` are [start, end)
  * character (code point) offsets into `text`. */

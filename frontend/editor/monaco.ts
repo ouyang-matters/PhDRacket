@@ -16,6 +16,9 @@ window.MonacoEnvironment = { getWorker: () => new EditorWorker() };
 
 registerRacketLanguage(monaco);
 
+// Development builds expose Monaco for the end-to-end tests (apps/desktop/e2e).
+if (import.meta.env.DEV) (window as unknown as { __monaco: typeof monaco }).__monaco = monaco;
+
 // Restrained palettes; strings, comments and test forms are the most
 // distinguishable categories because they matter most when reading code.
 monaco.editor.defineTheme("phd-light", {

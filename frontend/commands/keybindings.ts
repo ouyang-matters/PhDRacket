@@ -109,7 +109,7 @@ export function conflicts(mac = IS_MAC): [string, string[]][] {
   const byKey = new Map<string, string[]>();
   for (const c of allCommands()) {
     const k = keybindingFor(c.id, mac);
-    if (!k) continue;
+    if (!k || c.contextual) continue;
     byKey.set(k, [...(byKey.get(k) ?? []), c.id]);
   }
   return [...byKey].filter(([, ids]) => ids.length > 1);

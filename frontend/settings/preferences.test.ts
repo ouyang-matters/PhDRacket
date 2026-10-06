@@ -4,7 +4,9 @@ import { DEFAULT_PREFERENCES, mergePreferences } from "./preferences";
 describe("preferences", () => {
   it("default to the conservative choices", () => {
     expect(DEFAULT_PREFERENCES.autosave).toBe("off");
-    expect(DEFAULT_PREFERENCES.wordCompletion).toBe(false);
+    // Suggestions and checking while typing are on; both can be turned off.
+    expect(DEFAULT_PREFERENCES.suggestions).toBe(true);
+    expect(DEFAULT_PREFERENCES.liveCheck).toBe(true);
     expect(DEFAULT_PREFERENCES.theme).toBe("system");
   });
 

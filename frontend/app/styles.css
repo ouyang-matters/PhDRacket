@@ -1029,3 +1029,25 @@ mark.step-after {
   gap: 0.5rem;
   align-items: center;
 }
+
+/* Problems found while typing (frontend/analysis) */
+.live-problems {
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.live-problems h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.live-problems ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.live-problems li {
+  padding: 0.1rem 0;
+}
+.live-problems li.error .live-problem-message {
+  color: var(--fail);
+}

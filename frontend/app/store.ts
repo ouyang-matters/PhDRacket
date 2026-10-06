@@ -620,7 +620,22 @@ function autosaveOnWindowBlur() {
  * after its first events arrive). */
 const early = new Map<number, EngineEvent[]>();
 
+/** Re-renders views that derive from editor state outside the store (badges). */
+export function bumpRevision() {
+  set((s) => ({ revision: s.revision + 1 }));
+}
+
+const engineListeners = new Set<(e: EngineEvent) => boolean>();
+
+/** Sees every engine event first (background analysis, the debugger). A
+ * listener returning true consumes the event. */
+export function addEngineListener(l: (e: EngineEvent) => boolean): () => void {
+  engineListeners.add(l);
+  return () => engineListeners.delete(l);
+}
+
 function handleEngineEvent(e: EngineEvent) {
+  for (const l of engineListeners) if (l(e)) return;
   if (e.session === state.run.session) return applyEngineEvent(e);
   if (e.session === state.stepper.session) return applyStepperEngineEvent(e);
   const newest = Math.max(state.run.session ?? 0, state.stepper.session ?? 0);
@@ -653,7 +668,9 @@ function applyEngineEvent(e: EngineEvent) {
   }
 }
 
-export async function runActive() {
+/** Runs the active file. With `breakpoints` (1-based lines) it runs under
+ * the debugger (frontend/debug). */
+export async function runActive(breakpoints?: number[]) {
   const doc = activeDoc();
   if (!doc) return;
   if (state.runtime.state !== "ready") {
@@ -662,12 +679,14 @@ export async function runActive() {
   }
   try {
     const runVersion = doc.model.getAlternativeVersionId();
-    const handle = await backend.run(doc.path, doc.model.getValue());
+    const handle = breakpoints
+      ? await backend.debug(doc.path, doc.model.getValue(), breakpoints)
+      : await backend.run(doc.path, doc.model.getValue());
     set((s) => ({
       run: startRun(s.run, { ...handle, docId: doc.id, path: doc.path, runVersion }),
       panel: s.panel === "output" || s.panel === "stepper" ? "interactions" : s.panel,
     }));
-    for (const e of takeEarly(handle.session)) applyEngineEvent(e);
+    for (const e of takeEarly(handle.session)) handleEngineEvent(e);
   } catch (e) {
     notify("error", String(e));
   }

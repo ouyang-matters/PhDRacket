@@ -13,6 +13,8 @@ import { QuickInputHost } from "@frontend/workbench/QuickInput";
 import { ContextMenuHost } from "@frontend/workbench/ContextMenu";
 import { installBuiltinCommands } from "@frontend/workbench/builtin-commands";
 import { installBuiltinViews } from "@frontend/workbench/builtin-views";
+import { installAnalysis } from "@frontend/analysis/analysis";
+import { installDebugger } from "@frontend/debug/debugger";
 import { Icon } from "@frontend/workbench/icons";
 import { Dialogs } from "./Dialogs";
 import { checkForUpdates, updateState, useUpdate } from "./updates";
@@ -20,6 +22,8 @@ import { confirmQuit, dismissNotice, getState, initialize, loadAnnouncements, se
 
 installBuiltinCommands();
 installBuiltinViews();
+installAnalysis();
+installDebugger();
 
 // Menus and toolbars show enablement from application state.
 subscribe(commandsChanged);

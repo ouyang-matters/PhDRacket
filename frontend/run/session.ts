@@ -231,6 +231,10 @@ export function applyBridgeEvent(s: RunState, ev: BridgeEvent): RunState {
       return append(s, { kind: "error", text: `PhDRacket bridge: ${ev.message}` });
     case "step":
     case "stepper-finished":
+    case "check-result":
+    case "breakpoints":
+    case "paused":
+    case "resumed":
       return s;
   }
 }

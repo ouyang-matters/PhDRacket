@@ -37,6 +37,9 @@ export interface Command {
   /** The key is handled natively (by the editor or the operating system);
    * the binding is only displayed. */
   nativeKey?: boolean;
+  /** Enabled only in a mode (e.g. the debugger paused), so its key may be
+   * shared with another command; not reported as a conflict. */
+  contextual?: boolean;
   /** Listed in the command palette (default true). */
   palette?: boolean;
 }

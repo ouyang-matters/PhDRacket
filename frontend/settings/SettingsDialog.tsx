@@ -162,7 +162,8 @@ function Editor() {
       <Section title="Typing">
         <Check pref="autoClosingBrackets" label="Close brackets automatically" hint="Typing ( [ or { inserts the closing bracket." />
         <Check pref="autoClosingQuotes" label="Close quotes automatically" hint={'Typing " inserts the closing quote.'} />
-        <Check pref="wordCompletion" label="Suggest words while typing" hint="Offers names already used in the file. It does not know what is defined or allowed in your language." />
+        <Check pref="suggestions" label="Suggestions while typing" hint="Names your language provides and names defined in your program. Ctrl+Space shows them at any time." />
+        <Check pref="liveCheck" label="Check while typing" hint="Racket expands your program in the background (it is not run) and marks errors, unused names and where each name is bound." />
       </Section>
       <Section title="Display">
         <Check pref="rainbowBrackets" label="Rainbow parentheses" />

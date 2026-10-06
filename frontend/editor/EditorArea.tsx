@@ -224,6 +224,7 @@ function GroupToolbar({ groupId }: { groupId: string }) {
         <>
           {running && <ToolButton command="run.stop" icon="stop" label="Stop" className="stop" />}
           <ToolButton command="run.stepper" icon="stepper" label="Step" />
+          <ToolButton command="debug.start" icon="bug" label="Debug" />
           <ToolButton command="run.run" icon="run" label="Run" className="run" />
         </>
       )}
@@ -340,8 +341,9 @@ function EditorGroupView({ groupId }: { groupId: string }) {
       autoClosingBrackets: prefs.autoClosingBrackets ? "languageDefined" : "never",
       autoClosingQuotes: prefs.autoClosingQuotes ? "languageDefined" : "never",
       // Word completion is lexical: words already in the file, nothing more.
-      quickSuggestions: prefs.wordCompletion ? { other: true, comments: false, strings: false } : false,
-      wordBasedSuggestions: prefs.wordCompletion ? "currentDocument" : "off",
+      // Suggestions come from the language and the program (frontend/analysis).
+      quickSuggestions: prefs.suggestions ? { other: true, comments: false, strings: false } : false,
+      wordBasedSuggestions: "off",
       cursorBlinking: prefs.reducedMotion ? "solid" : "blink",
       smoothScrolling: !prefs.reducedMotion,
     });

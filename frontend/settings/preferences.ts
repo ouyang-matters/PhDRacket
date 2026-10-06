@@ -34,7 +34,10 @@ export interface Preferences {
   autoClosingBrackets: boolean;
   autoClosingQuotes: boolean;
   /** Suggest words from the current file while typing (lexical only). */
-  wordCompletion: boolean;
+  /** Suggest names while typing: the language's and the program's own (Ctrl+Space always works). */
+  suggestions: boolean;
+  /** Check the program in the background while typing (errors, scopes). */
+  liveCheck: boolean;
   minimap: boolean;
   autosave: AutosaveMode;
   /** Milliseconds of inactivity before "afterDelay" saves. */
@@ -86,7 +89,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   rainbowBrackets: false,
   autoClosingBrackets: true,
   autoClosingQuotes: true,
-  wordCompletion: false,
+  suggestions: true,
+  liveCheck: true,
   minimap: false,
   autosave: "off",
   autosaveDelay: 1500,

@@ -1,7 +1,8 @@
 // Registers PhDRacket's built-in sidebar views and bottom panels with the
 // view frameworks. Optional features register theirs the same way.
 
-import { getState } from "@frontend/app/store";
+import { liveProblems } from "@frontend/analysis/analysis";
+import { activeDoc, getState } from "@frontend/app/store";
 import { Explorer } from "@frontend/explorer/Explorer";
 import { SearchView } from "@frontend/search/SearchView";
 import { InteractionsPanel } from "@frontend/interactions/InteractionsPanel";
@@ -26,7 +27,12 @@ export function installBuiltinViews() {
     icon: "problems",
     order: 10,
     render: () => <ProblemsPanel />,
-    badge: () => ({ count: getState().run.diagnostics.filter((d) => d.category !== "test").length }),
+    // Problems of the last Run, and errors found while typing in the active file.
+    badge: () => ({
+      count:
+        getState().run.diagnostics.filter((d) => d.category !== "test").length +
+        (getState().prefs.liveCheck ? liveProblems(activeDoc()?.model).diagnostics.filter((d) => d.severity === "error").length : 0),
+    }),
   });
   registerPanelView({
     id: "tests",
