@@ -326,14 +326,17 @@ function EditorGroupView({ groupId }: { groupId: string }) {
     if (isActive) setActiveGroupId(groupId);
   }, [isActive, groupId]);
 
-  // The expression the current Stepper step is about.
+  // The expression the current Stepper step is about. Revealed only when the
+  // viewed step changes: steps keep arriving while the stepper runs, and
+  // revealing on each one pulled the editor back while scrolling.
+  const step = stepper.steps[stepper.index];
+  const stepDocId = stepper.docId;
   useEffect(() => {
-    const step = stepper.steps[stepper.index];
     const target =
-      panel === "stepper" && step && step.kind !== "error" && stepper.docId === docId ? stepSourceRange(step.beforeSource) : null;
+      panel === "stepper" && step && step.kind !== "error" && stepDocId === docId ? stepSourceRange(step.beforeSource) : null;
     stepDecorations.current?.set(target ? [{ range: target.range, options: { className: "phd-step-source" } }] : []);
     if (target) editorRef.current?.revealRangeInCenterIfOutsideViewport(target.range);
-  }, [stepper, panel, docId]);
+  }, [step, stepDocId, panel, docId]);
 
   useEffect(() => {
     setRainbowBrackets(prefs.rainbowBrackets);

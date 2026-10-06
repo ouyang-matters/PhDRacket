@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@frontend/workbench/icons";
+import { useStickToBottom } from "@frontend/workbench/stick-to-bottom";
 import { cancelTask, clearFinishedTasks, runRemotely, useCompute, type RemoteTask } from "./compute";
 
 function elapsed(t: RemoteTask, now: number): string {
@@ -26,10 +27,7 @@ export function TasksPanel() {
     return () => window.clearInterval(timer);
   }, [running]);
 
-  useEffect(() => {
-    const el = out.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [task?.output.length]);
+  const stick = useStickToBottom(out, `${task?.id}:${task?.output.length}`);
 
   if (tasks.length === 0) {
     return (
@@ -44,7 +42,13 @@ export function TasksPanel() {
       <ul className="task-list" aria-label="Remote tasks">
         {tasks.map((t) => (
           <li key={t.id}>
-            <button className={`task-row${task?.id === t.id ? " selected" : ""}`} onClick={() => setSelected(t.id)}>
+            <button
+              className={`task-row${task?.id === t.id ? " selected" : ""}`}
+              onClick={() => {
+                if (t.id !== task?.id) stick.follow();
+                setSelected(t.id);
+              }}
+            >
               <span className={`task-status ${t.status}`}>
                 <Icon name={t.status === "running" ? "dot" : t.status === "complete" ? "pass" : "fail"} size={14} />
               </span>
@@ -75,7 +79,7 @@ export function TasksPanel() {
               </button>
             )}
           </div>
-          <pre ref={out} className="task-log">
+          <pre ref={out} {...stick.props} className="task-log">
             {task.output.map((o, i) => (
               <span key={i} className={`task-${o.stream}`}>
                 {o.text}

@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { monaco } from "@frontend/editor/monaco";
 import { RACKET_LANGUAGE_ID } from "@frontend/editor/racket-language";
 import { isCompleteEntry } from "@frontend/editor/sexp";
 import { clearInteractions, evalInteraction, getState, runActive, useApp } from "@frontend/app/store";
 import { DiagnosticView } from "@frontend/problems/DiagnosticView";
 import type { Entry } from "@frontend/run/session";
+import { useStickToBottom } from "@frontend/workbench/stick-to-bottom";
 
 const HISTORY_LIMIT = 500;
 
@@ -81,10 +82,7 @@ export function InteractionsPanel() {
   const [filter, setFilter] = useState("");
   const [showHistory, setShowHistory] = useState(false);
 
-  useLayoutEffect(() => {
-    const el = scroller.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [transcript]);
+  const stick = useStickToBottom(scroller, transcript);
 
   useEffect(() => {
     const model = monaco.editor.createModel("", RACKET_LANGUAGE_ID, monaco.Uri.parse("phdracket:/interactions"));
@@ -122,6 +120,7 @@ export function InteractionsPanel() {
     const submit = async () => {
       const text = model.getValue();
       if (!text.trim()) return;
+      stick.follow();
       if (await evalInteraction(text)) {
         const h = history.current;
         if (h[h.length - 1] !== text) h.push(text);
@@ -191,7 +190,7 @@ export function InteractionsPanel() {
   return (
     <div className="interactions" data-key-context="interactions" style={{ fontFamily: prefs.fontFamily, fontSize: prefs.fontSize }}>
       <RunBanner />
-      <div className="transcript" ref={scroller} role="log" aria-live="polite" aria-label="Interactions transcript">
+      <div className="transcript" ref={scroller} {...stick.props} role="log" aria-live="polite" aria-label="Interactions transcript">
         {transcript.map((e) => (
           <TranscriptEntry key={e.id} entry={e} />
         ))}
