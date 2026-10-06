@@ -166,7 +166,12 @@ try {
 
   await at(3, 13); // the parameter x
   await evaluate(`${ED}.trigger("e2e", "editor.action.rename", {})`);
-  await waitFor(`document.activeElement === document.querySelector(".rename-box input") && document.activeElement.value === "x"`, "the rename box with focus");
+  try {
+    await waitFor(`document.activeElement === document.querySelector(".rename-box input") && document.activeElement.value === "x"`, "the rename box with focus");
+  } catch (e) {
+    console.log("DEBUG", JSON.stringify(await evaluate(`({ box: !!document.querySelector(".rename-box"), value: document.querySelector(".rename-box input")?.value, active: document.activeElement?.className, pos: ${ED}.getPosition(), notices: ${S}.getState().notices.map((n) => n.text), msg: document.querySelector(".monaco-editor-overlaymessage")?.textContent })`)));
+    throw e;
+  }
   await evaluate(`(() => { const i = document.querySelector(".rename-box input"); i.select(); })()`);
   await type("n");
   await key("Enter");
@@ -198,6 +203,9 @@ try {
   // --- Debugger --------------------------------------------------------------
   await at(4, 3);
   await key("F9");
+  // A covered window may not repaint by itself: ask the editor to render before looking at the DOM.
+  const paint = () => evaluate(`${ED}.render(true)`);
+  await paint();
   check(JSON.stringify(await evaluate(`[...document.querySelectorAll(".phd-breakpoint")].length`)) !== "0", "F9 sets a breakpoint (red dot in the margin)");
   await key("F6");
   await waitFor(`document.querySelector(".debug-panel .debug-vars")`, "the program to pause at the breakpoint", 60000);
@@ -205,12 +213,14 @@ try {
   check(/x\s+3/.test(vars), `paused inside sq with x = 3 (${vars.replace(/\s+/g, " ")})`);
   const status = await evaluate(`document.querySelector(".debug-status").innerText`);
   check(/Paused before .*on line 4/.test(status), `the Debug panel says where (${status})`);
+  await paint();
   check(await evaluate(`!!document.querySelector(".phd-paused-expr")`), "the paused expression is highlighted");
   await screenshot("semantic-03-paused");
   await key("F10");
   await waitFor(`/Paused after/.test(document.querySelector(".debug-status")?.innerText ?? "")`, "Step Over to show the value", 20000);
   const after = await evaluate(`document.querySelector(".debug-status").innerText`);
   check(/⇒\s*9/.test(after), `Step Over shows the value: ${after}`);
+  await paint();
   check((await evaluate(`document.querySelector(".phd-paused-value")?.textContent ?? ""`)).includes("9"), "the value also appears in the editor");
   await screenshot("semantic-04-after");
   // Remove the breakpoint and continue to the end.
