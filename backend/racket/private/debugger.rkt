@@ -54,6 +54,12 @@
         (let ([mid (quotient (+ lo hi 1) 2)])
           (if (<= (vector-ref starts mid) pos) (loop mid hi) (loop lo (sub1 mid)))))))
 
+;; Sources compare as complete, simplified paths (a program read under a
+;; relative path is still the same program).
+(define (same-source? a b)
+  (define (norm s) (if (path? s) (simplify-path (path->complete-path s)) s))
+  (equal? (norm a) (norm b)))
+
 (define (start-debugging! emit id source src lines)
   (set! current-session
         (session emit id source (line-starts-of src)
@@ -145,7 +151,7 @@
 
 (define (break? source)
   (define s current-session)
-  (if (and s (equal? source (session-source s)))
+  (if (and s (same-source? source (session-source s)))
       (λ (pos)
         (set-session-last-pos! s pos)
         (or (not (eq? (session-mode s) 'run))
@@ -179,7 +185,7 @@
       (set! current-session (struct-copy session s [source (syntax-source form)]))
       (set! s current-session))
     (cond
-      [(and s (syntax? form) (equal? (syntax-source form) (session-source s)))
+      [(and s (syntax? form) (same-source? (syntax-source form) (session-source s)))
        (define expanded (expand-syntax form))
        (define-values (annotated posns)
          (annotate-for-single-stepping expanded break? break-before break-after

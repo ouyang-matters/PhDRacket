@@ -322,8 +322,10 @@
     (define-values (proc out in err) (subprocess #f #f #f racket-exe (path->string bridge)))
     (file-stream-buffer-mode out 'none)
     (define (send! h) (write-json h in) (newline in) (flush-output in))
+    ;; Fails (instead of waiting forever) when the event does not come.
     (define (await pred)
       (let loop ()
+        (unless (sync/timeout 60 out) (error 'bridge "no event within 60 s"))
         (define line (read-line out 'linefeed))
         (when (eof-object? line) (error 'bridge "exited: ~a" (port->string err)))
         (define ev (string->jsexpr line))
