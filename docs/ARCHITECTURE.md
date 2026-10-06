@@ -171,6 +171,7 @@ The Rust crate in `backend/src/`:
 | `bridge.rs` | Installing and compiling the bridge. |
 | `engine.rs` | The Run, Interactions and Stepper processes. |
 | `workspace.rs` | Recursive listing for Go to File, and Find in Files (read-only). |
+| `git.rs` | Source control through the user's `git`: status, file versions, stage, unstage, discard, commit, log, branches, Fetch/Pull (fast-forward only)/Push. Fixed arguments, no shell, no prompts; paths must be inside the repository. |
 | `files.rs` | The Explorer's file operations: listing, create, rename, copy, move, delete to the Recycle Bin, properties, and watching the open folder. Every operation is confined to the open folder and never overwrites. |
 | `remote.rs` | Running a program on an SSH host for remote compute, through the system `ssh` client in batch mode. |
 | `protocol.rs` | Typed messages. |
@@ -203,6 +204,8 @@ signature and installs it only after the user confirms.
 | `explorer/` | Folder tree, file operations, hidden-file patterns, Properties |
 | `analysis/` | Checking while typing: markers, scopes, hovers, Go to Definition, References, Rename, suggestions |
 | `debug/` | Breakpoints, debug commands and the Debug panel |
+| `outline/` | The Outline: a lexical reading of the file's structure |
+| `git/` | Source Control view, diff tabs, margin markers, Git colors in the Explorer |
 | `browser/` | Browser tabs: address bar and placement of the native page |
 | `interactions/` | Interactions panel |
 | `run/` | Pure reducer from bridge events to Run and Interactions state |

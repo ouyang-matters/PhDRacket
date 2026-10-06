@@ -20,6 +20,29 @@
   (Ctrl+Space still works). The old word-based suggestion setting is
   replaced.
 
+### Outline
+
+- **View > Outline** shows the file's structure as you type: definitions
+  with their HtDP signatures, structures and fields, local definitions,
+  tests with ✓/✗ from the last Run, requires and section comments
+  (`;;; Question 1`). Click to go there; the item at the cursor is marked.
+
+### Source control
+
+- **View > Source Control** (Ctrl+Shift+G) with your own Git: commit,
+  stage, discard, branches, history, Fetch, Pull and Push.
+- **Diff tabs** compare a file with its last commit, live and editable.
+- Changed lines are marked in the margin, changed files colored in the
+  Explorer, and the branch is in the status bar.
+
+### Settings
+
+- Settings > Editor > Highlighting: switches for the name under the cursor,
+  the current line, matching brackets, bracket guides, unused names, error
+  messages at the end of the line, hovers, keeping the current definition's
+  header visible, and values while debugging. Settings > Files > Source
+  control turns Git, the margin markers and Explorer colors on or off.
+
 ### Debugger
 
 - **Breakpoints** in the margin (click, or F9).

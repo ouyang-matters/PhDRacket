@@ -125,6 +125,40 @@ Recycle Bin (Trash):
   moment. Hiding applies to the Explorer only; Quick Open and Find in Files
   are unchanged.
 
+## Outline
+
+The Outline (View > Outline, in the sidebar) shows the structure of the
+active file as you type: definitions with their parameters or HtDP signature
+(`;; sq : Number -> Number`), structures and their fields, local
+definitions, tests (with ✓/✗ from the last Run of this version of the file),
+`require` and `provide`, and section comments (`;;; Question 1`,
+`;; === Part 2 ===`). Clicking an item goes there; the item at the cursor is
+marked; items with an error found while typing get a red dot. The header
+filters, sorts by name, hides tests and collapses everything
+(`frontend/outline/`).
+
+## Source control
+
+Source Control (View > Source Control, Ctrl+Shift+G) uses the user's own
+`git` (`backend/src/git.rs`; nothing is installed). For the repository that
+contains the open folder it shows:
+
+- the branch (click to switch; New branch…), ahead/behind its upstream, and
+  Fetch, Pull (fast-forward only) and Push;
+- a commit box (Ctrl+Enter); with nothing staged, Commit commits every
+  change;
+- Staged Changes and Changes, with Stage, Unstage and Discard per file or
+  for all (Discard asks first; untracked files go to the Recycle Bin);
+- History: recent commits, their files, and each file's diff.
+
+Clicking a change opens a **diff tab**: the last commit on the left, the
+file itself (live and editable) on the right, with Previous/Next change and
+an Inline view. Open diffs follow new commits. In the editor's margin,
+added (green), changed (blue) and deleted (red) lines since the last commit
+are marked; changed files are colored in the Explorer, and the status bar
+shows the branch (`*` when there are changes). Nothing rewrites history: no
+reset, rebase or force push. Settings > Files turns each part off.
+
 ## Checking while typing
 
 While you type, Racket expands the program in the background with DrRacket's
@@ -147,7 +181,12 @@ The program is not run.
   Editor > Suggestions while typing turns automatic suggestions off;
   Ctrl+Space always shows them.
 
-Settings > Editor > Check while typing turns checking off. Expansion runs
+Settings > Editor > Check while typing turns checking off. Settings > Editor
+> Highlighting has a switch for each kind of highlighting: the name under
+the cursor, the current line, matching brackets, bracket guides, faded
+unused names, error messages at the end of the line, hovers, keeping the
+current definition's header visible while scrolling, and values next to the
+code while debugging. Expansion runs
 macros at compile time, as DrRacket does; a check is stopped after ten
 seconds.
 

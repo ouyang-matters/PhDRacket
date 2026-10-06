@@ -13,6 +13,7 @@ involved, they run against the installed official Racket.
 | `pnpm typecheck` | TypeScript types |
 | `node apps/desktop/e2e/smoke.mjs` | The desktop application end to end (Windows) |
 | `node apps/desktop/e2e/screenshots.mjs` | Retakes the screenshots of [Introducing PhDRacket](introducing-phdracket.md) from the real app (Windows) |
+| `node apps/desktop/e2e/workspace.mjs` | The Outline (structure, navigation, live updates, test results), source control in a temporary repository (margin markers, Explorer colors, branch, diff, stage, commit, history) and the highlighting settings (Windows; needs git) |
 | `node apps/desktop/e2e/semantic.mjs` | Checking while typing (errors, unused names, Go to Definition, Rename, suggestions) and the debugger (breakpoint, variables, Step Over with its value, Pause, Stop) end to end (Windows) |
 | `node apps/desktop/e2e/explorer.mjs` | The Explorer end to end: hidden files, live updates from outside the app, new file, rename, duplicate, cut and paste, context menu, Properties, delete (to a test folder), refusal outside the folder; browser tabs (loading, no access to PhDRacket, hiding under the palette, new windows as tabs, closing) (Windows) |
 | `node apps/desktop/e2e/workbench.mjs` | The workbench end to end with trusted input: menus, palette, Go to File, splits sharing one model, layouts, tab context menu, panel, every theme, Keyboard Shortcuts (Windows) |

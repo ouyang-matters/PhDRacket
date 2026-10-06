@@ -88,6 +88,10 @@ click. The check can be turned off in Settings.
   its binding and uses, and Go to Definition, References and Rename follow
   Racket's scopes. Suggestions offer your definitions and the language's
   names (both can be turned off).
+- **Outline.** The structure of the file as you type: definitions with their
+  signatures, structures, tests with their last result, sections.
+- **Source control.** Commit, compare (diff tabs), stage, branches, history,
+  Pull and Push with your own Git; changed lines marked in the margin.
 - **Debugger.** Breakpoints in the margin, Debug (F6), Step Over, Into and
   Out, Pause, and the values of local variables, using DrRacket's own
   debugger instrumentation.
