@@ -54,6 +54,18 @@
 - Works in the teaching languages and in `#lang racket`, using DrRacket's
   debugger instrumentation, so programs mean exactly what they mean in Run.
 
+### Other changes
+
+- The startup screen shows that this is a Beta.
+- Go to References (Shift+F12) works.
+
+### Updating
+
+Copies of 0.1.2 and earlier show an *Update 0.1.3* button in the status bar a
+few seconds after startup; click it, or use About > Check for updates. You
+can also use the Quick install command or the installer from the release
+page.
+
 ## 0.1.2 Beta
 
 ### Explorer
