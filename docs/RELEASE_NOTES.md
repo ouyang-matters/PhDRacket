@@ -1,5 +1,36 @@
 # Release notes
 
+## 0.1.3 Beta
+
+### Checking while typing
+
+- Racket checks your program as you type, with DrRacket's own Check Syntax.
+  Nothing is run.
+- **Errors** are underlined with the same messages Run shows, including the
+  teaching languages' wording ("sq: expects only 1 argument, but found 2"),
+  and listed in Problems.
+- **Unused local names** are faded.
+- **Scopes**: the name under the cursor highlights its binding and all its
+  uses. **Go to Definition** (F12), **Go to References** (Shift+F12) and
+  **Rename** (F2) follow Racket's bindings.
+- **Hover** a name to see where it comes from, how often it is used, and a
+  link to its documentation (opens in a browser tab beside the code).
+- **Suggestions while typing**: your own definitions, local names, then the
+  language's names. On by default; Settings > Editor turns them off
+  (Ctrl+Space still works). The old word-based suggestion setting is
+  replaced.
+
+### Debugger
+
+- **Breakpoints** in the margin (click, or F9).
+- **Debug** (F6) stops at breakpoints; **Step Over** (F10) shows each value,
+  **Step Into** (F11), **Step Out** (Shift+F11), **Continue** (F5), **Pause**
+  (F6) a running program, **Stop** (Shift+F5).
+- The **Debug** panel shows local variables, the call stack and all
+  breakpoints; hovering a name while paused shows its value.
+- Works in the teaching languages and in `#lang racket`, using DrRacket's
+  debugger instrumentation, so programs mean exactly what they mean in Run.
+
 ## 0.1.2 Beta
 
 ### Explorer

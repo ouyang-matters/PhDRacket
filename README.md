@@ -82,6 +82,15 @@ click. The check can be turned off in Settings.
   editor.
 - **Diagnostics.** Racket's own error messages with their source location. The
   original message is always available.
+- **Checking while typing.** Racket checks the program as you type, with
+  DrRacket's Check Syntax (it is not run): errors are underlined with the
+  same messages Run shows, unused names are faded, the cursor's name shows
+  its binding and uses, and Go to Definition, References and Rename follow
+  Racket's scopes. Suggestions offer your definitions and the language's
+  names (both can be turned off).
+- **Debugger.** Breakpoints in the margin, Debug (F6), Step Over, Into and
+  Out, Pause, and the values of local variables, using DrRacket's own
+  debugger instrumentation.
 - **Workbench.** Menus, a command palette (Ctrl+Shift+P), Go to File
   (Ctrl+P), configurable keyboard shortcuts, and editor groups that split
   right and down, with the same file shown in several groups as one buffer.

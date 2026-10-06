@@ -80,6 +80,7 @@ own files are compiled; all libraries are loaded from the installation.
 | Run | One per Run. The next Run or Stop ends it. |
 | Stepper | One per Stepper session, independent of Interactions. |
 | Spare | One process started in advance with the teaching-language libraries loaded, so Run does not wait for them (about 1.5 seconds with Racket 9.3 CS). |
+| Analysis | One long-lived process that checks the edited program while typing (Check Syntax). It expands programs but never runs them; it is replaced after 200 checks. Debug runs in the Run process. |
 
 On Windows, processes start without a console window.
 

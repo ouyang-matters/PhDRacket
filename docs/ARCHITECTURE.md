@@ -89,16 +89,49 @@ namespace.
 
 A file with neither is refused with DrRacket's module-language message.
 
+### Checking while typing
+
+A separate, long-lived bridge process checks the program being edited
+(`backend/racket/private/analysis.rkt`). It reads the program as Run does
+(teaching files with DrRacket metadata become a module in their teaching
+language) and passes it to DrRacket's Check Syntax (`drracket/check-syntax`),
+which expands it without running it. The result gives the errors (with the
+teaching languages' rewritten messages), the arrows from each binding to its
+uses, unused bindings, hover texts, documentation links and module-level
+definitions; with the language's exported names, this drives markers, scope
+highlighting, Go to Definition, Find References, Rename and suggestions in
+the editor (`frontend/analysis/`). Each check runs in a fresh namespace
+(language modules are attached from a cache) under a custodian with a ten
+second and 1 GB limit. The process is replaced after 200 checks.
+
+### Debugging
+
+Debug is a Run whose program is annotated by DrRacket's debugger annotator
+(`gui-debugger/annotator`, through `backend/racket/private/debugger.rkt`):
+`current-eval` expands each form of the program's own source and instruments
+it so every expression may pause before it is evaluated and after it
+produces its value, with the stack and local variables available from
+continuation marks. The program's meaning does not change. Breakpoints are
+lines; each resolves to the first expression that starts on the line. While
+the program runs or is paused, `debug-control` commands arrive on the
+bridge's input thread. Breakpoints stay active for Interactions after the
+program finishes.
+
 ### Bridge protocol
 
 Each message is one JSON object on one line.
 
-Commands from the backend to the bridge:
+Commands from the backend to the bridge (read on their own thread, so that
+`debug-control`, with action `continue`, `step-into`, `step-over`,
+`step-out`, `pause` or `breakpoints`, reaches a running or paused program):
 
 ```
 {"op":"run","id":N,"path":P|null,"source":S}
 {"op":"eval","id":N,"text":S}
 {"op":"step","id":N,"path":P|null,"source":S}
+{"op":"debug","id":N,"path":P|null,"source":S,"breakpoints":[line, ...]}
+{"op":"debug-control","action":A,"lines":[line, ...]}
+{"op":"check","id":N,"path":P|null,"source":S,"exports":B}
 {"op":"shutdown"}
 ```
 
@@ -114,6 +147,10 @@ Events from the bridge to the backend:
 | `tests` | `id`, `total`, `failed`, `signatureViolations`, `failures`, `report` | Results from the HtDP test engine, including its own report text. |
 | `step` | `id`, `index`, `step` | One rendered step from the official Stepper. See [Stepper](STEPPER.md). |
 | `stepper-finished` | `id`, `outcome`, `count` | The outcome is `finished`, `error` or `limit`. |
+| `check-result` | `id`, `result` | Diagnostics, arrows, hovers, unused bindings, definitions, documentation links and (if asked) the language's names. Positions are 0-based character offsets. |
+| `breakpoints` | `id`, `lines` | The breakpoint lines that have an expression to stop at. |
+| `paused` | `id`, `kind`, `position`, `span`, `line`, `value`, `frames` | Debugging stopped before (`kind` `before`) or after (`after`, with `value`) an expression. Each frame has its expression's location and its local variables, printed by the language's printer. |
+| `resumed` | `id` | The paused program continues. |
 | `done` | `id`, `ok` | The request is complete. |
 | `protocol-error` | `message` | The bridge received a malformed command. |
 
@@ -164,6 +201,8 @@ signature and installs it only after the user confirms.
 | `ipc/` | The only module that calls the backend |
 | `editor/` | Monaco setup (bundled locally, without Monaco's language services), Racket tokenizer, conversion of Racket source locations to editor ranges |
 | `explorer/` | Folder tree, file operations, hidden-file patterns, Properties |
+| `analysis/` | Checking while typing: markers, scopes, hovers, Go to Definition, References, Rename, suggestions |
+| `debug/` | Breakpoints, debug commands and the Debug panel |
 | `browser/` | Browser tabs: address bar and placement of the native page |
 | `interactions/` | Interactions panel |
 | `run/` | Pure reducer from bridge events to Run and Interactions state |

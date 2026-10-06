@@ -125,6 +125,50 @@ Recycle Bin (Trash):
   moment. Hiding applies to the Explorer only; Quick Open and Find in Files
   are unchanged.
 
+## Checking while typing
+
+While you type, Racket expands the program in the background with DrRacket's
+own Check Syntax (`frontend/analysis/`, `backend/racket/private/analysis.rkt`).
+The program is not run.
+
+- **Errors** are underlined as you type, with the same messages Run shows
+  (the teaching languages' wording), and listed at the top of Problems.
+- **Unused local names** are shown faded.
+- **Scopes**: placing the cursor on a name highlights where it is bound and
+  every use of that binding; a local `x` and a top-level `x` are different.
+- **Hover** a name: where it comes from ("imported from
+  lang/htdp-beginner"), how many uses it has, and a link to its
+  documentation, which opens in a browser tab beside the code.
+- **Go to Definition** (F12), **Go to References** (Shift+F12) and
+  **Rename** (F2) follow Racket's bindings, so renaming a parameter changes
+  only that parameter.
+- **Suggestions** while typing: the program's own definitions, local names in
+  the same definition, then the names the language provides. Settings >
+  Editor > Suggestions while typing turns automatic suggestions off;
+  Ctrl+Space always shows them.
+
+Settings > Editor > Check while typing turns checking off. Expansion runs
+macros at compile time, as DrRacket does; a check is stopped after ten
+seconds.
+
+## Debugging
+
+- **Breakpoints**: click in the margin left of the line numbers, or press F9
+  on a line. A hollow marker means the line has no expression to stop at.
+- **Debug** (F6, Run > Start Debugging, or the Debug button) runs the
+  program and stops before evaluating an expression on a breakpoint line.
+- While paused: **Continue** (F5), **Step Over** (F10, shows the value the
+  expression produced), **Step Into** (F11), **Step Out** (Shift+F11),
+  **Stop** (Shift+F5). **Pause** (F6) stops a running program wherever it is.
+- The paused expression is highlighted, with its value after a step. The
+  **Debug** panel shows the local variables of the selected frame, the call
+  stack and every breakpoint; hovering a name shows its value.
+- Breakpoints move with the code as it is edited and can be changed while
+  debugging. After the program finishes, they still apply to Interactions.
+
+F5 runs the program unless the debugger is paused, and F11 is Full Screen
+unless the debugger is paused.
+
 ## Browser tabs
 
 View > Open Browser Tab (Ctrl+Shift+B) opens a web page as an editor tab, so
