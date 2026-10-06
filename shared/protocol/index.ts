@@ -221,6 +221,49 @@ export interface DirEntry {
   isDir: boolean;
 }
 
+/** Source control (backend/src/git.rs). Status letters: "." unchanged,
+ * "M" modified, "A" added, "D" deleted, "R" renamed, "C" copied, "U"
+ * conflict, "?" untracked. */
+export interface GitFileChange {
+  path: string;
+  abs: string;
+  from: string | null;
+  index: string;
+  worktree: string;
+}
+
+export interface GitStatus {
+  root: string;
+  branch: string | null;
+  head: string | null;
+  upstream: string | null;
+  ahead: number;
+  behind: number;
+  files: GitFileChange[];
+}
+
+export interface GitCommit {
+  sha: string;
+  short: string;
+  author: string;
+  time: number;
+  subject: string;
+  refs: string;
+}
+
+export interface GitCommitFile {
+  status: string;
+  path: string;
+  abs: string;
+}
+
+export interface GitBranch {
+  name: string;
+  current: boolean;
+  remote: boolean;
+  upstream: string | null;
+}
+
 /** One Explorer entry (backend/src/files.rs). Times are ms since the epoch. */
 export interface FileEntry {
   name: string;

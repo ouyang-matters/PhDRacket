@@ -38,6 +38,34 @@ export interface Preferences {
   suggestions: boolean;
   /** Check the program in the background while typing (errors, scopes). */
   liveCheck: boolean;
+  // Highlighting (Settings > Editor)
+  /** The binding and uses of the name under the cursor. */
+  highlightOccurrences: boolean;
+  highlightCurrentLine: boolean;
+  highlightMatchingBrackets: boolean;
+  /** Lines showing which brackets belong together. */
+  bracketGuides: boolean;
+  /** Fade local names that are never used. */
+  fadeUnused: boolean;
+  /** Show error messages at the end of their line. */
+  inlineErrors: boolean;
+  /** Information when hovering a name. */
+  hovers: boolean;
+  /** Keep the enclosing definition's first line at the top while scrolling. */
+  stickyDefinitions: boolean;
+  /** The debugger shows values next to the code. */
+  debugInlineValues: boolean;
+  // Outline
+  outlineFollowCursor: boolean;
+  outlineShowTests: boolean;
+  /** HtDP signatures (";; f : Number -> Number") next to definitions. */
+  outlineShowSignatures: boolean;
+  // Source control (Settings > Files)
+  git: boolean;
+  /** Added, changed and deleted lines in the editor's margin. */
+  gitGutter: boolean;
+  /** Changed files colored in the Explorer. */
+  gitExplorer: boolean;
   minimap: boolean;
   autosave: AutosaveMode;
   /** Milliseconds of inactivity before "afterDelay" saves. */
@@ -91,6 +119,21 @@ export const DEFAULT_PREFERENCES: Preferences = {
   autoClosingQuotes: true,
   suggestions: true,
   liveCheck: true,
+  highlightOccurrences: true,
+  highlightCurrentLine: true,
+  highlightMatchingBrackets: true,
+  bracketGuides: true,
+  fadeUnused: true,
+  inlineErrors: false,
+  hovers: true,
+  stickyDefinitions: false,
+  debugInlineValues: true,
+  outlineFollowCursor: true,
+  outlineShowTests: true,
+  outlineShowSignatures: true,
+  git: true,
+  gitGutter: true,
+  gitExplorer: true,
   minimap: false,
   autosave: "off",
   autosaveDelay: 1500,

@@ -25,6 +25,9 @@ const DELAY_MS = 450;
 interface ModelState {
   /** The latest result's analysis, for the version it describes. */
   analysis: Analysis | null;
+  /** The text the markers were made for. */
+  text: string;
+  inline: string[];
   diagnostics: CheckDiagnostic[];
   language: string | null;
   checking: boolean;
@@ -48,7 +51,7 @@ function changed() {
 function stateOf(model: monaco.editor.ITextModel): ModelState {
   let s = states.get(model);
   if (!s) {
-    s = { analysis: null, diagnostics: [], language: null, checking: false, timer: null };
+    s = { analysis: null, diagnostics: [], language: null, checking: false, timer: null, text: "", inline: [] };
     states.set(model, s);
   }
   return s;
@@ -94,7 +97,10 @@ function clear(model: monaco.editor.ITextModel) {
   const s = stateOf(model);
   s.analysis = null;
   s.diagnostics = [];
-  if (!model.isDisposed()) monaco.editor.setModelMarkers(model, OWNER, []);
+  if (!model.isDisposed()) {
+    monaco.editor.setModelMarkers(model, OWNER, []);
+    s.inline = model.deltaDecorations(s.inline, []);
+  }
   changed();
 }
 
@@ -114,6 +120,7 @@ function onResult(id: number, result: CheckResult) {
   s.diagnostics = result.diagnostics;
   // An error means no bindings; keep the last good ones until it is fixed.
   if (result.diagnostics.every((d) => d.severity !== "error")) s.analysis = analyze(result, text);
+  s.text = text;
   setMarkers(model, text, s);
   changed();
   if (languageChanged && s.language && !exportsByLanguage.has(s.language)) schedule(model, 0);
@@ -141,7 +148,21 @@ function setMarkers(model: monaco.editor.ITextModel, text: string, s: ModelState
       source: "Check",
     });
   }
-  for (const u of s.analysis && s.diagnostics.length === 0 ? s.analysis.unused : []) {
+  // Error messages after their line (Settings > Editor > Highlighting).
+  const inline: monaco.editor.IModelDeltaDecoration[] = getState().prefs.inlineErrors
+    ? markers.map((m) => ({
+        // The line's text (an empty range at the end does not show injected text).
+        range: new monaco.Range(
+          m.endLineNumber,
+          Math.max(1, model.getLineFirstNonWhitespaceColumn(m.endLineNumber)),
+          m.endLineNumber,
+          model.getLineMaxColumn(m.endLineNumber),
+        ),
+        options: { after: { content: `  ${m.message.split("\n")[0]}`, inlineClassName: m.severity === monaco.MarkerSeverity.Error ? "phd-inline-error" : "phd-inline-warning" } },
+      }))
+    : [];
+  s.inline = model.deltaDecorations(s.inline, inline);
+  for (const u of s.analysis && s.diagnostics.length === 0 && getState().prefs.fadeUnused ? s.analysis.unused : []) {
     markers.push({
       ...rangeOf(model, u),
       severity: monaco.MarkerSeverity.Hint,
@@ -367,6 +388,19 @@ export function installAnalysis() {
   };
   for (const m of monaco.editor.getModels()) watch(m);
   monaco.editor.onDidCreateModel(watch);
+
+  // Highlighting settings redraw the markers.
+  let shown = "";
+  subscribe(() => {
+    const p = getState().prefs;
+    const key = `${p.fadeUnused}|${p.inlineErrors}`;
+    if (key === shown) return;
+    shown = key;
+    for (const d of getState().docs) {
+      const s = states.get(d.model);
+      if (s && s.text && !d.model.isDisposed() && d.model.getValue() === s.text) setMarkers(d.model, s.text, s);
+    }
+  });
 
   // Check again when checking is turned on, Racket becomes ready, or a file
   // gets a path (Save As) or a new language.

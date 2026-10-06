@@ -13,6 +13,8 @@ import {
   focusGroup,
   getState,
   isDirty,
+  isDiffTabId,
+  isViewTabId,
   isWebTabId,
   moveTab,
   resizeEditorSplit,
@@ -28,6 +30,7 @@ import { openContextMenu } from "@frontend/workbench/ContextMenu";
 import { Icon, type IconName } from "@frontend/workbench/icons";
 import { StartPage } from "@frontend/workbench/StartPage";
 import { BrowserView } from "@frontend/browser/BrowserView";
+import { DiffView } from "@frontend/git/DiffView";
 
 /** The Definitions editor of the active group, if mounted. */
 export function definitionsEditor() {
@@ -76,6 +79,7 @@ function Tabs({ groupId }: { groupId: string }) {
   const group = useApp((s) => s.layout.groups[groupId]);
   const docs = useApp((s) => s.docs);
   const webTabs = useApp((s) => s.webTabs);
+  const diffTabs = useApp((s) => s.diffTabs);
   const active = useApp((s) => s.layout.activeGroup === groupId);
   useApp((s) => s.revision);
   const [dropAt, setDropAt] = useState<number | null>(null);
@@ -105,7 +109,8 @@ function Tabs({ groupId }: { groupId: string }) {
     >
       {group.tabs.map((id, i) => {
         const selected = id === group.active;
-        const web = isWebTabId(id) ? webTabs.find((w) => w.id === id) : null;
+        const diff = isDiffTabId(id) ? diffTabs.find((w) => w.id === id) : null;
+        const web = isWebTabId(id) ? webTabs.find((w) => w.id === id) : diff ? { id, title: diff.title, url: "" } : null;
         if (web) {
           return (
             <div
@@ -114,7 +119,7 @@ function Tabs({ groupId }: { groupId: string }) {
               aria-selected={selected}
               draggable
               className={`tab web${selected ? " active" : ""}${selected && active ? " focused" : ""}${dropAt === i ? " drop-before" : ""}`}
-              title={web.url || "New browser tab"}
+              title={diff ? `${diff.left.label} ↔ ${diff.right.label}` : web.url || "New browser tab"}
               onClick={() => activateTab(groupId, id)}
               onAuxClick={(e) => e.button === 1 && void closeTab(groupId, id)}
               onContextMenu={(e) => openContextMenu(e, "editor.tabContext", { groupId, docId: id })}
@@ -134,7 +139,7 @@ function Tabs({ groupId }: { groupId: string }) {
                 onDrop(e, dropAt ?? i);
               }}
             >
-              <Icon name="globe" size={13} />
+              <Icon name={diff ? "diff" : "globe"} size={13} />
               <span className="tab-name">{web.title}</span>
               <button
                 className="tab-close"
@@ -215,7 +220,7 @@ function ToolButton({ command, icon, label, className }: { command: string; icon
 function GroupToolbar({ groupId }: { groupId: string }) {
   const active = useApp((s) => s.layout.activeGroup === groupId);
   const hasTab = useApp((s) => !!s.layout.groups[groupId]?.active);
-  const hasDoc = useApp((s) => !!s.layout.groups[groupId]?.active && !isWebTabId(s.layout.groups[groupId]?.active));
+  const hasDoc = useApp((s) => !!s.layout.groups[groupId]?.active && !isViewTabId(s.layout.groups[groupId]?.active));
   const running = useApp((s) => s.run.status === "running");
   const many = useApp((s) => Object.keys(s.layout.groups).length > 1);
   return (
@@ -345,6 +350,13 @@ function EditorGroupView({ groupId }: { groupId: string }) {
       quickSuggestions: prefs.suggestions ? { other: true, comments: false, strings: false } : false,
       wordBasedSuggestions: "off",
       cursorBlinking: prefs.reducedMotion ? "solid" : "blink",
+      occurrencesHighlight: prefs.highlightOccurrences ? "singleFile" : "off",
+      selectionHighlight: prefs.highlightOccurrences,
+      renderLineHighlight: prefs.highlightCurrentLine ? "line" : "none",
+      matchBrackets: prefs.highlightMatchingBrackets ? "always" : "never",
+      guides: { bracketPairs: prefs.bracketGuides ? "active" : false, indentation: false },
+      hover: { enabled: prefs.hovers ? "on" : "off" },
+      stickyScroll: { enabled: prefs.stickyDefinitions },
       smoothScrolling: !prefs.reducedMotion,
     });
   }, [prefs]);
@@ -381,7 +393,8 @@ function EditorGroupView({ groupId }: { groupId: string }) {
             attaches menus and other overflow widgets to this container, beside
             .monaco-editor; without it the editor's context menu has no colors. */}
         <div className="monaco-host monaco-component" ref={host} />
-        {!doc && !isWebTabId(docId) && <div className="group-watermark">{groupWatermark()}</div>}
+        {!doc && !isViewTabId(docId) && <div className="group-watermark">{groupWatermark()}</div>}
+        {isDiffTabId(docId) && <DiffView key={docId} id={docId!} />}
         {isWebTabId(docId) && <BrowserView key={docId} id={docId!} active />}
       </div>
     </section>
@@ -457,7 +470,7 @@ function LayoutView({ node }: { node: LayoutNode }) {
 
 export function EditorArea() {
   const root = useApp((s) => s.layout.root);
-  const empty = useApp((s) => s.docs.length === 0 && s.webTabs.length === 0 && s.layout.root.type === "group");
+  const empty = useApp((s) => s.docs.length === 0 && s.webTabs.length === 0 && s.diffTabs.length === 0 && s.layout.root.type === "group");
   return (
     <section className="editor-area" aria-label="Editors">
       <LayoutView node={root} />

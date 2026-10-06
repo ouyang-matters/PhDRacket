@@ -1,6 +1,7 @@
 // The status bar: concise operational state. Every item that can be changed
 // opens the same picker or dialog as its command.
 
+import { useGit } from "@frontend/git/git";
 import { useEffect, useState } from "react";
 import { versionMismatch } from "@shared/models/profiles";
 import { activeDoc, activeProfile, headerChanged, setDialog, useApp } from "@frontend/app/store";
@@ -62,6 +63,7 @@ export function StatusBar() {
   useApp((s) => s.revision);
   const cursor = useCursor();
   const update = useUpdate();
+  const git = useGit((s) => s.status);
 
   const rt = runtime.runtime;
   const mismatch = versionMismatch(profile, rt?.version);
@@ -81,6 +83,14 @@ export function StatusBar() {
         <Icon name="student" size={14} />
         {profile.short}
       </button>
+      {git && (
+        <button className="status-item" title={`Branch ${git.branch ?? "(detached)"}${git.files.length ? `, ${git.files.length} changed` : ""}. Click to switch.`} onClick={() => executeCommand("git.switchBranch")}>
+          <Icon name="git" size={14} />
+          {git.branch ?? git.head ?? "HEAD"}
+          {git.files.length > 0 && "*"}
+          {(git.ahead > 0 || git.behind > 0) && ` ↑${git.ahead}↓${git.behind}`}
+        </button>
+      )}
       {doc && (
         <button
           className={`status-item${unrecognized || doc.language.kind === "unspecified" ? " status-warn" : ""}`}

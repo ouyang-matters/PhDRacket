@@ -165,6 +165,22 @@ function Editor() {
         <Check pref="suggestions" label="Suggestions while typing" hint="Names your language provides and names defined in your program. Ctrl+Space shows them at any time." />
         <Check pref="liveCheck" label="Check while typing" hint="Racket expands your program in the background (it is not run) and marks errors, unused names and where each name is bound." />
       </Section>
+      <Section title="Highlighting">
+        <Check pref="highlightOccurrences" label="Highlight the name under the cursor" hint="Its binding and every use of it (from Check while typing)." />
+        <Check pref="highlightCurrentLine" label="Highlight the current line" />
+        <Check pref="highlightMatchingBrackets" label="Highlight matching brackets" />
+        <Check pref="bracketGuides" label="Bracket guides" hint="Lines that show which brackets belong together." />
+        <Check pref="fadeUnused" label="Fade unused local names" />
+        <Check pref="inlineErrors" label="Show error messages at the end of the line" hint="Besides the underline, the message is written after the line." />
+        <Check pref="hovers" label="Show information when hovering a name" hint="Where it comes from, its uses and its documentation." />
+        <Check pref="stickyDefinitions" label="Keep the current definition's first line visible" hint="While scrolling through a long definition, its header stays at the top." />
+        <Check pref="debugInlineValues" label="Show values next to the code while debugging" />
+      </Section>
+      <Section title="Outline">
+        <Check pref="outlineFollowCursor" label="Follow the cursor" hint="The Outline marks the definition you are editing." />
+        <Check pref="outlineShowTests" label="Show tests" hint="check-expect and the other test forms, with their result from the last Run." />
+        <Check pref="outlineShowSignatures" label="Show signatures" hint={'HtDP signatures written above a definition, such as ";; sq : Number -> Number".'} />
+      </Section>
       <Section title="Display">
         <Check pref="rainbowBrackets" label="Rainbow parentheses" />
         <Check pref="minimap" label="Show minimap" />
@@ -217,6 +233,11 @@ function Files() {
   return (
     <>
     <HiddenFiles />
+    <Section title="Source control">
+      <Check pref="git" label="Use Git for the open folder" hint="The Source Control view, diffs and the branch in the status bar. Git must be installed." />
+      <Check pref="gitGutter" label="Show changed lines in the margin" hint="Green: added, blue: changed, red: deleted, since the last commit." />
+      <Check pref="gitExplorer" label="Color changed files in the Explorer" />
+    </Section>
     <Section title="Saving">
       <Row label="Auto save" hint="Only files that already have a file name are saved automatically.">
         <select value={prefs.autosave} onChange={(e) => setPrefs({ autosave: e.target.value as AutosaveMode })}>

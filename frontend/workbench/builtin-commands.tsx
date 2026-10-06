@@ -52,6 +52,7 @@ import { registerMenuItems, registerMenuProvider, type MenuItem } from "@fronten
 import { installExplorerCommands } from "@frontend/explorer/commands";
 import { hasAnalysis } from "@frontend/analysis/analysis";
 import { installDebugCommands } from "@frontend/debug/commands";
+import { installGitCommands } from "@frontend/git/commands";
 import { openBrowserTab } from "@frontend/browser/BrowserView";
 import { runEditorAction, targetEditor } from "./editors";
 import { showCommandPalette, showLanguagePicker, showProfilePicker, showQuickOpen, showThemePicker } from "./pickers";
@@ -215,6 +216,7 @@ export const BUILTIN_COMMANDS: Command[] = [
   { id: "view.toggleMenuBar", title: "Toggle Menu Bar", category: "View", checked: () => getState().prefs.menuBarVisible, run: () => setPrefs({ menuBarVisible: !getState().prefs.menuBarVisible }) },
   { id: "view.toggleZenMode", title: "Zen Mode", category: "View", checked: () => getState().zen, run: toggleZen },
   { id: "view.toggleFullScreen", title: "Full Screen", category: "View", keybinding: "F11", run: toggleFullScreen },
+  { id: "view.outline", title: "Outline", category: "View", icon: "outline", run: () => toggleSidebarView("outline") },
   { id: "view.splitEditorRight", title: "Split Editor Right", category: "View", icon: "splitRight", keybinding: "Mod+\\", enabled: hasTab, run: () => splitEditor("right") },
   { id: "view.splitEditorDown", title: "Split Editor Down", category: "View", icon: "splitDown", enabled: hasTab, run: () => splitEditor("down") },
   { id: "view.layoutSingle", title: "Single", category: "View: Editor Layout", run: () => applyEditorLayout("single") },
@@ -427,6 +429,7 @@ export const BUILTIN_MENUS: Record<string, MenuItem[]> = {
     item("workbench.commandPalette", "1_palette"),
     item("view.explorer", "2_views", 1),
     item("view.search", "2_views", 2),
+    item("view.outline", "2_views", 2),
     item("view.openBrowser", "2_views", 3),
     item("view.openBrowserToSide", "2_views", 4),
     item("view.problems", "3_panels", 1),
@@ -553,6 +556,7 @@ export function installBuiltinCommands() {
   installDebugCommands();
   registerCommands(BUILTIN_COMMANDS);
   installExplorerCommands();
+  installGitCommands();
   for (const [menu, items] of Object.entries(BUILTIN_MENUS)) registerMenuItems(menu, items);
   registerMenuProvider("menubar.file.recent", () =>
     getState()

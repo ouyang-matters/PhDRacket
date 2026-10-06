@@ -140,7 +140,7 @@ function refreshDecorations() {
   const start = model.getPositionAt(cpToUtf16(text, at.position));
   const end = model.getPositionAt(cpToUtf16(text, at.position + Math.max(at.span, 1)));
   const range = new monaco.Range(start.lineNumber, start.column, end.lineNumber, end.column);
-  const after = p.kind === "after" && p.value !== null && state.frame === 0;
+  const after = p.kind === "after" && p.value !== null && state.frame === 0 && getState().prefs.debugInlineValues;
   pausedDecorations.set(
     model,
     model.deltaDecorations(

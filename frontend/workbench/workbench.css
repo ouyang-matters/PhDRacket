@@ -1559,3 +1559,261 @@ table.keybindings tr.changed td:first-child {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* Inline error messages (Settings > Editor > Highlighting). */
+.monaco-editor .phd-inline-error {
+  color: var(--c-error);
+  opacity: 0.85;
+  font-style: italic;
+}
+.monaco-editor .phd-inline-warning {
+  color: var(--c-warning);
+  opacity: 0.85;
+  font-style: italic;
+}
+
+/* Git changes in the margin (frontend/git). */
+.monaco-editor .git-added,
+.monaco-editor .git-modified {
+  width: 3px !important;
+  margin-left: 3px;
+}
+.monaco-editor .git-added {
+  background: var(--c-success);
+}
+.monaco-editor .git-modified {
+  background: var(--c-info);
+}
+.monaco-editor .git-deleted::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 2px;
+  border-left: 5px solid var(--c-error);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+.monaco-editor .git-deleted.top::after {
+  bottom: auto;
+  top: -4px;
+}
+
+/* Git status colors (Explorer, Source Control). */
+.git-M,
+.tree-row.git-M .tree-name {
+  color: var(--c-warning);
+}
+.git-A,
+.git-untracked,
+.tree-row.git-A .tree-name,
+.tree-row.git-untracked .tree-name {
+  color: var(--c-success);
+}
+.git-D,
+.tree-row.git-D .tree-name {
+  color: var(--c-error);
+  text-decoration: line-through;
+}
+.git-U,
+.tree-row.git-U .tree-name {
+  color: var(--c-error);
+}
+.git-R,
+.tree-row.git-R .tree-name {
+  color: var(--c-info);
+}
+.tree-git {
+  margin-left: auto;
+  padding: 0 0.5rem 0 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+.tree-row.git-M .tree-git { color: var(--c-warning); }
+.tree-row.git-untracked .tree-git,
+.tree-row.git-A .tree-git { color: var(--c-success); }
+.tree-row.git-folder .tree-name::after {
+  content: " •";
+  color: var(--c-warning);
+}
+
+/* Source Control view. */
+.scm {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.scm-branch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+}
+.scm-branch .link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+.scm-new-branch {
+  padding: 0 var(--space-2) var(--space-1);
+}
+.scm-new-branch input,
+.scm-commit-box textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--c-text-primary);
+  background: var(--c-editor-background);
+  border: 1px solid var(--c-border-default);
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+.scm-commit-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 0 var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--c-border-default);
+}
+.scm-commit-box textarea {
+  resize: vertical;
+}
+.scm-commit-box button.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.scm-body {
+  flex: 1;
+  overflow: auto;
+}
+.scm-section-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-secondary);
+  text-align: left;
+}
+.scm-section-head .icon-button {
+  margin-left: auto;
+}
+.scm-section-head .icon-button + .icon-button {
+  margin-left: 0;
+}
+.scm-count {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--c-surface-raised);
+  font-size: 0.7rem;
+}
+.scm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.scm-file,
+.scm-commit-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px 1px 16px;
+}
+.scm-file:hover,
+.scm-commit-main:hover {
+  background: var(--c-surface-raised);
+}
+.scm-file-main,
+.scm-commit-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  border: none;
+  background: none;
+  text-align: left;
+  color: inherit;
+  padding: 2px 0;
+}
+.scm-commit-main {
+  width: 100%;
+  padding: 3px 8px;
+}
+.scm-name,
+.scm-subject {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scm-dir {
+  color: var(--c-text-secondary);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scm-refs {
+  font-size: 0.7rem;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--c-surface-raised);
+  color: var(--c-accent-primary);
+  white-space: nowrap;
+}
+.scm-actions {
+  display: none;
+  gap: 2px;
+}
+.scm-file:hover .scm-actions {
+  display: inline-flex;
+}
+.scm-letter {
+  width: 1rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.scm-commit-files .scm-file {
+  padding-left: 32px;
+}
+.scm-footer {
+  padding: var(--space-2);
+}
+
+/* Diff tabs. */
+.diff-view {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-editor-background);
+}
+.diff-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--c-border-default);
+  background: var(--c-surface-raised);
+  white-space: nowrap;
+}
+.diff-side {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.diff-host {
+  flex: 1;
+  min-height: 0;
+}

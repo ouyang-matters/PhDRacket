@@ -1,6 +1,7 @@
 // Registers PhDRacket's built-in sidebar views and bottom panels with the
 // view frameworks. Optional features register theirs the same way.
 
+import { OutlineView } from "@frontend/outline/OutlineView";
 import { liveProblems } from "@frontend/analysis/analysis";
 import { activeDoc, getState } from "@frontend/app/store";
 import { Explorer } from "@frontend/explorer/Explorer";
@@ -19,6 +20,7 @@ export function installBuiltinViews() {
   if (installed) return;
   installed = true;
   registerSidebarView({ id: "explorer", title: "Explorer", icon: "explorer", order: 10, command: "view.explorer", render: () => <Explorer /> });
+  registerSidebarView({ id: "outline", title: "Outline", icon: "outline", order: 15, command: "view.outline", render: () => <OutlineView /> });
   registerSidebarView({ id: "search", title: "Search", icon: "search", order: 20, command: "edit.findInFiles", render: () => <SearchView /> });
 
   registerPanelView({

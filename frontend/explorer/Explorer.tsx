@@ -14,10 +14,18 @@ import { EXPLORER_MENU, setMenuTarget } from "./commands";
 import { hiddenMatcher, type HiddenMatcher } from "./hidden";
 import { baseName, formatSize, isWithin, relativeTo, samePath } from "./paths";
 import { PropertiesDialog } from "./PropertiesDialog";
+import { fileStatus, folderChanged, useGit } from "@frontend/git/git";
 import { Modal } from "@frontend/app/Modal";
 import { explorerState, folderKey, isExpanded, reloadFolders, resetExplorer, setExpanded, setExplorer, useExplorer, type Target } from "./state";
 
 const SOURCE = /\.(rkt|rktl|scm|ss)$/i;
+
+/** Explorer colors for files changed since the last commit (frontend/git). */
+function gitClass(e: FileEntry): string {
+  if (e.isDir) return folderChanged(e.path) ? "git-folder" : "";
+  const s = fileStatus(e.path);
+  return s ? `git-${s === "?" ? "untracked" : s}` : "";
+}
 const DRAG_TYPE = "application/x-phdracket-path";
 
 export function formatTime(ms: number | null): string {
@@ -82,6 +90,8 @@ function FolderContents({ root, path, depth, hide }: { root: string; path: strin
   const cut = useExplorer((s) => (s.clipboard?.mode === "cut" ? s.clipboard.path : null));
   const [dropOn, setDropOn] = useState<string | null>(null);
   const active = useApp((s) => activeDoc(s)?.path ?? null);
+  const gitColors = useApp((s) => s.prefs.gitExplorer && s.prefs.git);
+  useGit((s) => s.status);
 
   useEffect(() => {
     let live = true;
@@ -117,7 +127,7 @@ function FolderContents({ root, path, depth, hide }: { root: string; path: strin
       samePath(selected?.path, e.path) ? "selected" : "",
       cut && samePath(cut, e.path) ? "cut" : "",
       dropOn && samePath(dropOn, e.path) ? "drop" : "",
-      hide === null && entries.length !== shown.length ? "" : "",
+      gitColors ? gitClass(e) : "",
     ].filter(Boolean);
     return (
       <li key={e.path} role="treeitem" aria-expanded={e.isDir ? open : undefined} aria-selected={samePath(selected?.path, e.path)}>
@@ -165,6 +175,7 @@ function FolderContents({ root, path, depth, hide }: { root: string; path: strin
         >
           <span className={`twisty${e.isDir ? (open ? " open" : "") : " none"}`} aria-hidden />
           <span className="tree-name">{e.name}</span>
+          {gitColors && !e.isDir && fileStatus(e.path) && <span className="tree-git">{fileStatus(e.path) === "?" ? "U" : fileStatus(e.path)}</span>}
         </button>
         {e.isDir && (open || (editing && editing.kind !== "rename" && samePath(editing.dir, e.path))) && (
           <FolderContents root={root} path={e.path} depth={depth + 1} hide={hide} />

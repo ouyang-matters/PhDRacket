@@ -83,10 +83,31 @@ export function isWebTabId(id: string | null | undefined): boolean {
   return !!id && id.startsWith("web-");
 }
 
+/** A diff tab (frontend/git/DiffView): two versions of a file side by side.
+ * With `right.path`, the right side is the file itself, live and editable. */
+export interface DiffTab {
+  id: string;
+  /** Opening the same diff again shows the existing tab. */
+  key: string;
+  title: string;
+  left: { label: string; text: string };
+  right: { label: string; text: string | null; path: string | null };
+}
+
+export function isDiffTabId(id: string | null | undefined): boolean {
+  return !!id && id.startsWith("diff-");
+}
+
+/** Tabs that are not documents (browser and diff tabs). */
+export function isViewTabId(id: string | null | undefined): boolean {
+  return isWebTabId(id) || isDiffTabId(id);
+}
+
 export interface AppState {
   docs: Doc[];
   /** Browser tabs; they live in editor groups like documents. */
   webTabs: WebTab[];
+  diffTabs: DiffTab[];
   /** The document in the active editor group; kept in step with `layout`. */
   activeId: string | null;
   /** Editor groups and their split layout. */
@@ -118,6 +139,7 @@ export interface AppState {
 let state: AppState = {
   docs: [],
   webTabs: [],
+  diffTabs: [],
   activeId: null,
   layout: L.initialLayout(),
   panelMaximized: false,
@@ -298,6 +320,24 @@ export function setFolder(path: string | null) {
 }
 
 let webSeq = 1;
+let diffSeq = 1;
+
+/** Changes an open diff tab without bringing it to the front. */
+export function updateDiffTab(id: string, patch: Partial<Omit<DiffTab, "id">>) {
+  set((s) => ({ diffTabs: s.diffTabs.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
+}
+
+/** Opens a diff tab, or shows it again if the same diff is open. */
+export function openDiffTab(tab: Omit<DiffTab, "id">) {
+  const existing = state.diffTabs.find((t) => t.key === tab.key);
+  if (existing) {
+    set((s) => ({ diffTabs: s.diffTabs.map((t) => (t.id === existing.id ? { ...existing, ...tab } : t)) }));
+    setLayout(L.openTab(state.layout, existing.id));
+    return;
+  }
+  const t: DiffTab = { ...tab, id: `diff-${diffSeq++}` };
+  setLayout(L.openTab(state.layout, t.id), { diffTabs: [...state.diffTabs, t] });
+}
 
 /** Opens a browser tab (empty: it asks for an address). `toSide` opens it in
  * a new group to the right of the active one, beside the code. */
@@ -476,6 +516,10 @@ export async function closeTab(groupId: string, docId: string): Promise<boolean>
     closeWebTab(docId);
     return true;
   }
+  if (isDiffTabId(docId)) {
+    setLayout(L.removeDoc(state.layout, docId), { diffTabs: state.diffTabs.filter((t) => t.id !== docId) });
+    return true;
+  }
   const doc = state.docs.find((d) => d.id === docId);
   return doc ? closeDoc(doc) : true;
 }
@@ -520,8 +564,8 @@ export function canReopenClosedEditor(): boolean {
 export function splitEditor(direction: L.SplitDirection, groupId: string = state.layout.activeGroup) {
   const g = state.layout.groups[groupId];
   if (!g) return;
-  // A web page can be shown in one place only: splitting moves it beside the code.
-  if (isWebTabId(g.active)) return setLayout(L.moveToNewGroup(state.layout, groupId, g.active!, direction));
+  // A web page or diff is shown in one place only: splitting moves it beside the code.
+  if (isViewTabId(g.active)) return setLayout(L.moveToNewGroup(state.layout, groupId, g.active!, direction));
   setLayout(L.splitGroup(state.layout, groupId, direction, g.active));
 }
 
