@@ -57,7 +57,14 @@ struct State {
     spare: Option<Process>,
     /// The Stepper runs in its own process, independent of Interactions.
     stepper: Option<Process>,
+    /// The background analysis process (check while typing); long-lived.
+    analysis: Option<Process>,
+    analysis_checks: u32,
 }
+
+/// Analysis processes are replaced after this many checks, so memory used by
+/// expanding many versions of a program is returned.
+const ANALYSIS_CHECKS_PER_PROCESS: u32 = 200;
 
 #[derive(Debug, Clone, Copy, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -211,6 +218,62 @@ impl Engine {
     }
 
     /// Ends the Stepper session, if any.
+    /// Runs the program under the debugger (a Run with breakpoints).
+    pub fn debug(&self, path: Option<&Path>, source: &str, breakpoints: &[u32]) -> Result<RunHandle, EngineError> {
+        let mut st = self.state.lock().unwrap();
+        if let Some(old) = st.active.take() {
+            old.terminate("replaced by a new Run");
+        }
+        let mut proc = self.take_spare(&mut st)?;
+        let request = self.next_request.fetch_add(1, Ordering::SeqCst);
+        proc.send(&BridgeCommand::Debug {
+            id: request,
+            path: path.map(|p| p.to_string_lossy().into_owned()),
+            source: source.to_owned(),
+            breakpoints: breakpoints.to_vec(),
+        })?;
+        let handle = RunHandle { session: proc.session, request };
+        st.active = Some(proc);
+        st.spare = self.spawn().ok();
+        Ok(handle)
+    }
+
+    /// Continue, step or pause the program being debugged, or change its breakpoints.
+    pub fn debug_control(&self, action: &str, lines: &[u32]) -> Result<(), EngineError> {
+        let mut st = self.state.lock().unwrap();
+        let proc = st.active.as_mut().ok_or(EngineError::NotRunning)?;
+        proc.send(&BridgeCommand::DebugControl { action: action.to_owned(), lines: lines.to_vec() })
+    }
+
+    /// Checks a program in the background analysis process. The result
+    /// arrives as a `check-result` event of the returned session.
+    pub fn check(&self, path: Option<&Path>, source: &str, exports: bool) -> Result<RunHandle, EngineError> {
+        let mut st = self.state.lock().unwrap();
+        let worn_out = st.analysis_checks >= ANALYSIS_CHECKS_PER_PROCESS;
+        if worn_out || st.analysis.as_mut().is_none_or(|p| p.has_exited()) {
+            if let Some(old) = st.analysis.take() {
+                old.terminate("replaced");
+            }
+            st.analysis = Some(self.spawn()?);
+            st.analysis_checks = 0;
+        }
+        st.analysis_checks += 1;
+        let request = self.next_request.fetch_add(1, Ordering::SeqCst);
+        let proc = st.analysis.as_mut().expect("analysis process");
+        let sent = proc.send(&BridgeCommand::Check {
+            id: request,
+            path: path.map(|p| p.to_string_lossy().into_owned()),
+            source: source.to_owned(),
+            exports,
+        });
+        let session = proc.session;
+        if let Err(e) = sent {
+            st.analysis = None;
+            return Err(e);
+        }
+        Ok(RunHandle { session, request })
+    }
+
     pub fn stop_stepper(&self) -> bool {
         match self.state.lock().unwrap().stepper.take() {
             Some(p) => {
@@ -248,7 +311,7 @@ impl Engine {
 
     pub fn shutdown(&self) {
         let mut st = self.state.lock().unwrap();
-        for p in [st.active.take(), st.spare.take(), st.stepper.take()].into_iter().flatten() {
+        for p in [st.active.take(), st.spare.take(), st.stepper.take(), st.analysis.take()].into_iter().flatten() {
             p.terminate("shutdown");
         }
     }

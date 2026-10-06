@@ -18,6 +18,8 @@ pub const BRIDGE_FILES: &[(&str, &str)] = &[
     (BRIDGE_MAIN, include_str!("../racket/phdracket-bridge.rkt")),
     ("private/metadata.rkt", include_str!("../racket/private/metadata.rkt")),
     ("private/stepper-adapter.rkt", include_str!("../racket/private/stepper-adapter.rkt")),
+    ("private/analysis.rkt", include_str!("../racket/private/analysis.rkt")),
+    ("private/debugger.rkt", include_str!("../racket/private/debugger.rkt")),
 ];
 
 const COMPILED_MARKER: &str = ".compiled-ok";
@@ -92,9 +94,12 @@ fn compile_into(dir: &Path, runtime: &RuntimeInfo) -> Result<(), BridgeError> {
         }
         fs::write(&p, contents).map_err(|e| BridgeError::Io(p.clone(), e))?;
     }
+    // Every file, including the modules the bridge loads only when needed
+    // (analysis, debugger), which `raco make` would not reach from the main file.
     let out = hide_console(
         Command::new(&runtime.executable)
-            .args(["-l-", "raco", "make", "-v", BRIDGE_MAIN])
+            .args(["-l-", "raco", "make", "-v"])
+            .args(BRIDGE_FILES.iter().map(|(name, _)| *name))
             .current_dir(dir),
     )
     .output()

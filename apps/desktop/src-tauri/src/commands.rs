@@ -242,6 +242,35 @@ pub fn step_program(state: State<AppState>, path: Option<String>, text: String) 
     engine(&state)?.step(path.as_deref(), &program).map_err(|e| e.to_string())
 }
 
+/// Runs the program under the debugger, with breakpoints on these lines.
+#[tauri::command]
+pub fn debug_program(state: State<AppState>, path: Option<String>, text: String, breakpoints: Vec<u32>) -> Result<RunHandle, String> {
+    let path = path.map(PathBuf::from);
+    let snap = path.as_ref().and_then(|p| state.snapshots.lock().unwrap().get(p).cloned());
+    let (bytes, _, _) = source::bytes_for_save(snap.as_ref(), &text);
+    let body = bytes.strip_prefix(source::UTF8_BOM).unwrap_or(&bytes);
+    let program = String::from_utf8(body.to_vec()).map_err(|e| e.to_string())?;
+    engine(&state)?.debug(path.as_deref(), &program, &breakpoints).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn debug_control(state: State<AppState>, action: String, lines: Vec<u32>) -> Result<(), String> {
+    engine(&state)?.debug_control(&action, &lines).map_err(|e| e.to_string())
+}
+
+/// Checks the editor's text in the background (errors, bindings, scopes).
+/// The text is the editor's own (LF line endings), so positions match it.
+#[tauri::command]
+pub async fn check_program(app: AppHandle, path: Option<String>, text: String, exports: bool) -> Result<RunHandle, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        let path = path.map(PathBuf::from);
+        engine(&state)?.check(path.as_deref(), &text, exports).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[tauri::command]
 pub fn stop_stepper(state: State<AppState>) -> bool {
     engine(&state).map(|e| e.stop_stepper()).unwrap_or(false)

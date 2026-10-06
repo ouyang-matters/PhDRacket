@@ -61,6 +61,22 @@ pub enum BridgeEvent {
     /// One step from the official HtDP stepper, already rendered to text.
     Step { id: Value, index: u32, step: Value },
     StepperFinished { id: Value, outcome: String, count: u32 },
+    /// Background analysis of the edited program (private/analysis.rkt).
+    CheckResult { id: Value, result: Value },
+    /// Debugging: the breakpoint lines that have code to stop at.
+    Breakpoints { id: Value, lines: Vec<u32> },
+    /// Debugging: the program paused before an expression ("before") or after
+    /// it produced a value ("after"). Positions are 0-based character offsets.
+    Paused {
+        id: Value,
+        kind: String,
+        position: u32,
+        span: u32,
+        line: u32,
+        value: Option<String>,
+        frames: Value,
+    },
+    Resumed { id: Value },
     ProtocolError { message: String },
 }
 
@@ -71,6 +87,11 @@ pub enum BridgeCommand {
     Run { id: u64, path: Option<String>, source: String },
     Eval { id: u64, text: String },
     Step { id: u64, path: Option<String>, source: String },
+    /// A Run with breakpoints (1-based lines).
+    Debug { id: u64, path: Option<String>, source: String, breakpoints: Vec<u32> },
+    /// "continue", "step-into", "step-over", "step-out", "pause" or "breakpoints".
+    DebugControl { action: String, lines: Vec<u32> },
+    Check { id: u64, path: Option<String>, source: String, exports: bool },
     Shutdown,
 }
 
@@ -107,6 +128,20 @@ mod tests {
         )
         .unwrap();
         assert!(matches!(e, BridgeEvent::Ready { protocol: 1, .. }));
+    }
+
+    #[test]
+    fn parses_debug_and_check_events() {
+        let e: BridgeEvent = serde_json::from_str(
+            r#"{"ev":"paused","id":1,"kind":"before","position":32,"span":7,"line":3,"value":null,
+                "frames":[{"label":"","position":32,"span":7,"line":3,"bindings":[{"name":"x","value":"3"}]}]}"#,
+        )
+        .unwrap();
+        assert!(matches!(e, BridgeEvent::Paused { line: 3, .. }));
+        let e: BridgeEvent = serde_json::from_str(r#"{"ev":"check-result","id":4,"result":{"diagnostics":[]}}"#).unwrap();
+        assert!(matches!(e, BridgeEvent::CheckResult { .. }));
+        let c = BridgeCommand::DebugControl { action: "step-over".into(), lines: vec![] };
+        assert_eq!(serde_json::to_string(&c).unwrap(), r#"{"op":"debug-control","action":"step-over","lines":[]}"#);
     }
 
     #[test]

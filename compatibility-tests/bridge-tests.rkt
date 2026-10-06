@@ -313,4 +313,73 @@
     (check-equal? (apply string-append (for/list ([e run-evs] #:when (equal? (hash-ref e 'ev) "stdout"))
                                          (hash-ref e 'text)))
                   "{\"ev\":\"done\"}
-é")))
+é"))
+
+  ;; --- Background analysis and the debugger ---------------------------------
+
+  ;; A bridge session: send commands, read events until one matches.
+  (define (call-with-bridge f)
+    (define-values (proc out in err) (subprocess #f #f #f racket-exe (path->string bridge)))
+    (file-stream-buffer-mode out 'none)
+    (define (send! h) (write-json h in) (newline in) (flush-output in))
+    (define (await pred)
+      (let loop ()
+        (define line (read-line out 'linefeed))
+        (when (eof-object? line) (error 'bridge "exited: ~a" (port->string err)))
+        (define ev (string->jsexpr line))
+        (if (pred ev) ev (loop))))
+    (define (ev? name) (λ (e) (equal? (hash-ref e 'ev) name)))
+    (await (ev? "ready"))
+    (begin0 (f send! await ev?)
+      (subprocess-kill proc #t)
+      (subprocess-wait proc)))
+
+  (define sq-program "#lang htdp/bsl\n(define (sq x)\n  (* x x))\n(define (f n)\n  (+ (sq n) 1))\n(f 3)\n")
+
+  (test-case "check reports errors with the teaching language's message"
+    (call-with-bridge
+     (λ (send! await ev?)
+       (send! (hasheq 'op "check" 'id 1 'path "C:/course/a.rkt" 'source "#lang htdp/bsl\n(define (f x) (g x))\n" 'exports #f))
+       (define r (hash-ref (await (ev? "check-result")) 'result))
+       (define d (car (hash-ref r 'diagnostics)))
+       (check-regexp-match #rx"^g: this function is not defined" (hash-ref d 'message))
+       (check-equal? (list (hash-ref d 'line) (hash-ref d 'column) (hash-ref d 'span)) '(2 15 1)))))
+
+  (test-case "check reports bindings and the language's names"
+    (call-with-bridge
+     (λ (send! await ev?)
+       (send! (hasheq 'op "check" 'id 1 'path "C:/course/a.rkt" 'source sq-program 'exports #t))
+       (define r (hash-ref (await (ev? "check-result")) 'result))
+       (check-equal? (hash-ref r 'diagnostics) '())
+       ;; x (offsets 27-28) is bound to its two uses in (* x x).
+       (check-not-false (member (hasheq 'from '(27 28) 'to '(35 36)) (hash-ref r 'arrows)))
+       (check-not-false (member (hasheq 'from '(27 28) 'to '(37 38)) (hash-ref r 'arrows)))
+       (check-not-false (findf (λ (e) (equal? (hash-ref e 'name) "string-append")) (hash-ref r 'exports))))))
+
+  (test-case "debug pauses at a breakpoint, steps over, and continues"
+    (call-with-bridge
+     (λ (send! await ev?)
+       (send! (hasheq 'op "debug" 'id 1 'path "C:/course/d.rkt" 'source sq-program 'breakpoints '(3)))
+       (check-equal? (hash-ref (await (ev? "breakpoints")) 'lines) '(3))
+       (define p (await (ev? "paused")))
+       (check-equal? (list (hash-ref p 'kind) (hash-ref p 'line)) '("before" 3))
+       (check-equal? (hash-ref (car (hash-ref (car (hash-ref p 'frames)) 'bindings)) 'value) "3")
+       (send! (hasheq 'op "debug-control" 'action "step-over" 'lines '()))
+       (define after (await (ev? "paused")))
+       (check-equal? (list (hash-ref after 'kind) (hash-ref after 'value)) '("after" "9"))
+       (send! (hasheq 'op "debug-control" 'action "breakpoints" 'lines '()))
+       (send! (hasheq 'op "debug-control" 'action "continue" 'lines '()))
+       (check-equal? (hash-ref (await (ev? "value")) 'text) "10")
+       (check-true (hash-ref (await (ev? "done")) 'ok)))))
+
+  (test-case "debug pauses a running program"
+    (call-with-bridge
+     (λ (send! await ev?)
+       (send! (hasheq 'op "debug" 'id 1 'path "C:/course/r.rkt"
+                      'source "#lang racket\n(define (spin i)\n  (if (< i 0) i (spin (add1 i))))\n(spin 0)\n"
+                      'breakpoints '()))
+       (await (ev? "breakpoints"))
+       (sleep 0.5)
+       (send! (hasheq 'op "debug-control" 'action "pause" 'lines '()))
+       (define p (await (ev? "paused")))
+       (check-equal? (hash-ref (car (hash-ref (car (hash-ref p 'frames)) 'bindings)) 'name) "i")))))

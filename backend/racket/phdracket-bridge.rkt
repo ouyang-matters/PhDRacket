@@ -18,8 +18,13 @@
 ;;
 ;; Protocol: one JSON object per line.
 ;;   stdin  (commands): {"op":"run","id":N,"path":P,"source":S}
+;;                      {"op":"debug","id":N,"path":P,"source":S,"breakpoints":[line ...]}
+;;                      {"op":"debug-control","action":A,"lines":[line ...]}
 ;;                      {"op":"eval","id":N,"text":S}
+;;                      {"op":"check","id":N,"path":P,"source":S,"exports":B}
 ;;                      {"op":"shutdown"}
+;; Commands are read on their own thread, so debug-control reaches a program
+;; that is running or paused.
 ;;   stdout (events):   see docs/ARCHITECTURE.md ("Bridge protocol").
 ;; Everything the student program writes is captured and forwarded as events;
 ;; the bridge's real stdout carries protocol messages only.
@@ -28,8 +33,23 @@
          racket/list
          racket/string
          json
+         racket/async-channel
+         racket/runtime-path
          "private/metadata.rkt"
          "private/stepper-adapter.rkt")
+
+;; Background analysis and the debugger load DrRacket's Check Syntax and
+;; debugger libraries, which take a while to load; only the processes that
+;; check or debug load them.
+(define-runtime-path analysis-module "private/analysis.rkt")
+(define-runtime-path debugger-module "private/debugger.rkt")
+(define (check-program . args) (apply (dynamic-require analysis-module 'check-program) args))
+(define (start-debugging! . args) (apply (dynamic-require debugger-module 'start-debugging!) args))
+(define (debug-eval old) ((dynamic-require debugger-module 'debug-eval) old))
+(define (debug-control! . args)
+  ;; Only a process that is debugging has loaded the debugger.
+  (when (module-declared? debugger-module #f)
+    (apply (dynamic-require debugger-module 'debug-control!) args)))
 
 (define protocol-version 1)
 
@@ -380,7 +400,7 @@
 (define (emit-run-started! id info)
   (emit! 'run-started 'id id 'language (language-jsexpr info)))
 
-(define (handle-run id path-str src)
+(define (handle-run id path-str src [debug-lines #f])
   (when run-done?
     (error 'phdracket-bridge "a bridge process hosts exactly one Run"))
   (set! run-done? #t)
@@ -391,12 +411,17 @@
     (when (path? dir)
       (current-directory dir)
       (current-load-relative-directory dir)))
+  ;; Debug: the program's own forms are annotated by the debugger
+  ;; (private/debugger.rkt); breakpoints stay active for Interactions too.
+  (when debug-lines
+    (start-debugging! emit! id (if path (path->complete-path path) 'unset) src debug-lines))
   (define ok?
     (parameterize ([current-output-port user-out]
                    [current-error-port user-err]
                    [current-input-port (open-input-string "")]
                    [current-print bridge-print]
-                   [current-request-id id])
+                   [current-request-id id]
+                   [current-eval (if debug-lines (debug-eval (current-eval)) (current-eval))])
       (begin0
         (case (source-language-kind info)
           [(teaching) (run-teaching id path src info)]
@@ -555,8 +580,27 @@
          'racketVersion (version)
          'vm (symbol->string (system-type 'vm))
          'htdp htdp-available?)
+  ;; Commands arrive on this thread; debug-control is handled at once (the
+  ;; main thread may be running or paused), everything else in order.
+  (define inbox (make-async-channel))
+  (thread
+   (λ ()
+     (let read-loop ()
+       ;; Malformed JSON is reported; an unreadable input ends the process
+       ;; like end of input (otherwise the main loop would wait forever).
+       (define cmd (with-handlers ([exn:fail:read? (λ (e) 'bad)]
+                                   [exn:fail? (λ (e) eof)])
+                     (read-json (current-input-port))))
+       (cond
+         [(and (hash? cmd) (equal? (hash-ref cmd 'op #f) "debug-control"))
+          (define lines (hash-ref cmd 'lines '()))
+          (debug-control! (hash-ref cmd 'action "") (if (list? lines) (filter exact-positive-integer? lines) '()))
+          (read-loop)]
+         [else
+          (async-channel-put inbox cmd)
+          (unless (eof-object? cmd) (read-loop))]))))
   (let loop ()
-    (define cmd (with-handlers ([exn:fail:read? (λ (e) 'bad)]) (read-json (current-input-port))))
+    (define cmd (async-channel-get inbox))
     (cond
       [(eof-object? cmd) (void)]
       [(not (hash? cmd))
@@ -580,8 +624,24 @@
                                        (emit! 'done 'id id 'ok #f))])
             (handle-step id (and (string? path) path) (hash-ref cmd 'source "")))
           (loop)]
+         [("debug")
+          (define path (hash-ref cmd 'path #f))
+          (define lines (hash-ref cmd 'breakpoints '()))
+          (with-handlers ([exn:fail? (λ (e)
+                                       (emit! 'protocol-error 'message (exn-message e))
+                                       (emit! 'done 'id id 'ok #f))])
+            (handle-run id (and (string? path) path) (hash-ref cmd 'source "")
+                        (if (list? lines) (filter exact-positive-integer? lines) '())))
+          (loop)]
          [("eval")
           (handle-eval id (hash-ref cmd 'text ""))
+          (loop)]
+         [("check")
+          (define path (hash-ref cmd 'path #f))
+          (define result
+            (with-handlers ([exn:fail? (λ (e) (hasheq 'diagnostics '() 'failure (exn-message e)))])
+              (check-program (and (string? path) path) (hash-ref cmd 'source "") (eq? #t (hash-ref cmd 'exports #f)))))
+          (emit! 'check-result 'id id 'result result)
           (loop)]
          [("shutdown") (void)]
          [else
