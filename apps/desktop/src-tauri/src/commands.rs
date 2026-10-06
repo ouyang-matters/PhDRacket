@@ -12,6 +12,7 @@ use phdracket_core::source::{self, OpenedSource, SaveOutcome, SourceSnapshot};
 use phdracket_core::bridge;
 use phdracket_core::workspace::{self, DirEntry};
 use phdracket_core::files;
+use phdracket_core::git;
 use phdracket_core::install::{self, InstallProgress, InstallerInfo};
 use phdracket_core::remote;
 use serde::Serialize;
@@ -575,4 +576,83 @@ pub fn workspace_watch(app: AppHandle, state: State<AppState>, path: Option<Stri
         *slot = Some(w);
     }
     Ok(())
+}
+
+// --- Source control (backend/src/git.rs) -------------------------------------
+// `dir` is the open folder; git finds the repository that contains it.
+
+async fn blocking<T: Send + 'static>(f: impl FnOnce() -> Result<T, git::GitError> + Send + 'static) -> Result<T, String> {
+    tauri::async_runtime::spawn_blocking(move || f().map_err(|e| e.to_string()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+pub async fn git_version() -> Result<String, String> {
+    blocking(git::version).await
+}
+
+#[tauri::command]
+pub async fn git_status(dir: String) -> Result<Option<git::Status>, String> {
+    blocking(move || git::status(Path::new(&dir))).await
+}
+
+#[tauri::command]
+pub async fn git_show(dir: String, rev: String, path: String) -> Result<Option<String>, String> {
+    blocking(move || git::show(Path::new(&dir), &rev, Path::new(&path))).await
+}
+
+#[tauri::command]
+pub async fn git_stage(dir: String, paths: Vec<PathBuf>) -> Result<(), String> {
+    blocking(move || git::stage(Path::new(&dir), &paths)).await
+}
+
+#[tauri::command]
+pub async fn git_unstage(dir: String, paths: Vec<PathBuf>) -> Result<(), String> {
+    blocking(move || git::unstage(Path::new(&dir), &paths)).await
+}
+
+#[tauri::command]
+pub async fn git_discard(dir: String, paths: Vec<PathBuf>) -> Result<(), String> {
+    blocking(move || git::discard(Path::new(&dir), &paths)).await
+}
+
+#[tauri::command]
+pub async fn git_commit(dir: String, message: String) -> Result<String, String> {
+    blocking(move || git::commit(Path::new(&dir), &message)).await
+}
+
+#[tauri::command]
+pub async fn git_log(dir: String, limit: u32, path: Option<String>) -> Result<Vec<git::Commit>, String> {
+    blocking(move || git::log(Path::new(&dir), limit, path.as_deref().map(Path::new))).await
+}
+
+#[tauri::command]
+pub async fn git_commit_files(dir: String, sha: String) -> Result<Vec<git::CommitFile>, String> {
+    blocking(move || git::commit_files(Path::new(&dir), &sha)).await
+}
+
+#[tauri::command]
+pub async fn git_branches(dir: String) -> Result<Vec<git::Branch>, String> {
+    blocking(move || git::branches(Path::new(&dir))).await
+}
+
+#[tauri::command]
+pub async fn git_switch(dir: String, name: String) -> Result<(), String> {
+    blocking(move || git::switch(Path::new(&dir), &name)).await
+}
+
+#[tauri::command]
+pub async fn git_create_branch(dir: String, name: String) -> Result<(), String> {
+    blocking(move || git::create_branch(Path::new(&dir), &name)).await
+}
+
+#[tauri::command]
+pub async fn git_init(dir: String) -> Result<(), String> {
+    blocking(move || git::init(Path::new(&dir))).await
+}
+
+#[tauri::command]
+pub async fn git_sync(dir: String, op: String) -> Result<String, String> {
+    blocking(move || git::sync(Path::new(&dir), &op)).await
 }

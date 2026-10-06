@@ -14,4 +14,5 @@ pub mod runtime;
 pub mod settings;
 pub mod source;
 pub mod files;
+pub mod git;
 pub mod workspace;
