@@ -98,6 +98,15 @@ panel framework provides switching, closing (Ctrl+J), maximizing and
 resizing; a panel can keep its state while hidden (Interactions does) and
 can be offered conditionally (Tasks appears once a remote host exists).
 
+The sidebar can show two views stacked, for example the Explorer above the
+Outline: View > Appearance > Split Sidebar, or right-click a view's icon in
+the activity bar and choose Show Below. Drag the line between them to
+resize (double-click it for half and half). Right-click a view's title for
+Swap Sidebar Views and Close Lower Sidebar View; clicking the icon of the
+lower view closes it. Which views are shown and the split are remembered
+(`sidebarView`, `sidebarBottomView`, `sidebarSplit`); the placement rules
+are in `frontend/workbench/sidebar-layout.ts`.
+
 ## Explorer
 
 The Explorer (`frontend/explorer/`) shows the open folder. Its file

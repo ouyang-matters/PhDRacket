@@ -77,8 +77,12 @@ export interface Preferences {
   /** The sidebar (Explorer and other views) is shown. */
   explorerVisible: boolean;
   explorerWidth: number;
-  /** Sidebar view shown when the sidebar is open. */
+  /** Sidebar view shown when the sidebar is open (the upper one when split). */
   sidebarView: string;
+  /** Sidebar view shown below `sidebarView`; "" when the sidebar is not split. */
+  sidebarBottomView: string;
+  /** Fraction of the sidebar's height for the upper view when split. */
+  sidebarSplit: number;
   panelVisible: boolean;
   statusBarVisible: boolean;
   menuBarVisible: boolean;
@@ -143,6 +147,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   explorerVisible: true,
   explorerWidth: 240,
   sidebarView: "explorer",
+  sidebarBottomView: "",
+  sidebarSplit: 0.5,
   panelVisible: true,
   statusBarVisible: true,
   menuBarVisible: true,
@@ -190,6 +196,7 @@ export function mergePreferences(stored: unknown): Preferences {
   if (out.computeTarget !== "local" && !out.computeHosts.some((h) => h.id === out.computeTarget)) out.computeTarget = "local";
   out.hiddenFiles = Array.isArray(s.hiddenFiles) ? s.hiddenFiles.filter((p): p is string => typeof p === "string" && p.trim() !== "") : [...DEFAULT_HIDDEN];
   out.browserRecent = Array.isArray(s.browserRecent) ? s.browserRecent.filter((u): u is string => typeof u === "string" && /^https?:\/\//.test(u)).slice(0, 12) : [];
+  out.sidebarSplit = Number.isFinite(out.sidebarSplit) ? Math.min(Math.max(out.sidebarSplit, 0.15), 0.85) : 0.5;
   out.fontSize = Math.min(Math.max(out.fontSize, 8), 40);
   out.uiScale = Math.min(Math.max(out.uiScale, 0.75), 2);
   return out;

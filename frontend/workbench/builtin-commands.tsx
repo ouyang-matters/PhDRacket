@@ -56,7 +56,17 @@ import { installGitCommands } from "@frontend/git/commands";
 import { openBrowserTab } from "@frontend/browser/BrowserView";
 import { runEditorAction, targetEditor } from "./editors";
 import { showCommandPalette, showLanguagePicker, showProfilePicker, showQuickOpen, showThemePicker } from "./pickers";
-import { toggleSidebarView } from "./sidebar";
+import {
+  canShowSidebarView,
+  closeSidebarBelow,
+  isSidebarSplit,
+  openSidebarViewAbove,
+  openSidebarViewBelow,
+  showSidebarView,
+  swapSidebarViews,
+  toggleSidebarSplit,
+  toggleSidebarView,
+} from "./sidebar";
 
 const hasDoc = () => !!activeDoc();
 /** A document or a browser tab is active. */
@@ -177,7 +187,7 @@ export const BUILTIN_COMMANDS: Command[] = [
   editorAction("edit.paste", "Paste", "editor.action.clipboardPasteAction", "Edit", "Mod+V"),
   editorAction("edit.find", "Find", "actions.find", "Edit", "Mod+F"),
   editorAction("edit.replace", "Replace", "editor.action.startFindReplaceAction", "Edit", "Mod+H"),
-  { id: "edit.findInFiles", title: "Find in Files", category: "Edit", icon: "search", keybinding: "Mod+Shift+F", enabled: () => getState().folder !== null, run: () => setPrefs({ sidebarView: "search", explorerVisible: true }) },
+  { id: "edit.findInFiles", title: "Find in Files", category: "Edit", icon: "search", keybinding: "Mod+Shift+F", enabled: () => getState().folder !== null, run: () => showSidebarView("search") },
   editorAction("edit.toggleLineComment", "Toggle Line Comment", "editor.action.commentLine", "Edit", "Mod+/"),
   editorAction("edit.toggleBlockComment", "Toggle Block Comment", "editor.action.blockComment", "Edit", "Shift+Alt+A"),
   // No Racket formatter exists yet; the commands stay hidden until one does.
@@ -217,6 +227,11 @@ export const BUILTIN_COMMANDS: Command[] = [
   { id: "view.toggleZenMode", title: "Zen Mode", category: "View", checked: () => getState().zen, run: toggleZen },
   { id: "view.toggleFullScreen", title: "Full Screen", category: "View", keybinding: "F11", run: toggleFullScreen },
   { id: "view.outline", title: "Outline", category: "View", icon: "outline", run: () => toggleSidebarView("outline") },
+  { id: "view.toggleSidebarSplit", title: "Split Sidebar", category: "View", icon: "splitDown", checked: isSidebarSplit, run: toggleSidebarSplit },
+  { id: "view.swapSidebarViews", title: "Swap Sidebar Views", category: "View", enabled: isSidebarSplit, run: swapSidebarViews },
+  { id: "view.closeSidebarBelow", title: "Close Lower Sidebar View", category: "View", enabled: isSidebarSplit, run: closeSidebarBelow },
+  { id: "view.sidebarShowAbove", title: "Show Above", category: "View", palette: false, run: openSidebarViewAbove },
+  { id: "view.sidebarShowBelow", title: "Show Below", category: "View", palette: false, run: openSidebarViewBelow },
   { id: "view.splitEditorRight", title: "Split Editor Right", category: "View", icon: "splitRight", keybinding: "Mod+\\", enabled: hasTab, run: () => splitEditor("right") },
   { id: "view.splitEditorDown", title: "Split Editor Down", category: "View", icon: "splitDown", enabled: hasTab, run: () => splitEditor("down") },
   { id: "view.layoutSingle", title: "Single", category: "View: Editor Layout", run: () => applyEditorLayout("single") },
@@ -445,6 +460,7 @@ export const BUILTIN_MENUS: Record<string, MenuItem[]> = {
   ],
   "menubar.view.appearance": [
     item("view.toggleSidebar", "1", 1),
+    item("view.toggleSidebarSplit", "1", 1.5),
     item("view.togglePanel", "1", 2),
     item("view.maximizePanel", "1", 3),
     item("view.toggleStatusBar", "1", 4),
@@ -494,6 +510,13 @@ export const BUILTIN_MENUS: Record<string, MenuItem[]> = {
     item("help.releaseNotes", "4_updates", 2),
     item("help.terms", "5_about", 1),
     item("help.about", "5_about", 2),
+  ],
+  // Right-click on an activity bar icon or a split sidebar view's title.
+  "sidebar.viewContext": [
+    item("view.sidebarShowAbove", "1_place", 1, { when: () => canShowSidebarView("above") }),
+    item("view.sidebarShowBelow", "1_place", 2, { when: () => canShowSidebarView("below") }),
+    item("view.swapSidebarViews", "2_split", 1, { when: isSidebarSplit }),
+    item("view.closeSidebarBelow", "2_split", 2, { when: isSidebarSplit }),
   ],
   "editor.tabContext": [
     item("file.closeEditor", "1_close", 1),
