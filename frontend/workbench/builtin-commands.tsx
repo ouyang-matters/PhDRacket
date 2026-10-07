@@ -40,7 +40,7 @@ import {
 } from "@frontend/app/store";
 import { backend } from "@frontend/ipc/backend";
 import { LINKS } from "@frontend/app/links";
-import { checkForUpdates } from "@frontend/app/updates";
+import { checkForUpdates, updateState } from "@frontend/app/updates";
 import { goTo } from "@frontend/problems/DiagnosticView";
 import { monaco } from "@frontend/editor/monaco";
 import { RACKET_LANGUAGE_ID } from "@frontend/editor/racket-language";
@@ -69,6 +69,14 @@ import {
 } from "./sidebar";
 
 const hasDoc = () => !!activeDoc();
+
+/** Help > Check for Updates: the result shows in About (checking, up to
+ * date, or why it failed); a new version opens its update window. */
+async function checkForUpdatesVisibly() {
+  setDialog("about");
+  await checkForUpdates();
+  if (updateState().status === "available" && getState().dialog === "about") setDialog("update");
+}
 /** A document or a browser tab is active. */
 const hasTab = () => !!getState().layout.groups[getState().layout.activeGroup]?.active;
 const hasEditor = () => !!targetEditor()?.getModel();
@@ -308,7 +316,7 @@ export const BUILTIN_COMMANDS: Command[] = [
   { id: "help.htdpDocs", title: "HtDP Documentation", category: "Help", run: () => openUrl(LINKS.htdpDocs) },
   { id: "help.htdpLanguages", title: "HtDP Teaching Languages", category: "Help", run: () => openUrl(LINKS.htdpLanguages) },
   { id: "help.reportIssue", title: "Report Issue", category: "Help", icon: "bug", run: () => openUrl(LINKS.reportIssue) },
-  { id: "help.checkForUpdates", title: "Check for Updates…", category: "Help", run: () => checkForUpdates() },
+  { id: "help.checkForUpdates", title: "Check for Updates…", category: "Help", run: checkForUpdatesVisibly },
   { id: "help.releaseNotes", title: "Release Notes", category: "Help", run: () => openUrl(LINKS.releaseNotes) },
   { id: "help.terms", title: "Beta Terms of Use", category: "Help", run: () => setDialog("terms") },
   {

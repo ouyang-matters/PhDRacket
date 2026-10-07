@@ -18,6 +18,10 @@
   end, or enter something, and it follows new output again.
 - While the Stepper is still working out steps, you can scroll the editor
   without being pulled back to the current step.
+- Help > Check for Updates shows its result: it opens About with "Checking
+  for updates…", then "PhDRacket is up to date" or why the check failed, and
+  opens the update window when a new version is found. Before, nothing
+  appeared.
 
 ### Updating
 
