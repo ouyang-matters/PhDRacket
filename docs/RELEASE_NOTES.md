@@ -1,5 +1,31 @@
 # Release notes
 
+## 0.1.4 Beta
+
+### Sidebar
+
+- **Two views at once**: the sidebar can show one view above another, for
+  example the Explorer above the Outline. Choose View > Appearance > Split
+  Sidebar, or right-click a view's icon in the activity bar and choose
+  *Show Below*. Drag the line between them to resize; right-click a view's
+  title to swap the views or close the lower one. PhDRacket remembers the
+  layout.
+
+### Fixes
+
+- Scrolling up in Interactions or in a remote task's output no longer jumps
+  back to the end while the program is still printing. Scroll back to the
+  end, or enter something, and it follows new output again.
+- While the Stepper is still working out steps, you can scroll the editor
+  without being pulled back to the current step.
+
+### Updating
+
+Copies of 0.1.3 and earlier show an *Update 0.1.4* button in the status bar a
+few seconds after startup; click it, or use About > Check for updates. You
+can also use the Quick install command or the installer from the release
+page.
+
 ## 0.1.3 Beta
 
 ### Checking while typing

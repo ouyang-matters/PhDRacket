@@ -1,7 +1,7 @@
 {
   "name": "phdracket",
   "private": true,
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A modern, course-conscious Racket IDE. Same course. Same Racket. Better IDE.",
   "license": "MIT",
   "type": "module",
