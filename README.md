@@ -137,7 +137,7 @@ connection.
 
 ## Status
 
-The current version is **0.1.4 Beta**; see the
+The current version is **0.1.5 Beta**; see the
 [release notes](docs/RELEASE_NOTES.md). PhDRacket is in early development and
 in beta: using it requires accepting the [Beta Terms of Use](docs/TERMS.md).
 The current focus is the student workflow (Phase 2 of the

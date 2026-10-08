@@ -1,5 +1,29 @@
 # Release notes
 
+## 0.1.5 Beta
+
+### Web pages beside your code
+
+- Opening a web page is easier to find: the globe button at the bottom of the
+  activity bar and the *Web* button above the editor open a browser tab
+  beside your code, and the start page has *Open Web Page…*
+  (Ctrl+Shift+B).
+
+### Fixes
+
+- Checking while typing no longer gets stuck on an old error. Sometimes an
+  error from half-typed code (such as "define: expected an expression for
+  the function body, but nothing's there") stayed after the code was
+  finished, and later changes were not checked until PhDRacket restarted.
+- Toolbar buttons show their names when you hover them.
+
+### Updating
+
+Copies of 0.1.4 and earlier show an *Update 0.1.5* button in the status bar a
+few seconds after startup; click it, or use About > Check for updates. You
+can also use the Quick install command or the installer from the release
+page.
+
 ## 0.1.4 Beta
 
 ### Sidebar

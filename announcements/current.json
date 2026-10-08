@@ -1,14 +1,14 @@
 {
   "announcements": [
     {
-      "id": "2026-10-0.1.4-beta",
-      "title": "PhDRacket 0.1.4 Beta is available",
-      "body": "Version 0.1.4 Beta lets the sidebar show two views at once, such as the Explorer above the Outline (View > Appearance > Split Sidebar), and stops Interactions and the editor from jumping back while you scroll. To update, click the Update button in the status bar, or open About and choose Check for updates.",
+      "id": "2026-10-0.1.5-beta",
+      "title": "PhDRacket 0.1.5 Beta is available",
+      "body": "Version 0.1.5 Beta fixes checking while typing getting stuck on an old error, and makes web pages easy to open beside your code (the globe button on the left). To update, click the Update button in the status bar, or open About and choose Check for updates.",
       "link": {
         "label": "Release notes",
-        "url": "https://github.com/ouyang-matters/PhDRacket/releases/tag/v0.1.4"
+        "url": "https://github.com/ouyang-matters/PhDRacket/releases/tag/v0.1.5"
       },
-      "maxVersion": "0.1.3"
+      "maxVersion": "0.1.4"
     }
   ]
 }
