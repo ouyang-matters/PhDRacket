@@ -31,12 +31,20 @@ interface ModelState {
   diagnostics: CheckDiagnostic[];
   language: string | null;
   checking: boolean;
+  /** When the check in progress was sent (Date.now()). */
+  checkingSince: number;
   timer: number | null;
 }
 
 const states = new WeakMap<monaco.editor.ITextModel, ModelState>();
 /** request id → the model and the version it was sent for */
 const inflight = new Map<number, { model: monaco.editor.ITextModel; version: number; text: string }>();
+/** Results that arrived before the request that asked for them was known:
+ * the result event can overtake the reply to `backend.check`. */
+const early = new Map<number, CheckResult>();
+/** A check unanswered for this long is given up (Racket's own limit is 10 s),
+ * so a lost result cannot stop checking for good. */
+const GIVE_UP_MS = 30_000;
 const exportsByLanguage = new Map<string, { name: string; kind: "value" | "syntax" }[]>();
 let analysisSession: number | null = null;
 let version = 0;
@@ -51,7 +59,7 @@ function changed() {
 function stateOf(model: monaco.editor.ITextModel): ModelState {
   let s = states.get(model);
   if (!s) {
-    s = { analysis: null, diagnostics: [], language: null, checking: false, timer: null, text: "", inline: [] };
+    s = { analysis: null, diagnostics: [], language: null, checking: false, checkingSince: 0, timer: null, text: "", inline: [] };
     states.set(model, s);
   }
   return s;
@@ -80,14 +88,23 @@ async function check(model: monaco.editor.ITextModel) {
   if (!doc || doc.language.kind === "unspecified") return clear(model);
   const s = stateOf(model);
   // One check at a time per model; a newer edit checks again afterwards.
-  if (s.checking) return schedule(model);
+  if (s.checking && Date.now() - s.checkingSince < GIVE_UP_MS) return schedule(model);
   s.checking = true;
+  s.checkingSince = Date.now();
+  // The version of the text being sent, taken before any edit made while
+  // waiting for the reply, so a result for older text is recognized as stale.
+  const version = model.getAlternativeVersionId();
   const text = model.getValue();
   const wantExports = !s.language || !exportsByLanguage.has(s.language);
   try {
     const handle = await backend.check(doc.path, text, wantExports);
     analysisSession = handle.session;
-    inflight.set(handle.request, { model, version: model.getAlternativeVersionId(), text });
+    inflight.set(handle.request, { model, version, text });
+    const result = early.get(handle.request);
+    if (result) {
+      early.delete(handle.request);
+      onResult(handle.request, result);
+    }
   } catch {
     s.checking = false;
   }
@@ -106,7 +123,12 @@ function clear(model: monaco.editor.ITextModel) {
 
 function onResult(id: number, result: CheckResult) {
   const req = inflight.get(id);
-  if (!req) return;
+  if (!req) {
+    early.set(id, result);
+    // Only results whose request is still on its way belong here; keep few.
+    if (early.size > 16) early.delete(early.keys().next().value!);
+    return;
+  }
   inflight.delete(id);
   const { model, text } = req;
   const s = stateOf(model);
@@ -371,6 +393,7 @@ export function installAnalysis() {
       if (e.type === "session-ended") {
         for (const [, r] of inflight) stateOf(r.model).checking = false;
         inflight.clear();
+        early.clear();
       }
       return true;
     }
