@@ -21,7 +21,7 @@ import {
   useApp,
   type Doc,
 } from "@frontend/app/store";
-import { executeCommand } from "@frontend/commands/registry";
+import { executeCommand, getCommand } from "@frontend/commands/registry";
 import { formatKey, keybindingFor } from "@frontend/commands/keybindings";
 import { stepSourceRange } from "@frontend/stepper/StepperPanel";
 import type { LayoutNode, SplitNode } from "@frontend/workbench/layout";
@@ -207,7 +207,7 @@ function ToolButton({ command, icon, label, className }: { command: string; icon
   return (
     <button
       className={`icon-button${label ? " labeled" : ""}${className ? ` ${className}` : ""}`}
-      title={`${label ?? command}${key ? ` (${formatKey(key)})` : ""}`}
+      title={`${getCommand(command)?.title ?? label ?? command}${key ? ` (${formatKey(key)})` : ""}`}
       onClick={() => executeCommand(command)}
     >
       <Icon name={icon} />
@@ -233,6 +233,7 @@ function GroupToolbar({ groupId }: { groupId: string }) {
           <ToolButton command="run.run" icon="run" label="Run" className="run" />
         </>
       )}
+      {active && <ToolButton command="view.openBrowserToSide" icon="globe" label="Web" />}
       {hasTab && <ToolButton command="view.splitEditorRight" icon="splitRight" />}
       {many && <ToolButton command="view.closeEditorGroup" icon="close" />}
     </div>

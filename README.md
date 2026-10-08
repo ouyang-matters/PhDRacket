@@ -107,7 +107,8 @@ click. The check can be turned off in Settings.
   language and dates. Changes made outside PhDRacket appear at once. Choose
   which files to hide in Settings > Files.
 - **Browser tabs.** Open the assignment page, course notes or documentation
-  in a tab beside your code (Ctrl+Shift+B). Pages cannot see your files or
+  in a tab beside your code: the globe button on the left, *Web* above the
+  editor, or Ctrl+Shift+B. Pages cannot see your files or
   use PhDRacket.
 - **Themes.** PhDRacket Light and Dark, Midnight, Paper, two high-contrast
   themes and two unofficial Waterloo-inspired themes, all checked for

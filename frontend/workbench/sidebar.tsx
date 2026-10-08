@@ -139,10 +139,26 @@ export function ActivityBar() {
         );
       })}
       <span className="activity-spacer" />
+      <BrowserButton />
       <button className="activity-item" title="Settings" onClick={() => executeCommand("preferences.settings")}>
         <Icon name="settings" size={20} />
       </button>
     </nav>
+  );
+}
+
+/** Opens a web page (an assignment, the docs) beside the code. */
+function BrowserButton() {
+  const key = keybindingFor("view.openBrowser");
+  return (
+    <button
+      className="activity-item"
+      title={`Open Web Page beside the Code${key ? ` (${formatKey(key)} opens it here)` : ""}`}
+      aria-label="Open web page"
+      onClick={() => executeCommand("view.openBrowserToSide")}
+    >
+      <Icon name="globe" size={20} />
+    </button>
   );
 }
 

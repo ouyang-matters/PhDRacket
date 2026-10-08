@@ -38,6 +38,7 @@ export function StartPage() {
           <Action command="file.newFile" icon="newFile" label="New File…" />
           <Action command="file.openFile" icon="openFile" label="Open File…" />
           <Action command="file.openFolder" icon="folder" label="Open Folder…" />
+          <Action command="view.openBrowser" icon="globe" label="Open Web Page…" />
         </div>
         {(recent.length > 0 || folder) && (
           <section className="start-recent">

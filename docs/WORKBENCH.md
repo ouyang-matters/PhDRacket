@@ -221,7 +221,9 @@ unless the debugger is paused.
 
 View > Open Browser Tab (Ctrl+Shift+B) opens a web page as an editor tab, so
 an assignment page can sit beside the code in a split; View > Open Browser
-Tab to the Side opens it in a new group at once. The tab has an address bar
+Tab to the Side opens it in a new group at once. The globe button in the
+activity bar and the *Web* button in the editor's toolbar open a page beside
+the code; the start page has *Open Web Page…*. The tab has an address bar
 (a bare address such as `student.cs.uwaterloo.ca/~cs145` becomes https),
 Back, Forward, Reload and Open in your web browser, and suggests recent
 addresses.
