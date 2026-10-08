@@ -1,0 +1,31 @@
+{
+  "version": "0.1.5",
+  "notes": "PhDRacket is a modern desktop IDE for Racket and the HtDP teaching languages. Programs run in the official Racket installation on your computer, and `.rkt` files stay exactly as DrRacket expects them.\n\n**What's new:** see the [release notes](https://github.com/ouyang-matters/PhDRacket/blob/main/docs/RELEASE_NOTES.md).\n\n## Quick install\n\n**macOS** (Apple Silicon and Intel), in Terminal:\n\n```bash\ncurl -fsSL https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/install/install-macos.sh | bash\n```\n\n**Windows**, in PowerShell:\n\n```powershell\nirm https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/install/install-windows.ps1 | iex\n```\n\nThe command downloads this release, checks it against the checksum published by GitHub and installs it. On macOS this avoids the *Open Anyway* step below.\n\n## Manual install\n\n**Windows:** download `PhDRacket_<version>_x64-setup.exe` and run it. Administrator rights are not required. If Windows SmartScreen shows a warning, choose *More info*, then *Run anyway*. The installer is not code-signed yet.\n\n**macOS (Apple Silicon and Intel):** download `PhDRacket_<version>_universal.dmg`, open it and drag PhDRacket into Applications. The app is not notarized yet. The first time you open it, macOS blocks it; open *System Settings*, go to *Privacy & Security* and click *Open Anyway*.\n\n## First launch\n\nThis is a **beta**. Installing and using PhDRacket requires accepting the [Beta Terms of Use](https://github.com/ouyang-matters/PhDRacket/blob/main/docs/TERMS.md); the Windows installer and the first-run Setup dialog ask you to accept them.\n\nSetup finds your Racket installation. If Racket is not installed, click *Install Racket 9.3*: PhDRacket downloads the official installer from racket-lang.org, verifies its checksum and installs it. On Windows, the official Racket installer asks for administrator permission once.\n\n## Updating\n\nInstalled copies check for new versions at startup and install them with one click. The check can be turned off in Settings.\n\nContact: support@aqouyang.com, https://www.aqouyang.com\n\nPhDRacket is an independent open-source project. It is not affiliated with or endorsed by the University of Waterloo or the Racket project.",
+  "pub_date": "2026-10-08T18:20:58.373Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQnRLUkJJK2xKUk9BTVRSVUp4OFJ3ZEpoM2NyREY1WTU2UnpTM2R5WmU4dkFHTlRHQllIWlo3VVdTN1pMNXdtNHVMNmJUQ1BOTVEyeW4wYVlIc3gzWnZXdmtoN0pmQ1FzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxNDgzNjI4CWZpbGU6UGhEUmFja2V0XzAuMS41X3g2NC1zZXR1cC5leGUJdmVyc2lvbjowLjEuNQo0SEkrcmQ5bC91NDhrc3hlK05pKzhFUFpaNEhwWkVnSVZTdUZrWnpqZTNrU0NTTXVHZDlMWDI4eTROSlA1WEIyN3FsUVB2S2tGM0V4emp4dlppWkREZz09Cg==",
+      "url": "https://github.com/ouyang-matters/PhDRacket/releases/download/v0.1.5/PhDRacket_0.1.5_x64-setup.exe"
+    },
+    "windows-x86_64-nsis": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQnRLUkJJK2xKUk9BTVRSVUp4OFJ3ZEpoM2NyREY1WTU2UnpTM2R5WmU4dkFHTlRHQllIWlo3VVdTN1pMNXdtNHVMNmJUQ1BOTVEyeW4wYVlIc3gzWnZXdmtoN0pmQ1FzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxNDgzNjI4CWZpbGU6UGhEUmFja2V0XzAuMS41X3g2NC1zZXR1cC5leGUJdmVyc2lvbjowLjEuNQo0SEkrcmQ5bC91NDhrc3hlK05pKzhFUFpaNEhwWkVnSVZTdUZrWnpqZTNrU0NTTXVHZDlMWDI4eTROSlA1WEIyN3FsUVB2S2tGM0V4emp4dlppWkREZz09Cg==",
+      "url": "https://github.com/ouyang-matters/PhDRacket/releases/download/v0.1.5/PhDRacket_0.1.5_x64-setup.exe"
+    },
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQnRLUkJJK2xKUkdRL0xudUw5dGJDRi8xd296QXp5YzloUUd4OXcvMHFidGttRjJLMzdCdnNVcjE2aHY1clU4QnhuKzV2YUE1Ympnb0pESFAzeHlkWkFGSExmNFBmOEFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxNDgzNjUyCWZpbGU6UGhEUmFja2V0LmFwcC50YXIuZ3oJdmVyc2lvbjowLjEuNQpGS1FCMTA5SmI2OVJnUlNaSlViRnhpY09qZmJockFuL2pXTUFJZnRGVG4rZ1VrR2hqMVNlM3ZnK2ZSQUg4cUMxRFB0MFZ2Y201cTVmNEwwNWZnSlZCZz09Cg==",
+      "url": "https://github.com/ouyang-matters/PhDRacket/releases/download/v0.1.5/PhDRacket_universal.app.tar.gz"
+    },
+    "darwin-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQnRLUkJJK2xKUkdRL0xudUw5dGJDRi8xd296QXp5YzloUUd4OXcvMHFidGttRjJLMzdCdnNVcjE2aHY1clU4QnhuKzV2YUE1Ympnb0pESFAzeHlkWkFGSExmNFBmOEFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxNDgzNjUyCWZpbGU6UGhEUmFja2V0LmFwcC50YXIuZ3oJdmVyc2lvbjowLjEuNQpGS1FCMTA5SmI2OVJnUlNaSlViRnhpY09qZmJockFuL2pXTUFJZnRGVG4rZ1VrR2hqMVNlM3ZnK2ZSQUg4cUMxRFB0MFZ2Y201cTVmNEwwNWZnSlZCZz09Cg==",
+      "url": "https://github.com/ouyang-matters/PhDRacket/releases/download/v0.1.5/PhDRacket_universal.app.tar.gz"
+    },
+    "darwin-aarch64-app": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQnRLUkJJK2xKUkdRL0xudUw5dGJDRi8xd296QXp5YzloUUd4OXcvMHFidGttRjJLMzdCdnNVcjE2aHY1clU4QnhuKzV2YUE1Ympnb0pESFAzeHlkWkFGSExmNFBmOEFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxNDgzNjUyCWZpbGU6UGhEUmFja2V0LmFwcC50YXIuZ3oJdmVyc2lvbjowLjEuNQpGS1FCMTA5SmI2OVJnUlNaSlViRnhpY09qZmJockFuL2pXTUFJZnRGVG4rZ1VrR2hqMVNlM3ZnK2ZSQUg4cUMxRFB0MFZ2Y201cTVmNEwwNWZnSlZCZz09Cg==",
+      "url": "https://github.com/ouyang-matters/PhDRacket/releases/download/v0.1.5/PhDRacket_universal.app.tar.gz"
+    },
+    "darwin-x86_64-app": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTQnRLUkJJK2xKUkdRL0xudUw5dGJDRi8xd296QXp5YzloUUd4OXcvMHFidGttRjJLMzdCdnNVcjE2aHY1clU4QnhuKzV2YUE1Ympnb0pESFAzeHlkWkFGSExmNFBmOEFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxNDgzNjUyCWZpbGU6UGhEUmFja2V0LmFwcC50YXIuZ3oJdmVyc2lvbjowLjEuNQpGS1FCMTA5SmI2OVJnUlNaSlViRnhpY09qZmJockFuL2pXTUFJZnRGVG4rZ1VrR2hqMVNlM3ZnK2ZSQUg4cUMxRFB0MFZ2Y201cTVmNEwwNWZnSlZCZz09Cg==",
+      "url": "https://github.com/ouyang-matters/PhDRacket/releases/download/v0.1.5/PhDRacket_universal.app.tar.gz"
+    }
+  }
+}
