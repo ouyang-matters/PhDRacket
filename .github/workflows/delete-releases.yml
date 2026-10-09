@@ -1,0 +1,41 @@
+name: Delete releases
+
+# Run by hand (Actions > Delete releases > Run workflow) to remove old GitHub
+# releases and their installers. The tags stay, so the code of each version
+# can still be found. The release that installed copies update to (the
+# version in latest.json on the `updater` branch) is never deleted.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Tags of the releases to delete, separated by spaces, e.g. v0.1.2 v0.1.3"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete the releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAGS: ${{ inputs.tags }}
+        run: |
+          set -euo pipefail
+          current=$(gh api "repos/$REPO/contents/latest.json?ref=updater" --jq .content | base64 -d | jq -r .version)
+          for tag in $TAGS; do
+            if ! [[ "$tag" =~ ^v[0-9][0-9A-Za-z.+-]*$ ]]; then
+              echo "Not a release tag: $tag" >&2; exit 1
+            fi
+            if [ "$tag" = "v$current" ]; then
+              echo "$tag is the release installed copies update to; not deleting it" >&2; exit 1
+            fi
+          done
+          for tag in $TAGS; do
+            gh release delete "$tag" -R "$REPO" --yes
+            echo "Deleted the release $tag (the tag is kept)"
+          done
