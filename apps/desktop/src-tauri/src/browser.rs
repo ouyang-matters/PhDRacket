@@ -121,6 +121,19 @@ pub async fn browser_focus(app: AppHandle, id: String) -> Result<(), String> {
     webview(&app, &id)?.set_focus().map_err(|e| e.to_string())
 }
 
+/// Undo, Redo or Select All in a browser tab's page (the macOS Edit menu,
+/// while the page has focus).
+#[tauri::command]
+pub async fn browser_edit(app: AppHandle, id: String, action: String) -> Result<(), String> {
+    let command = match action.as_str() {
+        "undo" | "redo" | "selectAll" => action,
+        _ => return Err(format!("Unknown edit action {action}")),
+    };
+    webview(&app, &id)?
+        .eval(format!("document.execCommand({command:?})"))
+        .map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub async fn browser_close(app: AppHandle, id: String) -> Result<(), String> {
     match app.get_webview(&label(&id)?) {

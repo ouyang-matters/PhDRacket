@@ -25,6 +25,8 @@ import type {
   Settings,
 } from "@shared/protocol";
 
+export type NativeEditAction = "undo" | "redo" | "selectAll";
+
 /** Where a browser tab's page goes, in CSS pixels of the window. */
 export interface Bounds {
   x: number;
@@ -66,6 +68,8 @@ export const backend = {
   browserNavigate: (id: string, url: string) => invoke<void>("browser_navigate", { id, url }),
   browserHistory: (id: string, action: "back" | "forward" | "reload") => invoke<void>("browser_history", { id, action }),
   browserFocus: (id: string) => invoke<void>("browser_focus", { id }),
+  /** Undo, Redo or Select All in a browser tab's page. */
+  browserEdit: (id: string, action: NativeEditAction) => invoke<void>("browser_edit", { id, action }),
   browserClose: (id: string) => invoke<void>("browser_close", { id }),
   onBrowserEvent: (f: (e: BrowserEvent) => void): Promise<UnlistenFn> => listen<BrowserEvent>("browser", (e) => f(e.payload)),
 
@@ -120,6 +124,9 @@ export const backend = {
 
   onEngineEvent: (f: (e: EngineEvent) => void): Promise<UnlistenFn> =>
     listen<EngineEvent>("engine", (e) => f(e.payload)),
+  /** The macOS Edit menu's Undo, Redo and Select All (src-tauri/src/menu.rs). */
+  onNativeEdit: (f: (action: NativeEditAction) => void): Promise<UnlistenFn> =>
+    listen<NativeEditAction>("native-edit", (e) => f(e.payload)),
   onRuntimeStatus: (f: (s: RuntimeStatus) => void): Promise<UnlistenFn> =>
     listen<RuntimeStatus>("runtime-status", (e) => f(e.payload)),
 };

@@ -3,9 +3,13 @@
 
 mod browser;
 mod commands;
+mod menu;
 
 fn main() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(target_os = "macos")]
+    let builder = builder.menu(menu::build).on_menu_event(menu::on_event);
+    builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
@@ -58,6 +62,7 @@ fn main() {
             browser::browser_navigate,
             browser::browser_history,
             browser::browser_focus,
+            browser::browser_edit,
             browser::browser_close,
             commands::fs_list,
             commands::fs_create_file,

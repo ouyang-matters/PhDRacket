@@ -14,6 +14,7 @@ import { ContextMenuHost } from "@frontend/workbench/ContextMenu";
 import { installBuiltinCommands } from "@frontend/workbench/builtin-commands";
 import { installBuiltinViews } from "@frontend/workbench/builtin-views";
 import { installAnalysis } from "@frontend/analysis/analysis";
+import { installNativeEdit } from "@frontend/workbench/native-edit";
 import { installDebugger } from "@frontend/debug/debugger";
 import { Icon } from "@frontend/workbench/icons";
 import { Dialogs } from "./Dialogs";
@@ -23,6 +24,7 @@ import { confirmQuit, dismissNotice, getState, initialize, loadAnnouncements, se
 installBuiltinCommands();
 installBuiltinViews();
 installAnalysis();
+installNativeEdit();
 installDebugger();
 
 // Menus and toolbars show enablement from application state.
