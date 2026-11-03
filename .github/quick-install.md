@@ -12,4 +12,4 @@ curl -fsSL https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/insta
 irm https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/install/install-windows.ps1 | iex
 ```
 
-The command downloads the latest release, checks it against the checksum published by GitHub and installs it. On macOS this avoids the *Open Anyway* step. If Racket is not installed, PhDRacket offers to install it on first launch.
+The command downloads the latest release, checks it against the checksum published by GitHub and installs it. On macOS it first shows the Beta Terms of Use and asks you to type `yes`, and it avoids the *Open Anyway* step. If Racket is not installed, PhDRacket offers to install it on first launch.

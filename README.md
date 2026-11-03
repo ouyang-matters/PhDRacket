@@ -33,7 +33,7 @@ irm https://raw.githubusercontent.com/ouyang-matters/PhDRacket/main/install/inst
 ```
 
 The command downloads the latest release, checks it against the checksum
-published by GitHub and installs it. On macOS this avoids the *Open Anyway*
+published by GitHub and installs it. On macOS it first shows the Beta Terms of Use and asks you to type `yes`, and it avoids the *Open Anyway*
 step described below. The scripts are in [`install/`](install/).
 
 ### Manual install
@@ -137,7 +137,7 @@ connection.
 
 ## Status
 
-The current version is **0.1.5 Beta**; see the
+The current version is **0.1.6 Beta**; see the
 [release notes](docs/RELEASE_NOTES.md). PhDRacket is in early development and
 in beta: using it requires accepting the [Beta Terms of Use](docs/TERMS.md).
 The current focus is the student workflow (Phase 2 of the

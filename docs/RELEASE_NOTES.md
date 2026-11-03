@@ -1,5 +1,27 @@
 # Release notes
 
+## 0.1.6 Beta
+
+### Fixes
+
+- **macOS:** Select All (⌘A), Undo (⌘Z) and Redo (⇧⌘Z) work in the code
+  editor and Interactions. Before, ⌘A did not select the program and ⌘Z did
+  not use the editor's undo. In a text field, a browser tab or the
+  Interactions transcript they act there.
+
+### Installing
+
+- **macOS Quick install** shows the Beta Terms of Use in Terminal and asks
+  you to type `yes`; nothing is installed otherwise. PhDRacket's Setup then
+  has the Terms already ticked.
+
+### Updating
+
+Copies of 0.1.5 and earlier show an *Update 0.1.6* button in the status bar a
+few seconds after startup; click it, or use About > Check for updates. You
+can also use the Quick install command or the installer from the release
+page.
+
 ## 0.1.5 Beta
 
 ### Web pages beside your code
