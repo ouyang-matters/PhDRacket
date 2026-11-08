@@ -127,6 +127,69 @@ kbd {
   align-self: stretch;
 }
 
+/* Exam Mode switch, at the right of the menu bar */
+.exam-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--c-text-secondary);
+  white-space: nowrap;
+}
+
+.exam-switch:hover {
+  background: var(--c-surface-sunken);
+  color: var(--c-text-primary);
+}
+
+.exam-switch:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.exam-switch.on {
+  color: var(--c-text-primary);
+  font-weight: 600;
+  border-color: var(--accent);
+}
+
+.exam-switch-track {
+  position: relative;
+  width: 1.9rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--c-text-secondary);
+  transition: background 0.15s;
+}
+
+.exam-switch-knob {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--c-app-background);
+  transition: transform 0.15s;
+}
+
+.exam-switch.on .exam-switch-track {
+  background: var(--accent);
+}
+
+.exam-switch.on .exam-switch-knob {
+  transform: translateX(0.9rem);
+  background: var(--accent-text);
+}
+
+.exam-switch-state {
+  min-width: 1.6em;
+  text-align: left;
+}
+
 .menubar-dropdown {
   position: absolute;
   top: calc(100% + 2px);
