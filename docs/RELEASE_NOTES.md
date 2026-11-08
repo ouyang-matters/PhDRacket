@@ -1,6 +1,6 @@
 # Release notes
 
-## Unreleased
+## 0.1.8 Beta
 
 ### Files from your computer in browser tabs
 
@@ -12,6 +12,11 @@
   for any file.
 - Only files you open yourself are shown, and web pages still cannot read
   your files.
+
+### Updating
+
+Copies of 0.1.7 and earlier show an *Update 0.1.8* button in the status bar a
+few seconds after startup; click it, or use About > Check for updates.
 
 ## 0.1.7 Beta
 
