@@ -6,9 +6,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { backend, type Bounds } from "@frontend/ipc/backend";
-import { getState, notify, openWebTab, rememberWebAddress, updateWebTab, useApp, type WebTab } from "@frontend/app/store";
+import { getState, notify, openFileInWebTabWithDialog, openWebTab, rememberWebAddress, updateWebTab, useApp, type WebTab } from "@frontend/app/store";
 import { Icon } from "@frontend/workbench/icons";
-import { toWebAddress } from "./address";
+import { displayAddress, fileNameOf, isLocalFileAddress, isLocalFileInput, toWebAddress } from "./address";
 
 /** Elements drawn above the editor area that a page must not cover. */
 const OVERLAYS = ".modal-backdrop, .context-menu, .quick-input-backdrop, .menubar-dropdown, .cap-toss, .unsaved-backdrop, [role='menu']";
@@ -27,7 +27,7 @@ function listenOnce() {
     } else if (e.kind === "title") {
       if (e.title.trim()) updateWebTab(e.id, { title: e.title.trim() });
     } else if (e.kind === "new-tab") {
-      if (/^https?:/.test(e.url)) openWebTab(e.url);
+      if (/^https?:/.test(e.url) || isLocalFileAddress(e.url)) openWebTab(e.url);
     } else if (e.kind === "blocked") {
       notify("info", `Only web pages open in browser tabs; ${e.url.split(":")[0]}: links are not followed.`);
     }
@@ -100,11 +100,11 @@ export function BrowserView({ id, active }: { id: string; active: boolean }) {
   const recent = useApp((s) => s.prefs.browserRecent);
   const host = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
-  const [address, setAddress] = useState(tab?.url ?? "");
+  const [address, setAddress] = useState(displayAddress(tab?.url ?? ""));
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
-    if (!editing) setAddress(tab?.url ?? "");
+    if (!editing) setAddress(displayAddress(tab?.url ?? ""));
   }, [tab?.url, editing]);
   useEffect(() => {
     if (tab && !tab.url && active) input.current?.focus();
@@ -113,16 +113,27 @@ export function BrowserView({ id, active }: { id: string; active: boolean }) {
   usePlacement(tab ?? { id, url: "", title: "", loading: false }, host, active);
   if (!tab) return null;
 
-  const go = (text: string) => {
-    const url = toWebAddress(text);
-    if (!url) {
-      notify("warning", "Enter a web address, such as student.cs.uwaterloo.ca/~cs145.");
-      return;
-    }
+  const show = (url: string, title = url) => {
     setEditing(false);
     input.current?.blur();
-    if (!tab.url) updateWebTab(tab.id, { url, title: url, loading: true });
+    if (!tab.url) updateWebTab(tab.id, { url, title, loading: true });
     else void backend.browserNavigate(tab.id, url).catch((e) => notify("error", String(e)));
+  };
+  const go = (text: string) => {
+    // A file on this computer: PhDRacket lets this tab show it.
+    if (isLocalFileInput(text)) {
+      void backend.browserLocalUrl(text.trim()).then(
+        (url) => show(url, fileNameOf(displayAddress(url))),
+        (e) => notify("error", String(e)),
+      );
+      return;
+    }
+    const url = toWebAddress(text);
+    if (!url) {
+      notify("warning", "Enter a web address, such as student.cs.uwaterloo.ca/~cs145, or a file path, such as C:\\Exams\\exam.pdf.");
+      return;
+    }
+    show(url);
   };
   const history = (action: "back" | "forward" | "reload") => void backend.browserHistory(tab.id, action).catch(() => {});
 
@@ -148,7 +159,7 @@ export function BrowserView({ id, active }: { id: string; active: boolean }) {
           ref={input}
           className="browser-address"
           aria-label="Address"
-          placeholder="Type a web address, e.g. the assignment page"
+          placeholder="Type a web address or a file path, e.g. the assignment page or an exam PDF"
           list={`browser-recent-${tab.id}`}
           spellCheck={false}
           value={address}
@@ -164,7 +175,7 @@ export function BrowserView({ id, active }: { id: string; active: boolean }) {
               go(e.currentTarget.value);
             }
             if (e.key === "Escape") {
-              setAddress(tab.url);
+              setAddress(displayAddress(tab.url));
               e.currentTarget.blur();
             }
           }}
@@ -174,6 +185,15 @@ export function BrowserView({ id, active }: { id: string; active: boolean }) {
             <option key={u} value={u} />
           ))}
         </datalist>
+        <button
+          type="button"
+          className="icon-button"
+          title="Open a file from this computer (PDF, image, web page)"
+          aria-label="Open a file from this computer"
+          onClick={() => void openFileInWebTabWithDialog()}
+        >
+          <Icon name="openFile" size={14} />
+        </button>
         <button
           type="button"
           className="icon-button"
@@ -188,7 +208,12 @@ export function BrowserView({ id, active }: { id: string; active: boolean }) {
       <div className="browser-page" ref={host}>
         {!tab.url && (
           <div className="browser-empty">
-            <p>Open a page beside your code: an assignment, the course notes, the documentation.</p>
+            <p>Open a page beside your code: an assignment, the course notes, the documentation, or a file from this computer such as an exam PDF.</p>
+            <p>
+              <button onClick={() => void openFileInWebTabWithDialog()}>
+                <Icon name="openFile" size={14} /> Open a File…
+              </button>
+            </p>
             {recent.length > 0 && (
               <>
                 <h3>Recent</h3>
@@ -203,7 +228,9 @@ export function BrowserView({ id, active }: { id: string; active: boolean }) {
                 </ul>
               </>
             )}
-            <p className="muted small">Pages open inside PhDRacket. They cannot see your files or run anything in PhDRacket.</p>
+            <p className="muted small">
+              Pages open inside PhDRacket. Web pages cannot see your files or run anything in PhDRacket; a file from this computer is shown only when you open it here.
+            </p>
           </div>
         )}
         {tab.url && tab.loading && <div className="browser-loading" aria-hidden />}

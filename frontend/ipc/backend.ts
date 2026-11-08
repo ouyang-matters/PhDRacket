@@ -71,6 +71,8 @@ export const backend = {
   browserFocus: (id: string) => invoke<void>("browser_focus", { id }),
   /** Undo, Redo or Select All in a browser tab's page. */
   browserEdit: (id: string, action: NativeEditAction) => invoke<void>("browser_edit", { id, action }),
+  /** Lets browser tabs show a file from this computer; its address. */
+  browserLocalUrl: (path: string) => invoke<string>("browser_local_url", { path }),
   browserClose: (id: string) => invoke<void>("browser_close", { id }),
   onBrowserEvent: (f: (e: BrowserEvent) => void): Promise<UnlistenFn> => listen<BrowserEvent>("browser", (e) => f(e.payload)),
 

@@ -225,8 +225,15 @@ Tab to the Side opens it in a new group at once. The globe button in the
 activity bar and the *Web* button in the editor's toolbar open a page beside
 the code; the start page has *Open Web Page…*. The tab has an address bar
 (a bare address such as `student.cs.uwaterloo.ca/~cs145` becomes https),
-Back, Forward, Reload and Open in your web browser, and suggests recent
-addresses.
+Back, Forward, Reload, Open a File and Open in your web browser, and
+suggests recent addresses.
+
+Browser tabs also show files from this computer: type a path
+(`C:\Exams\exam.pdf`, `/Users/me/exam.pdf` or a `file://` address), use
+*Open a File…* in the tab or View > Open File in Browser Tab…, or open a PDF
+or an image from the Explorer or File > Open File (its context menu also has
+*Open in Browser Tab* for any file, such as an HTML page). The address bar
+shows the file's path.
 
 The page is a native webview (`apps/desktop/src-tauri/src/browser.rs`) kept
 over its tab's area, because most course sites refuse to load in frames. It
@@ -234,7 +241,12 @@ hides while a menu, dialog or palette would overlap it. Pages:
 
 - cannot call PhDRacket's commands (the app's capability covers only its own
   pages),
-- may show only http and https pages; other links are not followed,
+- may show only http and https pages, and the files the user opened; other
+  links are not followed,
+- cannot read the computer's files: local files are served through a private
+  `phdfile:` protocol (`local_files.rs`) only after the user opened them (an
+  HTML page also gets its own folder, for its images and styles), only to
+  browser tabs, and never to a request from a web page,
 - open links that ask for a new window as new browser tabs.
 
 Splitting a browser tab moves it into the new group (a page is shown in one

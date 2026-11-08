@@ -2,7 +2,7 @@
 // on as their argument (from the context menu); without one they act on the
 // selection, or on the open folder.
 
-import { getState, setPrefs } from "@frontend/app/store";
+import { getState, openFileInWebTab, setPrefs } from "@frontend/app/store";
 import { registerCommands } from "@frontend/commands/registry";
 import { registerMenuItems, type MenuItem } from "@frontend/commands/menus";
 import * as A from "./actions";
@@ -25,6 +25,16 @@ export function installExplorerCommands() {
     { id: "explorer.newFile", title: "New File in Explorer…", category: "Explorer", icon: "newFile", enabled: hasFolder, run: (a) => A.startNew("new-file", target(a)) },
     { id: "explorer.newFolder", title: "New Folder…", category: "Explorer", icon: "newFolder", enabled: hasFolder, run: (a) => A.startNew("new-folder", target(a)) },
     { id: "explorer.open", title: "Open", category: "Explorer", palette: false, run: (a) => A.open(target(a)) },
+    {
+      id: "explorer.openInBrowserTab",
+      title: "Open in Browser Tab",
+      category: "Explorer",
+      palette: false,
+      run: (a) => {
+        const t = target(a);
+        if (t && !t.isDir) void openFileInWebTab(t.path, true);
+      },
+    },
     { id: "explorer.rename", title: "Rename…", category: "Explorer", palette: false, run: (a) => A.startRename(target(a)) },
     { id: "explorer.duplicate", title: "Duplicate", category: "Explorer", palette: false, run: (a) => void A.duplicate(target(a)) },
     { id: "explorer.cut", title: "Cut", category: "Explorer", palette: false, run: (a) => A.copy(target(a), "cut") },
@@ -58,6 +68,7 @@ export function installExplorerCommands() {
   const item = (command: string, group: string, order: number, when?: () => boolean): MenuItem => ({ command, group, order, when });
   registerMenuItems(EXPLORER_MENU, [
     item("explorer.open", "1_open", 1, onFile),
+    item("explorer.openInBrowserTab", "1_open", 2, onFile),
     item("explorer.newFile", "2_new", 1),
     item("explorer.newFolder", "2_new", 2),
     item("explorer.cut", "3_clip", 1, onEntry),

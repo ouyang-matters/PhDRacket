@@ -3,6 +3,7 @@
 
 mod browser;
 mod commands;
+mod local_files;
 mod menu;
 
 fn main() {
@@ -14,6 +15,8 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
+        // Local files in browser tabs (local_files.rs).
+        .register_asynchronous_uri_scheme_protocol(local_files::SCHEME, local_files::serve)
         .manage(commands::AppState::default())
         .setup(|app| {
             commands::start_runtime(app.handle().clone(), None);
@@ -64,6 +67,7 @@ fn main() {
             browser::browser_focus,
             browser::browser_edit,
             browser::browser_close,
+            local_files::browser_local_url,
             commands::fs_list,
             commands::fs_create_file,
             commands::fs_create_dir,

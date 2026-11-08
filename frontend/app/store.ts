@@ -33,6 +33,7 @@ import { parseAnnouncements, pendingAnnouncements, todayString, type Announcemen
 import { modnameFor, newFileText, renameGeneratedHeader, NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { detectLanguage } from "@frontend/workspace/language";
 import { isRacketFileName } from "@frontend/exam/answer-files";
+import { fileNameOf, opensInBrowserTab } from "@frontend/browser/address";
 import { languageChangeEdit } from "@frontend/workspace/change-language";
 import * as L from "@frontend/workbench/layout";
 import { isWithin, rebase } from "@frontend/explorer/paths";
@@ -272,6 +273,8 @@ export function editorMayTakeFocus(): boolean {
 }
 
 export async function openPath(path: string, opts: { preserveFocus?: boolean } = {}) {
+  // PDFs and images are shown, not edited.
+  if (opensInBrowserTab(path)) return void (await openFileInWebTab(path));
   keepFocus = !!opts.preserveFocus;
   const existing = state.docs.find((d) => d.path === path);
   if (existing) {
@@ -304,6 +307,7 @@ export async function openWithDialog() {
     multiple: true,
     filters: [
       { name: "Racket source", extensions: ["rkt", "rktl", "scm", "ss"] },
+      { name: "PDF and images", extensions: ["pdf", "png", "jpg", "jpeg", "gif", "webp", "svg"] },
       { name: "All files", extensions: ["*"] },
     ],
   });
@@ -351,6 +355,38 @@ export function openWebTab(url = "", toSide = false): string {
     : L.openTab(state.layout, tab.id);
   setLayout(layout, { webTabs: [...state.webTabs, tab] });
   return tab.id;
+}
+
+/** Shows a file from this computer (a PDF, an image, an HTML page…) in a
+ * browser tab. Returns the tab's id, or null when it cannot be opened. */
+export async function openFileInWebTab(path: string, toSide = false): Promise<string | null> {
+  try {
+    const url = await backend.browserLocalUrl(path);
+    const existing = state.webTabs.find((t) => t.url === url);
+    if (existing) {
+      setLayout(L.openTab(state.layout, existing.id));
+      return existing.id;
+    }
+    const id = openWebTab(url, toSide);
+    updateWebTab(id, { title: fileNameOf(path) });
+    return id;
+  } catch (e) {
+    await message(String(e), { title: "Cannot open file", kind: "error" });
+    return null;
+  }
+}
+
+/** Asks for files and shows them in browser tabs. */
+export async function openFileInWebTabWithDialog(toSide = false) {
+  const picked = await openDialog({
+    multiple: true,
+    filters: [
+      { name: "PDF, images and web pages", extensions: ["pdf", "png", "jpg", "jpeg", "gif", "webp", "svg", "html", "htm"] },
+      { name: "All files", extensions: ["*"] },
+    ],
+  });
+  const paths = Array.isArray(picked) ? picked : picked ? [picked] : [];
+  for (const p of paths) await openFileInWebTab(p, toSide);
 }
 
 export function updateWebTab(id: string, patch: Partial<WebTab>) {
