@@ -25,6 +25,9 @@ export interface ComputeHost {
 export interface Preferences {
   /** Active course profile / mode (shared/models/profiles.ts). */
   profile: string;
+  /** Exam Mode: suggestions, hovers, checking while typing and the other
+   * assistance are off, whatever their own settings (frontend/settings/exam-mode.ts). */
+  examMode: boolean;
   theme: ThemeChoice;
   fontFamily: string;
   fontSize: number;
@@ -33,7 +36,6 @@ export interface Preferences {
   rainbowBrackets: boolean;
   autoClosingBrackets: boolean;
   autoClosingQuotes: boolean;
-  /** Suggest words from the current file while typing (lexical only). */
   /** Suggest names while typing: the language's and the program's own (Ctrl+Space always works). */
   suggestions: boolean;
   /** Check the program in the background while typing (errors, scopes). */
@@ -113,6 +115,7 @@ export interface Preferences {
 
 export const DEFAULT_PREFERENCES: Preferences = {
   profile: "waterloo-cs145",
+  examMode: false,
   theme: "system",
   fontFamily: '"Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace',
   fontSize: 14,

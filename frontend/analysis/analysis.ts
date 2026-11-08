@@ -17,6 +17,7 @@ import { monaco } from "@frontend/editor/monaco";
 import { RACKET_LANGUAGE_ID, SPECIAL_FORMS, TEST_FORMS } from "@frontend/editor/racket-language";
 import { backend } from "@frontend/ipc/backend";
 import { addEngineListener, bumpRevision, getState, openWebTab, subscribe, type Doc } from "@frontend/app/store";
+import { effectivePrefs } from "@frontend/settings/exam-mode";
 import { analyze, bindingAt, candidates, contains, narrowest, validIdentifier, type Analysis, type Range16 } from "./scope";
 
 const OWNER = "phdracket.check";
@@ -70,7 +71,7 @@ function docOf(model: monaco.editor.ITextModel): Doc | undefined {
 }
 
 function enabled(): boolean {
-  return getState().prefs.liveCheck && getState().runtime.state === "ready";
+  return effectivePrefs(getState().prefs).liveCheck && getState().runtime.state === "ready";
 }
 
 function schedule(model: monaco.editor.ITextModel, delay = DELAY_MS) {
@@ -171,7 +172,7 @@ function setMarkers(model: monaco.editor.ITextModel, text: string, s: ModelState
     });
   }
   // Error messages after their line (Settings > Editor > Highlighting).
-  const inline: monaco.editor.IModelDeltaDecoration[] = getState().prefs.inlineErrors
+  const inline: monaco.editor.IModelDeltaDecoration[] = effectivePrefs(getState().prefs).inlineErrors
     ? markers.map((m) => ({
         // The line's text (an empty range at the end does not show injected text).
         range: new monaco.Range(
@@ -184,7 +185,7 @@ function setMarkers(model: monaco.editor.ITextModel, text: string, s: ModelState
       }))
     : [];
   s.inline = model.deltaDecorations(s.inline, inline);
-  for (const u of s.analysis && s.diagnostics.length === 0 && getState().prefs.fadeUnused ? s.analysis.unused : []) {
+  for (const u of s.analysis && s.diagnostics.length === 0 && effectivePrefs(getState().prefs).fadeUnused ? s.analysis.unused : []) {
     markers.push({
       ...rangeOf(model, u),
       severity: monaco.MarkerSeverity.Hint,
@@ -328,8 +329,11 @@ function registerProviders() {
 
   monaco.languages.registerCompletionItemProvider(lang, {
     provideCompletionItems(model, position, context) {
-      // Automatic suggestions follow the setting; Ctrl+Space always works.
-      if (!getState().prefs.suggestions && context.triggerKind !== monaco.languages.CompletionTriggerKind.Invoke) return { suggestions: [] };
+      // Automatic suggestions follow the setting; Ctrl+Space works too,
+      // except in Exam Mode, which offers no suggestions at all.
+      const prefs = getState().prefs;
+      if (prefs.examMode) return { suggestions: [] };
+      if (!prefs.suggestions && context.triggerKind !== monaco.languages.CompletionTriggerKind.Invoke) return { suggestions: [] };
       const word = model.getWordUntilPosition(position);
       const range = new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
       const s = states.get(model);
@@ -415,7 +419,7 @@ export function installAnalysis() {
   // Highlighting settings redraw the markers.
   let shown = "";
   subscribe(() => {
-    const p = getState().prefs;
+    const p = effectivePrefs(getState().prefs);
     const key = `${p.fadeUnused}|${p.inlineErrors}`;
     if (key === shown) return;
     shown = key;

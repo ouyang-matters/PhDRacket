@@ -1,6 +1,7 @@
 import { activeDoc, useApp } from "@frontend/app/store";
 import { liveProblems, useAnalysisVersion } from "@frontend/analysis/analysis";
 import { monaco } from "@frontend/editor/monaco";
+import { effectivePrefs } from "@frontend/settings/exam-mode";
 import { DiagnosticView } from "./DiagnosticView";
 
 const ORDER = ["syntax", "language", "racket", "test", "course", "editor"];
@@ -9,7 +10,7 @@ const ORDER = ["syntax", "language", "racket", "test", "course", "editor"];
 function LiveProblems() {
   useAnalysisVersion();
   const doc = useApp((s) => activeDoc(s));
-  const enabled = useApp((s) => s.prefs.liveCheck);
+  const enabled = useApp((s) => effectivePrefs(s.prefs).liveCheck);
   if (!doc || !enabled) return null;
   const { diagnostics } = liveProblems(doc.model);
   if (diagnostics.length === 0) return null;
@@ -69,7 +70,7 @@ export function ProblemsPanel() {
 function LiveEmpty() {
   useAnalysisVersion();
   const doc = useApp((s) => activeDoc(s));
-  const enabled = useApp((s) => s.prefs.liveCheck);
+  const enabled = useApp((s) => effectivePrefs(s.prefs).liveCheck);
   if (doc && enabled && liveProblems(doc.model).diagnostics.length > 0) return null;
   return <div className="panel-empty">No problems.</div>;
 }

@@ -88,6 +88,10 @@ click. The check can be turned off in Settings.
   its binding and uses, and Go to Definition, References and Rename follow
   Racket's scopes. Suggestions offer your definitions and the language's
   names (both can be turned off).
+- **Exam Mode.** One switch (Tools > Exam Mode) turns off suggestions,
+  hover information and documentation, checking while typing and name
+  highlighting, for exams and practice under exam conditions. Your settings
+  are kept for when it is turned off; Run and the tests are unchanged.
 - **Outline.** The structure of the file as you type: definitions with their
   signatures, structures, tests with their last result, sections.
 - **Source control.** Commit, compare (diff tabs), stage, branches, history,

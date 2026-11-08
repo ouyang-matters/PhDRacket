@@ -812,6 +812,28 @@ export function setPrefs(patch: Partial<Preferences>) {
   void backend.setUiSettings(state.prefs);
 }
 
+/** Turns Exam Mode on or off. Turning it off asks first, so it is not left
+ * by accident during an exam. Returns whether Exam Mode changed. */
+export async function setExamMode(on: boolean): Promise<boolean> {
+  if (on === state.prefs.examMode) return false;
+  if (!on) {
+    const ok = await ask("Suggestions, hovers and checking while typing will follow your settings again.", {
+      title: "Turn off Exam Mode?",
+      kind: "warning",
+      okLabel: "Turn Off",
+      cancelLabel: "Stay in Exam Mode",
+    }).catch(() => window.confirm("Turn off Exam Mode?"));
+    if (!ok) return false;
+  }
+  // Close any suggestion list or hover already open.
+  for (const editor of monaco.editor.getEditors()) {
+    editor.trigger("exam-mode", "hideSuggestWidget", null);
+  }
+  setPrefs({ examMode: on });
+  notify("info", on ? "Exam Mode is on: suggestions, hovers and checking while typing are off." : "Exam Mode is off.");
+  return true;
+}
+
 /** Shows a bottom panel (opening the panel area if it is hidden). */
 export function setPanel(panel: PanelTab) {
   set({ panel });

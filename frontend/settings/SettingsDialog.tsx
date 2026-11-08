@@ -4,13 +4,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { DEFAULT_HIDDEN, HIDDEN_PRESETS, customPatterns, parsePatterns, presetEnabled, setPreset } from "@frontend/explorer/hidden";
 import { Modal } from "@frontend/app/Modal";
-import { setDialog, setPrefs, setSettingsPage, useApp } from "@frontend/app/store";
+import { setDialog, setExamMode, setPrefs, setSettingsPage, useApp } from "@frontend/app/store";
 import { PROFILES } from "@shared/models/profiles";
 import { THEMES, type Theme } from "@frontend/theme/themes";
 import { resolveThemeChoice } from "@frontend/theme/engine";
 import { KeybindingsEditor } from "@frontend/workbench/KeybindingsEditor";
 import { Icon, type IconName } from "@frontend/workbench/icons";
 import type { AutosaveMode, Preferences, StartupAnimation } from "./preferences";
+import { EXAM_MODE_SUMMARY, examControls } from "./exam-mode";
 
 const PAGES: { id: string; title: string; icon: IconName }[] = [
   { id: "general", title: "General", icon: "settings" },
@@ -22,14 +23,44 @@ const PAGES: { id: string; title: string; icon: IconName }[] = [
 
 function Check({ pref, label, hint }: { pref: keyof Preferences; label: string; hint?: string }) {
   const value = useApp((s) => s.prefs[pref]) as boolean;
+  // Exam Mode turns this off for now; the setting itself is kept.
+  const locked = useApp((s) => examControls(s.prefs, pref));
   return (
-    <label className="setting-check">
-      <input type="checkbox" checked={value} onChange={(e) => setPrefs({ [pref]: e.target.checked } as Partial<Preferences>)} />
+    <label className={`setting-check${locked ? " disabled" : ""}`}>
+      <input
+        type="checkbox"
+        checked={locked ? false : value}
+        disabled={locked}
+        onChange={(e) => setPrefs({ [pref]: e.target.checked } as Partial<Preferences>)}
+      />
       <span>
         {label}
-        {hint && <span className="setting-hint">{hint}</span>}
+        {locked ? <span className="setting-hint">Off in Exam Mode.</span> : hint && <span className="setting-hint">{hint}</span>}
       </span>
     </label>
+  );
+}
+
+function ExamModeSection() {
+  const on = useApp((s) => s.prefs.examMode);
+  return (
+    <Section title="Exam Mode">
+      <label className="setting-check">
+        <input type="checkbox" checked={on} onChange={(e) => void setExamMode(e.target.checked)} />
+        <span>
+          Exam Mode
+          <span className="setting-hint">For exams and practice under exam conditions. While it is on, these are off whatever their own settings:</span>
+          <ul className="setting-hint exam-mode-list">
+            {EXAM_MODE_SUMMARY.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <span className="setting-hint">
+            Your settings are kept and apply again when Exam Mode is turned off. Run, tests, the Stepper and Interactions work as usual.
+          </span>
+        </span>
+      </label>
+    </Section>
   );
 }
 
@@ -69,6 +100,7 @@ function General() {
           </select>
         </Row>
       </Section>
+      <ExamModeSection />
       <Section title="Startup">
         <Check pref="checkForUpdates" label="Check for updates on startup" hint="Shows a window when a new version is available." />
         <Check pref="showAnnouncements" label="Show announcements" />
@@ -148,6 +180,11 @@ function Editor() {
   const prefs = useApp((s) => s.prefs);
   return (
     <>
+      {prefs.examMode && (
+        <p className="setting-hint">
+          Exam Mode is on (Settings &gt; General): suggestions, hovers and checking while typing are off until it is turned off.
+        </p>
+      )}
       <Section title="Font">
         <Row label="Font family">
           <input className="wide" value={prefs.fontFamily} onChange={(e) => setPrefs({ fontFamily: e.target.value })} />

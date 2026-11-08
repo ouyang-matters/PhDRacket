@@ -64,6 +64,7 @@ export function StatusBar() {
   const cursor = useCursor();
   const update = useUpdate();
   const git = useGit((s) => s.status);
+  const examMode = useApp((s) => s.prefs.examMode);
 
   const rt = runtime.runtime;
   const mismatch = versionMismatch(profile, rt?.version);
@@ -83,6 +84,16 @@ export function StatusBar() {
         <Icon name="student" size={14} />
         {profile.short}
       </button>
+      {examMode && (
+        <button
+          className="status-item strong status-exam"
+          title="Exam Mode: suggestions, hovers and checking while typing are off. Click to turn it off."
+          onClick={() => executeCommand("tools.examMode")}
+        >
+          <Icon name="exam" size={14} />
+          Exam Mode
+        </button>
+      )}
       {git && (
         <button className="status-item" title={`Branch ${git.branch ?? "(detached)"}${git.files.length ? `, ${git.files.length} changed` : ""}. Click to switch.`} onClick={() => executeCommand("git.switchBranch")}>
           <Icon name="git" size={14} />
