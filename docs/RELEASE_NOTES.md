@@ -1,6 +1,6 @@
 # Release notes
 
-## Unreleased
+## 0.1.7 Beta
 
 ### Exam Mode
 
@@ -23,6 +23,13 @@
   save* is set to, and a new file never replaces an existing one.
 - Files that are not Racket files (`.txt`, `.md`, `.py` and others) are edited
   as plain text, without Racket colors or Run.
+
+### Updating
+
+Copies of 0.1.6 and earlier show an *Update 0.1.7* button in the status bar a
+few seconds after startup; click it, or use About > Check for updates. You
+can also use the Quick install command or the installer from the release
+page.
 
 ## 0.1.6 Beta
 
