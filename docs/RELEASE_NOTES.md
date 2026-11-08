@@ -8,9 +8,10 @@
   under exam conditions: suggestions while typing and Ctrl+Space, information
   and documentation when hovering a name, checking while typing (with its
   error marks, faded unused names and inline messages) and the highlighting of
-  the name under the cursor. Turn it on in *Tools > Exam Mode*, the command
-  palette or *Settings > General*. While it is on, the status bar shows
-  *Exam Mode*; clicking it asks before turning it off. Your own settings are
+  the name under the cursor. Turn it on or off with the *Exam Mode* switch at
+  the right of the menu bar, or in *Tools > Exam Mode*, the command palette
+  or *Settings > General*. While it is on, the status bar also shows
+  *Exam Mode*. Turning it off asks first. Your own settings are
   kept and apply again afterwards, and Exam Mode stays on after a restart.
   Run, tests, the Stepper and Interactions work as usual.
 

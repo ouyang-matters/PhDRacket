@@ -7,6 +7,7 @@ import { commandsChanged, executeCommand } from "@frontend/commands/registry";
 import { applyTheme } from "@frontend/theme/apply";
 import { resolveThemeChoice } from "@frontend/theme/engine";
 import { MenuBar } from "@frontend/workbench/MenuBar";
+import { ExamModeSwitch } from "@frontend/workbench/ExamModeSwitch";
 import { ActivityBar, Sidebar } from "@frontend/workbench/sidebar";
 import { BottomPanel } from "@frontend/workbench/panels";
 import { QuickInputHost } from "@frontend/workbench/QuickInput";
@@ -179,6 +180,7 @@ export function App() {
         <MenuBar locked={!accepted}>
           <CommandCenter />
           <div className="menubar-spacer" data-tauri-drag-region />
+          <ExamModeSwitch />
         </MenuBar>
       )}
       <div className="workbench-body">
