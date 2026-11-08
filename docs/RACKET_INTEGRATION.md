@@ -90,8 +90,10 @@ On Windows, processes start without a console window.
 |---|---|
 | Settings: runtime choice, recent files, open folder, preferences | `settings.json` in the per-user configuration directory |
 | Compiled bridge | Per-user local application data directory |
+| Exam Mode answer files | `PhDRacket Exam` in your Documents folder, or the folder chosen in Settings > General; created when the first answer file is |
 
-PhDRacket writes nothing into your folders except the source files you save.
+PhDRacket writes nothing into your folders except the source files you save
+and, in Exam Mode, the answer files you create.
 A save writes a temporary file next to the target and renames it over the
 target, so an interrupted save never leaves a truncated file. Opening a folder
 in the Explorer only reads it.

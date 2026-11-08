@@ -4,6 +4,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
+  AnswerFile,
   AppInfo,
   DirEntry,
   FileEntry,
@@ -116,6 +117,12 @@ export const backend = {
   /** Find in Files (read-only). */
   workspaceSearch: (path: string, query: string, caseSensitive: boolean) =>
     invoke<SearchMatch[]>("workspace_search", { path, query, caseSensitive }),
+
+  /** Exam Mode answer files (backend/src/exam.rs). */
+  examDefaultFolder: () => invoke<string>("exam_default_folder"),
+  examCreateFile: (dir: string, stem: string, ext: string, text: string) => invoke<string>("exam_create_file", { dir, stem, ext, text }),
+  examList: (dir: string) => invoke<AnswerFile[]>("exam_list", { dir }),
+  examRevealFolder: (dir: string) => invoke<void>("exam_reveal_folder", { dir }),
 
   settings: () => invoke<Settings>("settings_get"),
   setUiSettings: (ui: unknown) => invoke<void>("settings_set_ui", { ui }),

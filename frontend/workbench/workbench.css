@@ -127,7 +127,39 @@ kbd {
   align-self: stretch;
 }
 
-/* Exam Mode switch, at the right of the menu bar */
+/* Exam Mode: the Answer File button and the switch, at the right of the menu bar */
+.exam-answer-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid var(--c-border-default);
+  border-radius: var(--radius-md);
+  background: var(--c-surface-raised);
+  color: var(--c-text-primary);
+  white-space: nowrap;
+  margin-right: var(--space-1);
+}
+
+.exam-answer-button:hover {
+  background: var(--c-surface-sunken);
+}
+
+.setting-folder {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  max-width: 22rem;
+}
+
+.setting-folder code {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .exam-switch {
   display: inline-flex;
   align-items: center;

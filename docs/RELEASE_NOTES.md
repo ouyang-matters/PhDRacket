@@ -14,6 +14,15 @@
   *Exam Mode*. Turning it off asks first. Your own settings are
   kept and apply again afterwards, and Exam Mode stays on after a restart.
   Run, tests, the Stepper and Interactions work as usual.
+- **Answer files.** In Exam Mode, the *Answer File* button beside the switch
+  creates a file for your answers or code in the answer folder (by default
+  *PhDRacket Exam* in Documents; change it in *Settings > General*): text,
+  Markdown, Racket in any teaching language, or any name you type, such as
+  `q1.py`. The same button reopens earlier answer files. Answer files are
+  saved automatically less than a second after each change, whatever *Auto
+  save* is set to, and a new file never replaces an existing one.
+- Files that are not Racket files (`.txt`, `.md`, `.py` and others) are edited
+  as plain text, without Racket colors or Run.
 
 ## 0.1.6 Beta
 

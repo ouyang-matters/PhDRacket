@@ -32,6 +32,7 @@ import { TERMS_VERSION } from "@frontend/legal/terms";
 import { parseAnnouncements, pendingAnnouncements, todayString, type Announcement } from "./announcements";
 import { modnameFor, newFileText, renameGeneratedHeader, NEW_FILE_LANGUAGES } from "@frontend/workspace/new-file";
 import { detectLanguage } from "@frontend/workspace/language";
+import { isRacketFileName } from "@frontend/exam/answer-files";
 import { languageChangeEdit } from "@frontend/workspace/change-language";
 import * as L from "@frontend/workbench/layout";
 import { isWithin, rebase } from "@frontend/explorer/paths";
@@ -231,7 +232,9 @@ function fileName(path: string): string {
 
 function createDoc(init: Omit<Doc, "id" | "model" | "savedVersion"> & { text: string }): Doc {
   const uri = monaco.Uri.from({ scheme: "phdracket", path: `/${docSeq}/${init.name}` });
-  const model = monaco.editor.createModel(init.text, RACKET_LANGUAGE_ID, uri);
+  // Racket files are edited as Racket; other files (answer files in Exam
+  // Mode, notes) as plain text.
+  const model = monaco.editor.createModel(init.text, isRacketFileName(init.name) ? RACKET_LANGUAGE_ID : "plaintext", uri);
   // The backend hands us LF text and re-applies the file's line endings.
   model.setEOL(monaco.editor.EndOfLineSequence.LF);
   const doc: Doc = {
@@ -628,12 +631,18 @@ export function activate(id: string) {
 }
 
 const autosaveTimers = new Map<string, number>();
+/** Answer files are saved soon after every change, whatever Auto save is
+ * set to, so an answer is on disk if the computer stops during an exam. */
+const ANSWER_AUTOSAVE_MS = 800;
+
 function scheduleAutosave(doc: Doc) {
-  if (state.prefs.autosave !== "afterDelay" || !doc.path) return;
+  if (!doc.path) return;
+  const delay = isAnswerFile(doc) ? ANSWER_AUTOSAVE_MS : state.prefs.autosave === "afterDelay" ? state.prefs.autosaveDelay : null;
+  if (delay === null) return;
   window.clearTimeout(autosaveTimers.get(doc.id));
   autosaveTimers.set(
     doc.id,
-    window.setTimeout(() => autosaveNow(doc), state.prefs.autosaveDelay),
+    window.setTimeout(() => autosaveNow(doc), delay),
   );
 }
 
@@ -652,9 +661,8 @@ export function autosaveOnEditorBlur(docId: string) {
 
 /** "When the window loses focus". */
 function autosaveOnWindowBlur() {
-  if (state.prefs.autosave === "onWindowChange" || state.prefs.autosave === "onFocusChange") {
-    for (const d of state.docs) autosaveNow(d);
-  }
+  const all = state.prefs.autosave === "onWindowChange" || state.prefs.autosave === "onFocusChange";
+  for (const d of state.docs) if (all || isAnswerFile(d)) autosaveNow(d);
 }
 
 // ---------------------------------------------------------------------------
@@ -812,6 +820,39 @@ export function setPrefs(patch: Partial<Preferences>) {
   void backend.setUiSettings(state.prefs);
 }
 
+// ---------------------------------------------------------------------------
+// Exam Mode answer files
+
+/** "PhDRacket Exam" in Documents, from the backend at startup. */
+let defaultAnswerFolder: string | null = null;
+
+/** The folder answer files are written to (Settings > General > Exam Mode). */
+export function answerFolder(s: AppState = state): string | null {
+  return s.prefs.examFolder || defaultAnswerFolder;
+}
+
+export function defaultAnswerFolderPath(): string | null {
+  return defaultAnswerFolder;
+}
+
+/** A document saved in the answer folder. */
+export function isAnswerFile(doc: Doc): boolean {
+  const folder = answerFolder();
+  return !!folder && !!doc.path && isWithin(doc.path, folder);
+}
+
+/** Creates a new answer file (never replacing one) and opens it. */
+export async function newAnswerFile(stem: string, ext: string, text: string) {
+  const dir = answerFolder();
+  if (!dir) return void (await message("The answer folder is not known. Choose one in Settings > General.", { title: "Cannot create answer file", kind: "error" }));
+  try {
+    const path = await backend.examCreateFile(dir, stem, ext, text);
+    await openPath(path);
+  } catch (e) {
+    await message(String(e), { title: "Cannot create answer file", kind: "error" });
+  }
+}
+
 /** Turns Exam Mode on or off. Turning it off asks first, so it is not left
  * by accident during an exam. Returns whether Exam Mode changed. */
 export async function setExamMode(on: boolean): Promise<boolean> {
@@ -894,6 +935,7 @@ export async function initialize() {
   await backend.onRuntimeStatus((runtime) => set({ runtime }));
   set({ runtime: await backend.runtimeStatus() });
   const settings = await backend.settings();
+  defaultAnswerFolder = await backend.examDefaultFolder().catch(() => null);
   const prefs = mergePreferences(settings.ui);
   set({
     prefs,

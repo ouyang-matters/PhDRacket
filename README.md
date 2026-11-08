@@ -91,7 +91,10 @@ click. The check can be turned off in Settings.
 - **Exam Mode.** One On/Off switch at the top right of the window turns off suggestions,
   hover information and documentation, checking while typing and name
   highlighting, for exams and practice under exam conditions. Your settings
-  are kept for when it is turned off; Run and the tests are unchanged.
+  are kept for when it is turned off; Run and the tests are unchanged. Its
+  *Answer File* button opens a file of any kind (text, Markdown, Racket, or
+  a name such as `q1.py`) in an answer folder, saved automatically as you
+  type.
 - **Outline.** The structure of the file as you type: definitions with their
   signatures, structures, tests with their last result, sections.
 - **Source control.** Commit, compare (diff tabs), stage, branches, history,

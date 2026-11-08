@@ -22,6 +22,7 @@ import {
   type Doc,
 } from "@frontend/app/store";
 import { effectivePrefs } from "@frontend/settings/exam-mode";
+import { RACKET_LANGUAGE_ID } from "./racket-language";
 import { executeCommand, getCommand } from "@frontend/commands/registry";
 import { formatKey, keybindingFor } from "@frontend/commands/keybindings";
 import { stepSourceRange } from "@frontend/stepper/StepperPanel";
@@ -32,6 +33,9 @@ import { Icon, type IconName } from "@frontend/workbench/icons";
 import { StartPage } from "@frontend/workbench/StartPage";
 import { BrowserView } from "@frontend/browser/BrowserView";
 import { DiffView } from "@frontend/git/DiffView";
+
+/** Edited as Racket (not a plain-text file such as an answer file). */
+const isRacketDoc = (d: { model: monaco.editor.ITextModel }) => d.model.getLanguageId() === RACKET_LANGUAGE_ID;
 
 /** The Definitions editor of the active group, if mounted. */
 export function definitionsEditor() {
@@ -185,7 +189,7 @@ function Tabs({ groupId }: { groupId: string }) {
             }}
           >
             <span className="tab-name">{d.name}</span>
-            <span className="tab-lang">{d.language.short}</span>
+            {isRacketDoc(d) && <span className="tab-lang">{d.language.short}</span>}
             <button
               className={`tab-close${isDirty(d) ? " dirty" : ""}`}
               aria-label={isDirty(d) ? `${d.name} has unsaved changes; close` : `Close ${d.name}`}
@@ -221,7 +225,12 @@ function ToolButton({ command, icon, label, className }: { command: string; icon
 function GroupToolbar({ groupId }: { groupId: string }) {
   const active = useApp((s) => s.layout.activeGroup === groupId);
   const hasTab = useApp((s) => !!s.layout.groups[groupId]?.active);
-  const hasDoc = useApp((s) => !!s.layout.groups[groupId]?.active && !isViewTabId(s.layout.groups[groupId]?.active));
+  // Run, Step and Debug are for Racket files, not plain-text answer files or notes.
+  const hasDoc = useApp((s) => {
+    const id = s.layout.groups[groupId]?.active;
+    const d = id && !isViewTabId(id) ? s.docs.find((x) => x.id === id) : undefined;
+    return !!d && isRacketDoc(d);
+  });
   const running = useApp((s) => s.run.status === "running");
   const many = useApp((s) => Object.keys(s.layout.groups).length > 1);
   return (

@@ -27,6 +27,8 @@ export interface QuickPick {
   onValue?(value: string): boolean;
   /** Text shown when nothing matches. */
   empty?: string;
+  /** An item made from the typed text (e.g. "New file q1.py"), shown first. */
+  fromValue?(value: string): QuickItem | null;
 }
 
 /** The open picker; a new object for every pick, so React sees each one. */
@@ -96,7 +98,11 @@ function Picker({ pick }: { pick: QuickPick }) {
     };
   }, [pick]);
 
-  const shown = useMemo(() => filterItems(items ?? [], value), [items, value]);
+  const shown = useMemo(() => {
+    const filtered = filterItems(items ?? [], value);
+    const typed = pick.fromValue?.(value);
+    return typed ? [typed, ...filtered] : filtered;
+  }, [items, value, pick]);
 
   // Start on the requested item.
   useEffect(() => {

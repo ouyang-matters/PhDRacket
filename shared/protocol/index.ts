@@ -300,6 +300,15 @@ export interface Settings {
   ui: unknown;
 }
 
+/** A file in Exam Mode's answer folder (backend/src/exam.rs). */
+export interface AnswerFile {
+  name: string;
+  path: string;
+  size: number;
+  /** Milliseconds since the Unix epoch. */
+  modified: number | null;
+}
+
 export interface AppInfo {
   name: string;
   version: string;

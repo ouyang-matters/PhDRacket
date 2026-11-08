@@ -7,6 +7,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { exit } from "@tauri-apps/plugin-process";
 import {
   activeDoc,
+  answerFolder,
   applyEditorLayout,
   canReopenClosedEditor,
   closeAllEditors,
@@ -56,7 +57,7 @@ import { installDebugCommands } from "@frontend/debug/commands";
 import { installGitCommands } from "@frontend/git/commands";
 import { openBrowserTab } from "@frontend/browser/BrowserView";
 import { runEditorAction, targetEditor } from "./editors";
-import { showCommandPalette, showLanguagePicker, showProfilePicker, showQuickOpen, showThemePicker } from "./pickers";
+import { showAnswerFilePicker, showCommandPalette, showLanguagePicker, showProfilePicker, showQuickOpen, showThemePicker } from "./pickers";
 import {
   canShowSidebarView,
   closeSidebarBelow,
@@ -317,6 +318,22 @@ export const BUILTIN_COMMANDS: Command[] = [
     checked: () => getState().prefs.examMode,
     run: () => setExamMode(!getState().prefs.examMode),
   },
+  {
+    id: "exam.answerFiles",
+    title: "Answer Files…",
+    category: "Exam",
+    icon: "exam",
+    enabled: () => getState().prefs.examMode,
+    run: showAnswerFilePicker,
+  },
+  {
+    id: "exam.showAnswerFolder",
+    title: "Show Answer Folder",
+    category: "Exam",
+    icon: "folder",
+    enabled: () => getState().prefs.examMode && !!answerFolder(),
+    run: () => backend.examRevealFolder(answerFolder()!),
+  },
 
   // Help
   { id: "help.documentation", title: "PhDRacket Documentation", category: "Help", icon: "docs", run: () => openUrl(LINKS.documentation) },
@@ -520,6 +537,8 @@ export const BUILTIN_MENUS: Record<string, MenuItem[]> = {
     item("tools.courseProfile", "1_lang", 2),
     item("tools.runtime", "2_runtime", 1),
     item("tools.examMode", "3_exam", 1),
+    item("exam.answerFiles", "3_exam", 2),
+    item("exam.showAnswerFolder", "3_exam", 3),
   ],
   "menubar.help": [
     item("help.documentation", "1_docs", 1),
