@@ -1,5 +1,18 @@
 # Release notes
 
+## Unreleased
+
+### Files from your computer in browser tabs
+
+- Browser tabs show PDFs, images, HTML pages and text files from your
+  computer, for example an exam paper beside your answer file. Type a path
+  in the address bar (`C:\Exams\exam.pdf`), use *Open a File…* in the tab or
+  *View > Open File in Browser Tab…*, or open a PDF or image from the Explorer
+  or *File > Open File*. The Explorer's context menu has *Open in Browser Tab*
+  for any file.
+- Only files you open yourself are shown, and web pages still cannot read
+  your files.
+
 ## 0.1.7 Beta
 
 ### Exam Mode

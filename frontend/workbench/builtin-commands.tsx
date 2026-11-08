@@ -21,6 +21,7 @@ import {
   getState,
   isDirty,
   moveTabToNewGroup,
+  openFileInWebTabWithDialog,
   openFolderWithDialog,
   openPath,
   openWithDialog,
@@ -360,6 +361,13 @@ export const BUILTIN_COMMANDS: Command[] = [
     icon: "globe",
     run: () => openBrowserTab(true),
   },
+  {
+    id: "view.openFileInBrowserTab",
+    title: "Open File in Browser Tab…",
+    category: "View",
+    icon: "openFile",
+    run: () => openFileInWebTabWithDialog(true),
+  },
   { id: "help.about", title: "About PhDRacket", category: "Help", run: () => setDialog("about") },
 
   // Editor tabs (context menu)
@@ -481,6 +489,7 @@ export const BUILTIN_MENUS: Record<string, MenuItem[]> = {
     item("view.outline", "2_views", 2),
     item("view.openBrowser", "2_views", 3),
     item("view.openBrowserToSide", "2_views", 4),
+    item("view.openFileInBrowserTab", "2_views", 5),
     item("view.problems", "3_panels", 1),
     item("view.tests", "3_panels", 2),
     item("view.interactions", "3_panels", 3),

@@ -4,10 +4,12 @@
 //!
 //! Pages are ordinary web pages: they cannot call PhDRacket's commands (the
 //! capability in capabilities/default.json covers the app's own pages only),
-//! they may only show http(s) pages, and links that open new windows become
-//! new browser tabs.
+//! they may only show http(s) pages and the local files the user opened
+//! (local_files.rs), and links that open new windows become new browser tabs.
 
 use serde::Serialize;
+
+use crate::local_files;
 use tauri::webview::{NewWindowResponse, PageLoadEvent, WebviewBuilder};
 use tauri::{AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, Rect, Url, WebviewUrl};
 
@@ -31,11 +33,13 @@ fn label(id: &str) -> Result<String, String> {
     }
 }
 
-/// Only web pages: http and https (and blank pages).
+/// Only web pages: http and https (and blank pages), and local files'
+/// addresses (served only once the user opened the file: local_files.rs).
 pub fn web_url(text: &str) -> Result<Url, String> {
     let url = Url::parse(text.trim()).map_err(|e| format!("Not a web address: {e}"))?;
     match url.scheme() {
         "http" | "https" => Ok(url),
+        s if s == local_files::SCHEME => Ok(url),
         "about" if url.as_str() == "about:blank" => Ok(url),
         other => Err(format!("Only web pages (http, https) can be opened, not {other}:")),
     }
@@ -73,7 +77,7 @@ pub async fn browser_open(app: AppHandle, id: String, url: String, x: f64, y: f6
             NewWindowResponse::Deny
         })
         .on_navigation(move |url| {
-            let ok = matches!(url.scheme(), "http" | "https" | "about" | "data" | "blob");
+            let ok = matches!(url.scheme(), "http" | "https" | "about" | "data" | "blob") || url.scheme() == local_files::SCHEME;
             if !ok {
                 let _ = d.emit("browser", BrowserEvent::Blocked { id: id4.clone(), url: url.to_string() });
             }
@@ -151,6 +155,7 @@ mod tests {
         assert!(web_url("https://student.cs.uwaterloo.ca/~cs145/").is_ok());
         assert!(web_url("http://localhost:8000/a.html").is_ok());
         assert!(web_url("about:blank").is_ok());
+        assert!(web_url("phdfile://localhost/Users/me/exam.pdf").is_ok());
         for bad in ["file:///C:/x.rkt", "javascript:alert(1)", "tauri://localhost", "ftp://x", "nonsense"] {
             assert!(web_url(bad).is_err(), "{bad}");
         }

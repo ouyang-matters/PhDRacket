@@ -115,8 +115,10 @@ click. The check can be turned off in Settings.
   which files to hide in Settings > Files.
 - **Browser tabs.** Open the assignment page, course notes or documentation
   in a tab beside your code: the globe button on the left, *Web* above the
-  editor, or Ctrl+Shift+B. Pages cannot see your files or
-  use PhDRacket.
+  editor, or Ctrl+Shift+B. Files from your computer open there too: type a
+  path in the address bar or open a PDF or image from the Explorer, for
+  example an exam paper beside your answer file. Web pages cannot see your
+  files or use PhDRacket.
 - **Themes.** PhDRacket Light and Dark, Midnight, Paper, two high-contrast
   themes and two unofficial Waterloo-inspired themes, all checked for
   contrast, with live preview.
