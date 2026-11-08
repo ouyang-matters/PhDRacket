@@ -28,6 +28,9 @@ export interface Preferences {
   /** Exam Mode: suggestions, hovers, checking while typing and the other
    * assistance are off, whatever their own settings (frontend/settings/exam-mode.ts). */
   examMode: boolean;
+  /** Folder for Exam Mode answer files; "" for the default ("PhDRacket Exam"
+   * in Documents). */
+  examFolder: string;
   theme: ThemeChoice;
   fontFamily: string;
   fontSize: number;
@@ -116,6 +119,7 @@ export interface Preferences {
 export const DEFAULT_PREFERENCES: Preferences = {
   profile: "waterloo-cs145",
   examMode: false,
+  examFolder: "",
   theme: "system",
   fontFamily: '"Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace',
   fontSize: 14,

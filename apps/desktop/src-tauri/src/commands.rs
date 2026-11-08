@@ -12,6 +12,7 @@ use phdracket_core::source::{self, OpenedSource, SaveOutcome, SourceSnapshot};
 use phdracket_core::bridge;
 use phdracket_core::workspace::{self, DirEntry};
 use phdracket_core::files;
+use phdracket_core::exam::{self, AnswerFile};
 use phdracket_core::git;
 use phdracket_core::install::{self, InstallProgress, InstallerInfo};
 use phdracket_core::remote;
@@ -559,6 +560,34 @@ pub async fn fs_folder_stats(root: String, dir: String) -> Result<files::FolderS
 pub fn fs_reveal(root: String, path: String) -> Result<(), String> {
     let p = files::properties(Path::new(&root), Path::new(&path)).map_err(file_err)?.path;
     tauri_plugin_opener::reveal_item_in_dir(p).map_err(|e| e.to_string())
+}
+
+/// Exam Mode's default answer folder: "PhDRacket Exam" in Documents (in
+/// the home folder, or the app's data folder, when there is none).
+#[tauri::command]
+pub fn exam_default_folder(app: AppHandle) -> Result<PathBuf, String> {
+    let p = app.path();
+    let base = p.document_dir().or_else(|_| p.home_dir()).or_else(|_| p.app_local_data_dir()).map_err(|e| e.to_string())?;
+    Ok(base.join(exam::DEFAULT_FOLDER_NAME))
+}
+
+/// A new answer file in `dir` (created if needed); never replaces a file.
+#[tauri::command]
+pub fn exam_create_file(dir: String, stem: String, ext: String, text: String) -> Result<PathBuf, String> {
+    exam::create(Path::new(&dir), &stem, &ext, &text).map_err(file_err)
+}
+
+/// The answer files in `dir`, newest first.
+#[tauri::command]
+pub fn exam_list(dir: String) -> Result<Vec<AnswerFile>, String> {
+    exam::list(Path::new(&dir)).map_err(file_err)
+}
+
+/// Shows the answer folder in the file manager (creating it if needed).
+#[tauri::command]
+pub fn exam_reveal_folder(dir: String) -> Result<(), String> {
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    tauri_plugin_opener::reveal_item_in_dir(PathBuf::from(dir)).map_err(|e| e.to_string())
 }
 
 /// Watches the open folder (`None` stops). Changes arrive as

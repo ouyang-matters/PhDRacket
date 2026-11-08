@@ -3,9 +3,24 @@
 
 import { setExamMode, useApp } from "@frontend/app/store";
 import { Icon } from "./icons";
+import { showAnswerFilePicker } from "./pickers";
 
 export function ExamModeSwitch() {
   const on = useApp((s) => s.prefs.examMode);
+  return (
+    <>
+      {on && (
+        <button type="button" className="exam-answer-button" title="Write answers in a file of any kind, saved automatically in the answer folder" onClick={showAnswerFilePicker}>
+          <Icon name="newFile" size={14} />
+          Answer File
+        </button>
+      )}
+      <ExamSwitch on={on} />
+    </>
+  );
+}
+
+function ExamSwitch({ on }: { on: boolean }) {
   return (
     <button
       type="button"

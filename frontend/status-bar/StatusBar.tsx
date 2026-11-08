@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { versionMismatch } from "@shared/models/profiles";
 import { activeDoc, activeProfile, headerChanged, setDialog, useApp } from "@frontend/app/store";
 import { monaco } from "@frontend/editor/monaco";
+import { RACKET_LANGUAGE_ID } from "@frontend/editor/racket-language";
 import { useUpdate } from "@frontend/app/updates";
 import { executeCommand } from "@frontend/commands/registry";
 import { activeGroupEditor } from "@frontend/workbench/editors";
@@ -77,6 +78,7 @@ export function StatusBar() {
           ? "Racket not found"
           : "Racket error";
   const unrecognized = doc?.language.kind === "unrecognized-metadata";
+  const racket = !!doc && doc.model.getLanguageId() === RACKET_LANGUAGE_ID;
 
   return (
     <footer className="status-bar" aria-label="Status bar">
@@ -102,7 +104,8 @@ export function StatusBar() {
           {(git.ahead > 0 || git.behind > 0) && ` ↑${git.ahead}↓${git.behind}`}
         </button>
       )}
-      {doc && (
+      {doc && !racket && <span className="status-item">Plain Text</span>}
+      {doc && racket && (
         <button
           className={`status-item${unrecognized || doc.language.kind === "unspecified" ? " status-warn" : ""}`}
           title="Choose Language"

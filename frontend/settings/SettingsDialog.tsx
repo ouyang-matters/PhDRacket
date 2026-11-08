@@ -4,7 +4,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { DEFAULT_HIDDEN, HIDDEN_PRESETS, customPatterns, parsePatterns, presetEnabled, setPreset } from "@frontend/explorer/hidden";
 import { Modal } from "@frontend/app/Modal";
-import { setDialog, setExamMode, setPrefs, setSettingsPage, useApp } from "@frontend/app/store";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { answerFolder, defaultAnswerFolderPath, setDialog, setExamMode, setPrefs, setSettingsPage, useApp } from "@frontend/app/store";
+import { backend } from "@frontend/ipc/backend";
 import { PROFILES } from "@shared/models/profiles";
 import { THEMES, type Theme } from "@frontend/theme/themes";
 import { resolveThemeChoice } from "@frontend/theme/engine";
@@ -43,6 +45,12 @@ function Check({ pref, label, hint }: { pref: keyof Preferences; label: string; 
 
 function ExamModeSection() {
   const on = useApp((s) => s.prefs.examMode);
+  const folder = useApp((s) => answerFolder(s));
+  const custom = useApp((s) => s.prefs.examFolder !== "");
+  const choose = async () => {
+    const picked = await openDialog({ directory: true, defaultPath: folder ?? undefined, title: "Answer folder" });
+    if (typeof picked === "string") setPrefs({ examFolder: picked });
+  };
   return (
     <Section title="Exam Mode">
       <label className="setting-check">
@@ -60,6 +68,19 @@ function ExamModeSection() {
           </span>
         </span>
       </label>
+      <Row
+        label="Answer folder"
+        hint="In Exam Mode, the Answer File button creates files of any kind here (text, Markdown, Racket or a name you type). They are saved automatically while you write."
+      >
+        <div className="setting-folder">
+          <code title={folder ?? ""}>{folder ?? "Not available"}</code>
+          <div className="row">
+            <button onClick={() => void choose()}>Change…</button>
+            {folder && <button onClick={() => void backend.examRevealFolder(folder)}>Show</button>}
+            {custom && <button title={defaultAnswerFolderPath() ?? ""} onClick={() => setPrefs({ examFolder: "" })}>Default</button>}
+          </div>
+        </div>
+      </Row>
     </Section>
   );
 }

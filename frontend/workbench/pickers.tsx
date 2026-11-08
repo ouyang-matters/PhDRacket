@@ -1,7 +1,9 @@
 // Pickers built on the quick input. The command palette lists the same
 // registry the menus use.
 
-import { activeDoc, activeProfile, changeLanguage, getState, openPath, setPrefs } from "@frontend/app/store";
+import { activeDoc, activeProfile, answerFolder, changeLanguage, getState, newAnswerFile, openPath, setPrefs } from "@frontend/app/store";
+import { ANSWER_KINDS, answerStem, parseAnswerName, textForTyped } from "@frontend/exam/answer-files";
+import type { AnswerFile } from "@shared/protocol";
 import { allCommands, commandLabel, executeCommand, isEnabled, isVisible } from "@frontend/commands/registry";
 import { formatKey, keybindingFor } from "@frontend/commands/keybindings";
 import { backend } from "@frontend/ipc/backend";
@@ -140,5 +142,55 @@ export function showProfilePicker() {
     items: PROFILES.map((p) => ({ id: p.id, label: p.name, description: p.short })),
     activeId: activeProfile().id,
     onAccept: (item) => setPrefs({ profile: item.id }),
+  });
+}
+
+function timeLabel(ms: number | null): string {
+  if (ms === null) return "";
+  const d = new Date(ms);
+  const today = new Date().toDateString() === d.toDateString();
+  return today ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : d.toLocaleString([], { dateStyle: "short", timeStyle: "short" });
+}
+
+/** Exam Mode's answer files: start a new one (any kind, or any name typed,
+ * such as q1.py) or open one written earlier, newest first. */
+export function showAnswerFilePicker() {
+  const folder = answerFolder();
+  let existing: AnswerFile[] = [];
+  quickPick({
+    placeholder: "New answer file, or open an earlier one (type a name such as q1.py for any kind of file)",
+    items: async () => {
+      existing = folder ? await backend.examList(folder).catch(() => []) : [];
+      const stem = answerStem(new Date());
+      return [
+        ...ANSWER_KINDS.map((k) => ({
+          id: `new:${k.id}`,
+          label: `New ${k.label}`,
+          description: `${stem}.${k.ext}`,
+          icon: <Icon name="newFile" size={16} />,
+        })),
+        ...existing.map((f) => ({ id: `open:${f.path}`, label: f.name, description: timeLabel(f.modified), icon: <Icon name="exam" size={16} /> })),
+        { id: "reveal", label: "Show Answer Folder", description: folder ?? "", icon: <Icon name="folder" size={16} /> },
+      ];
+    },
+    fromValue: (value) => {
+      const parsed = parseAnswerName(value);
+      if (!parsed || existing.some((f) => f.name.toLowerCase() === value.trim().toLowerCase())) return null;
+      return { id: `typed:${value.trim()}`, label: `New File ${value.trim()}`, description: "in the answer folder", icon: <Icon name="newFile" size={16} /> };
+    },
+    onAccept: (item) => {
+      if (item.id === "reveal") {
+        if (folder) void backend.examRevealFolder(folder);
+      } else if (item.id.startsWith("open:")) {
+        void openPath(item.id.slice(5));
+      } else if (item.id.startsWith("typed:")) {
+        const parsed = parseAnswerName(item.id.slice(6));
+        if (parsed) void newAnswerFile(parsed.stem, parsed.ext, textForTyped(parsed.stem, parsed.ext, activeProfile().defaultLanguage));
+      } else {
+        const kind = ANSWER_KINDS.find((k) => `new:${k.id}` === item.id);
+        const stem = answerStem(new Date());
+        if (kind) void newAnswerFile(stem, kind.ext, kind.text(stem));
+      }
+    },
   });
 }
