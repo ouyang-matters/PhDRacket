@@ -4,6 +4,7 @@
 import { OutlineView } from "@frontend/outline/OutlineView";
 import { liveProblems } from "@frontend/analysis/analysis";
 import { activeDoc, getState } from "@frontend/app/store";
+import { effectivePrefs } from "@frontend/settings/exam-mode";
 import { Explorer } from "@frontend/explorer/Explorer";
 import { SearchView } from "@frontend/search/SearchView";
 import { InteractionsPanel } from "@frontend/interactions/InteractionsPanel";
@@ -33,7 +34,7 @@ export function installBuiltinViews() {
     badge: () => ({
       count:
         getState().run.diagnostics.filter((d) => d.category !== "test").length +
-        (getState().prefs.liveCheck ? liveProblems(activeDoc()?.model).diagnostics.filter((d) => d.severity === "error").length : 0),
+        (effectivePrefs(getState().prefs).liveCheck ? liveProblems(activeDoc()?.model).diagnostics.filter((d) => d.severity === "error").length : 0),
     }),
   });
   registerPanelView({

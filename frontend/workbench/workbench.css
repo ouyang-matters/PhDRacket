@@ -1194,6 +1194,15 @@ table.keybindings tr.changed td:first-child {
   margin-top: 0.2rem;
 }
 
+.setting-check.disabled {
+  color: var(--c-text-disabled);
+}
+
+.exam-mode-list {
+  margin: 0.1rem 0;
+  padding-left: 1.2rem;
+}
+
 .theme-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));

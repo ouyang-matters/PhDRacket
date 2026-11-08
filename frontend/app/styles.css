@@ -431,6 +431,18 @@ button.stop {
   color: var(--danger);
 }
 
+/* Exam Mode is on: plain to see, so it is never on (or off) by surprise. */
+.status-item.status-exam {
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+button.status-item.status-exam:hover:not(:disabled) {
+  color: var(--accent-text);
+  background: var(--accent);
+  filter: brightness(1.1);
+}
+
 .status-spacer {
   flex: 1;
 }

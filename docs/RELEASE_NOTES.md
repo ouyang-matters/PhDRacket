@@ -1,5 +1,19 @@
 # Release notes
 
+## Unreleased
+
+### Exam Mode
+
+- **Exam Mode** turns off the editor's assistance for exams and practice
+  under exam conditions: suggestions while typing and Ctrl+Space, information
+  and documentation when hovering a name, checking while typing (with its
+  error marks, faded unused names and inline messages) and the highlighting of
+  the name under the cursor. Turn it on in *Tools > Exam Mode*, the command
+  palette or *Settings > General*. While it is on, the status bar shows
+  *Exam Mode*; clicking it asks before turning it off. Your own settings are
+  kept and apply again afterwards, and Exam Mode stays on after a restart.
+  Run, tests, the Stepper and Interactions work as usual.
+
 ## 0.1.6 Beta
 
 ### Fixes

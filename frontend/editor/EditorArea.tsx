@@ -21,6 +21,7 @@ import {
   useApp,
   type Doc,
 } from "@frontend/app/store";
+import { effectivePrefs } from "@frontend/settings/exam-mode";
 import { executeCommand, getCommand } from "@frontend/commands/registry";
 import { formatKey, keybindingFor } from "@frontend/commands/keybindings";
 import { stepSourceRange } from "@frontend/stepper/StepperPanel";
@@ -254,7 +255,8 @@ function EditorGroupView({ groupId }: { groupId: string }) {
   });
   const stepper = useApp((s) => s.stepper);
   const panel = useApp((s) => s.panel);
-  const prefs = useApp((s) => s.prefs);
+  // With Exam Mode's overrides (frontend/settings/exam-mode.ts).
+  const prefs = useApp((s) => effectivePrefs(s.prefs));
   const [dropping, setDropping] = useState(false);
 
   useEffect(() => {

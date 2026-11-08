@@ -28,6 +28,7 @@ import {
   saveDoc,
   setDialog,
   setPanel,
+  setExamMode,
   setPrefs,
   splitEditor,
   stepActive,
@@ -308,6 +309,14 @@ export const BUILTIN_COMMANDS: Command[] = [
   { id: "tools.changeLanguage", title: "Language…", category: "Tools", icon: "language", enabled: hasDoc, run: showLanguagePicker },
   { id: "tools.courseProfile", title: "Course Profile…", category: "Tools", icon: "student", run: showProfilePicker },
   { id: "tools.runtime", title: "Racket Runtime…", category: "Tools", run: () => setDialog("runtime") },
+  {
+    id: "tools.examMode",
+    title: "Exam Mode",
+    category: "Tools",
+    icon: "exam",
+    checked: () => getState().prefs.examMode,
+    run: () => setExamMode(!getState().prefs.examMode),
+  },
 
   // Help
   { id: "help.documentation", title: "PhDRacket Documentation", category: "Help", icon: "docs", run: () => openUrl(LINKS.documentation) },
@@ -506,7 +515,12 @@ export const BUILTIN_MENUS: Record<string, MenuItem[]> = {
     item("run.restartStepper", "3_stepper", 2),
     item("run.stop", "4_stop", 1),
   ],
-  "menubar.tools": [item("tools.changeLanguage", "1_lang", 1), item("tools.courseProfile", "1_lang", 2), item("tools.runtime", "2_runtime", 1)],
+  "menubar.tools": [
+    item("tools.changeLanguage", "1_lang", 1),
+    item("tools.courseProfile", "1_lang", 2),
+    item("tools.runtime", "2_runtime", 1),
+    item("tools.examMode", "3_exam", 1),
+  ],
   "menubar.help": [
     item("help.documentation", "1_docs", 1),
     item("help.introduction", "1_docs", 2),
